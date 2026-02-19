@@ -16,17 +16,17 @@ use App\Entity\Lot;
 use App\Entity\Releve;
 use App\Entity\ReleveItem;
 use App\Entity\User;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[AdminDashboard(routePath: '/admin/easy', routeName: 'admin_easy')]
 #[IsGranted('ROLE_ADMIN')]
 class EasyAdminDashboardController extends AbstractDashboardController
 {
-    #[Route('/admin/easy', name: 'admin_easy')]
     public function index(): Response
     {
         return $this->render('admin/easy_dashboard.html.twig');
