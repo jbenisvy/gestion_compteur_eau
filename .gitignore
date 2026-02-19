@@ -18,3 +18,41 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+# Uploaded files generated at runtime
+/public/uploads/*
+!/public/uploads/.gitkeep
+!/public/uploads/compteurs/
+!/public/uploads/coproprietaires/
+/public/uploads/compteurs/*
+!/public/uploads/compteurs/.gitkeep
+/public/uploads/coproprietaires/*
+!/public/uploads/coproprietaires/.gitkeep
+
+# Local tooling / editors
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs / debug dumps
+*.log
+*.sql
+*.sqlite
+*.sqlite3
+
+# Node / frontend transient files (if used)
+/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build artifacts and archives
+*.zip
+*.tar
+*.tar.gz
