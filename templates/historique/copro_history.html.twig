@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ title ?? 'Historique' }}{% endblock %}
+
+{% block body %}
+{% set sections = (isAdmin ?? false) and ownerSegments is defined and ownerSegments|length > 0
+  ? ownerSegments
+      : [{
+          copro: copro is defined ? copro : null,
+          coproName: copro is defined ? copro.nomComplet : '—',
+          periodLabel: years is defined and years|length > 0 ? (years|first ~ ' à ' ~ years|last) : '',
+          years: years,
+          consoYears: consos|keys,
+          rows: rows,
+          consos: consos,
+          consosByCompteur: consosByCompteur|default({}),
+          forfaitByCompteur: forfaitByCompteur|default({}),
+          forfaitValueByCompteur: forfaitValueByCompteur|default({}),
+          forfaitCountByYear: forfaitCountByYear|default({}),
+          forfaitTotalByYear: forfaitTotalByYear|default({})
+        }]
+%}
+
+{% if sections is empty or sections[0].years is empty %}
+  <section class="card">
+    <h3>Historique</h3>
+    <p>Aucune année de relevé ne correspond à votre période de présence sur ce lot.</p>
+  </section>
+{% endif %}
+
+{% for section in sections %}
+  <section class="hero" style="{{ loop.first ? '' : 'margin-top: 20px;' }}">
+    <div>
+      <h1>{{ title ?? 'Historique' }}</h1>
+      <p>Lot {{ lot.numeroLot }} — {{ lot.emplacement ?? '' }} ({{ lot.typeAppartement ?? '' }})</p>
+
+      {% if isAdmin ?? false %}
+        <p><strong>Période:</strong> {{ section.periodLabel }}</p>
+        <p><strong>Copro:</strong> {{ section.coproName }}</p>
+        <div class="hero-actions">
+          <span class="badge">Correction admin possible</span>
+        </div>
+      {% elseif section.copro is not null %}
+        <p>{{ section.copro.nomComplet }}</p>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h3>Total consommations</h3>
+      {% if section.consoYears|default([])|length > 0 %}
+        <table class="table">
+          <thead>
+            <tr>
+              {% for y in section.consoYears %}
+                <th>{{ y }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              {% for y in section.consoYears %}
+                <td>{{ section.consos[y] ?? 0 }}</td>
+              {% endfor %}
+            </tr>
+          </tbody>
+        </table>
+        <p style="margin-top: 8px;">
+          {% for y in section.consoYears %}
+            <span class="badge">
+              {{ y }}: {{ section.forfaitCountByYear[y] ?? 0 }} forfait(s),
+              +{{ section.forfaitTotalByYear[y] ?? 0 }}
+            </span>
+          {% endfor %}
+        </p>
+      {% else %}
+        <p>Aucun historique suffisant pour calculer la consommation.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="card" style="margin-top: 20px;">
+    <h3>Détail par compteur</h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Compteur</th>
+          <th>Pièce</th>
+          <th>Type</th>
+          <th>Forfaits appliqués</th>
+          {% for y in section.years %}
+            <th>{{ y }}</th>
+          {% endfor %}
+          {% for y in section.consoYears|default([]) %}
+            <th>Conso {{ y }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for cmpId, data in section.rows %}
+          <tr>
+            <td>{{ data.numero }}</td>
+            <td>{{ data.piece }}</td>
+            <td>{{ data.type }}</td>
+            <td>
+              {% for y in section.years %}
+                {% if y != section.years|first and (section.forfaitByCompteur[cmpId][y] ?? false) %}
+                  <span class="badge">{{ y }}: +{{ section.forfaitValueByCompteur[cmpId][y] ?? 0 }}</span>
+                {% endif %}
+              {% endfor %}
+            </td>
+            {% for y in section.years %}
+              <td>{{ data[y] ?? '–' }}</td>
+            {% endfor %}
+            {% for y in section.consoYears|default([]) %}
+              {% if section.forfaitByCompteur[cmpId][y] ?? false %}
+                <td><span class="badge">Forfait +{{ section.forfaitValueByCompteur[cmpId][y] ?? 0 }}</span></td>
+              {% else %}
+                <td>{{ section.consosByCompteur[cmpId][y] ?? 0 }}</td>
+              {% endif %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endfor %}
+{% endblock %}

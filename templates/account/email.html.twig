@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon compte{% endblock %}
+
+{% block body %}
+<div class="login-card">
+    <h1>Mon adresse email</h1>
+    <p>Adresse actuelle: <strong>{{ userEmail }}</strong></p>
+    <p>Statut vérification: <strong>{{ isVerified ? 'Vérifiée' : 'Non vérifiée' }}</strong></p>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+    <form method="post" action="{{ path('app_account_email') }}">
+        <div class="form-row">
+            <label for="newEmail">Nouvelle adresse email</label>
+            <input type="email" id="newEmail" name="email" required autocomplete="email">
+        </div>
+        <input type="hidden" name="_token" value="{{ csrf_token('account_change_email') }}">
+        <button class="btn btn-primary" type="submit">Mettre à jour l'email</button>
+    </form>
+</div>
+{% endblock %}

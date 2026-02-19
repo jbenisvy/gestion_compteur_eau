@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Saisie des index - Lot {{ lot.id }}{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h2 class="text-center mt-4">📝 Saisie des index – Lot {{ lot.id }}</h2>
+
+    <p><strong>Année :</strong> {{ annee }}</p>
+    <p><strong>Copropriétaire :</strong> {{ lot.coproprietaire.nomComplet }}</p>
+    <p><strong>Emplacement :</strong> {{ lot.emplacement }}</p>
+    <p><strong>Locataire :</strong> {{ lot.nomLocataire }}</p>
+
+    <form method="post" action="{{ path('coproprietaire_saisie_index', {lot: lot.id}) }}">
+        <div class="row">
+            <!-- Compteurs Eau Chaude -->
+            <div class="col-md-6 compteur chaud">
+                <h4 class="text-center">Compteurs Eau Chaude</h4>
+                {% for compteur in compteursChaude %}
+                    <div class="form-group border p-2">
+                        <label><strong>{{ compteur.emplacement }} - N° {{ compteur.numero }}</strong></label>
+                        <select name="etat_{{ compteur.id }}">
+                            {% for etat in etats %}
+                                <option value="{{ etat.id }}" {% if compteur.etat.id == etat.id %}selected{% endif %}>{{ etat.nom }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="input-group mt-1">
+                            <span>Ancien index : {{ compteur.dernierIndex }}</span>
+                            <input type="number" name="index_{{ compteur.id }}" required class="form-control" placeholder="Nouvel index">
+                        </div>
+                        <input type="text" name="commentaire_{{ compteur.id }}" class="form-control mt-1" placeholder="Commentaire (optionnel)">
+                    </div>
+                {% endfor %}
+                <p class="text-right font-weight-bold">Total Eau Chaude : <span id="total-chaude">0</span> m³</p>
+            </div>
+
+            <!-- Compteurs Eau Froide -->
+            <div class="col-md-6 compteur froide">
+                <h4 class="text-center">Compteurs Eau Froide</h4>
+                {% for compteur in compteursFroide %}
+                    <div class="form-group border p-2">
+                        <label><strong>{{ compteur.emplacement }} - N° {{ compteur.numero }}</strong></label>
+                        <select name="etat_{{ compteur.id }}">
+                            {% for etat in etats %}
+                                <option value="{{ etat.id }}" {% if compteur.etat.id == etat.id %}selected{% endif %}>{{ etat.nom }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="input-group mt-1">
+                            <span>Ancien index : {{ compteur.dernierIndex }}</span>
+                            <input type="number" name="index_{{ compteur.id }}" required class="form-control" placeholder="Nouvel index">
+                        </div>
+                        <input type="text" name="commentaire_{{ compteur.id }}" class="form-control mt-1" placeholder="Commentaire (optionnel)">
+                    </div>
+                {% endfor %}
+                <p class="text-right font-weight-bold">Total Eau Froide : <span id="total-froide">0</span> m³</p>
+            </div>
+        </div>
+
+        <hr>
+        <p class="text-center font-weight-bold">Total général : <span id="total-general">0</span> m³</p>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">💾 Enregistrer les relevés</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

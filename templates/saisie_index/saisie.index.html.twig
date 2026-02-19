@@ -1,0 +1,563 @@
+{% extends 'base.html.twig' %}
+{% block title %}Saisie des index – {{ annee }}{% endblock %}
+
+{% block body %}
+<style>
+:root{
+  --bg:#e6f2ff; --panel:#fff; --muted:#6b7280; --line:#e5e7eb;
+  --brand:#2563eb; --hot:#fbe4e6; --cold:#e7f0ff; --hot-border:#f5b0bd; --cold-border:#b5cffc;
+}
+.page{max-width:1200px;margin:0 auto;padding:16px;}
+h1{margin:10px 0 8px 0; font-size:28px;}
+/* Toolbar Lot/Année */
+.toolbar{display:flex;gap:10px;align-items:flex-end;background:#eaf2ff;padding:10px 12px;border-radius:10px;margin-bottom:12px;}
+.toolbar label{font-weight:600;font-size:14px;color:#111}
+.toolbar select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;}
+.btn{background:var(--brand);color:#fff;border:none;border-radius:10px;padding:9px 14px;cursor:pointer;}
+.btn[disabled]{opacity:.5;cursor:not-allowed;}
+/* Grille */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media (max-width:960px){.grid2{grid-template-columns:1fr;}}
+.block{border-radius:14px;overflow:hidden;}
+.block.hot{background:linear-gradient(0deg,#fff,var(--hot));border:1px solid var(--hot-border);}
+.block.cold{background:linear-gradient(0deg,#fff,var(--cold));border:1px solid var(--cold-border);}
+.block .head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);}
+.block .inner{padding:10px 12px}
+.row{border:1px dashed #e2e8f0;border-radius:10px;padding:10px;margin-bottom:10px;background:#fff9;}
+.meta{font-size:12px;color:#6b7280}
+.lbl{font-weight:600}
+.small input, .small select, .small textarea{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:14px;min-width:0;}
+/* Ligne 1 (commune) */
+.rowgrid-top{
+  display:grid;
+  grid-template-columns: 110px 90px minmax(180px,1fr) 110px 120px 110px;
+  gap:10px; align-items:center;
+}
+@media (max-width:1100px){ .rowgrid-top{grid-template-columns: 120px 90px 1fr 100px 110px 100px;} }
+@media (max-width:900px){ .rowgrid-top{grid-template-columns:1fr 1fr; row-gap:6px;} }
+/* Ligne 2 (remplacement) : 2 colonnes pour bien voir les 4 champs */
+.rowgrid-replace{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(240px,1fr));
+  gap:10px; align-items:end; margin-top:8px;
+}
+@media (max-width:700px){ .rowgrid-replace{grid-template-columns:1fr;} }
+/* Conso */
+.conso{text-align:right;}
+.conso .v{font-weight:800;font-size:18px}
+.forfait-hint{display:none;margin-top:4px;font-size:12px;color:#7a5b00;background:#fff3cd;border:1px solid #ffe69c;border-radius:8px;padding:2px 6px}
+.empty{color:#9ca3af;font-style:italic;padding:12px}
+.totals{margin-top:12px;padding:12px;border-radius:12px;background:#f8fafc;border:1px solid var(--line)}
+.badge-ro{display:inline-flex;align-items:center;gap:8px;background:#fff3cd;border:1px solid #ffe69c;color:#7a5b00;padding:6px 10px;border-radius:8px;font-size:14px;}
+.badge-ro .dot{width:8px;height:8px;border-radius:50%;background:#f59e0b;}
+/* Lien numéro compteur */
+.compteur-trigger{display:inline-block; font-weight:600; text-decoration:none; border-bottom:1px dashed #888;}
+.compteur-trigger:hover{text-decoration:underline;}
+.compteur-history-link{display:inline-block; margin-top:4px; font-size:12px; color:#374151; text-decoration:underline;}
+.visually-hidden{position:absolute !important; height:1px; width:1px; overflow:hidden; clip:rect(1px, 1px, 1px, 1px);}
+</style>
+
+<div class="page">
+
+  {# ---- Barre Lot / Année ---- #}
+  <div class="toolbar">
+    <div>
+      <label for="sel_lot">Lot</label><br>
+      <select id="sel_lot">
+        {% for l in allLots %}
+          <option value="{{ l.id }}" {{ l.id == lot.id ? 'selected' : '' }}>
+            Lot {{ attribute(l,'numeroLot') is defined and l.numeroLot is not null ? l.numeroLot : l.id }} — {{ attribute(l,'emplacement') is defined ? l.emplacement : 'Lot' }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="sel_annee">Année</label><br>
+      <select id="sel_annee">
+        {% for a in annees %}
+          <option value="{{ a }}" {{ a == annee ? 'selected' : '' }}>{{ a }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div><button id="btn_go" class="btn">Aller</button></div>
+  </div>
+
+  <h1>💧 Saisie des index – {{ annee }}</h1>
+  <p style="color:#374151;margin:0 0 12px 0">
+    {% if copro %} Copropriétaire : <b>{{ copro.nom ?? '' }} {{ copro.prenom ?? '' }}</b> • {% endif %}
+    Lot : <b>{{ attribute(lot,'numeroLot') is defined and lot.numeroLot is not null ? lot.numeroLot : lot.id }}</b>
+    {% if attribute(lot,'tantiemes') is defined and lot.tantiemes is not null %} • Tantièmes : <b>{{ lot.tantiemes }}</b>{% endif %}
+    {% if attribute(lot,'tantieme') is defined and lot.tantieme is not null %} • Tantièmes : <b>{{ lot.tantieme }}</b>{% endif %}
+    {% if attribute(lot,'occupant') is defined and lot.occupant is not null %} • Occupant : <b>{{ lot.occupant }}</b>{% endif %}
+    {% if attribute(lot,'typeAppartement') is defined and lot.typeAppartement is not null %} • Type : <b>{{ lot.typeAppartement }}</b>{% endif %}
+  </p>
+
+  {# Bandeau lecture seule si l’année n’est pas éditable #}
+  {% if not isEditable %}
+    <div class="badge-ro" style="margin:8px 0 14px 0;">
+      <span class="dot"></span>
+      Année {{ annee }} en lecture seule (édition désactivée).{% if anneeActive is defined %} Année active : <b>{{ anneeActive }}</b>.{% endif %}
+    </div>
+  {% endif %}
+
+  {% for type, messages in app.flashes %}
+    {% for message in messages %}
+      <div class="row" style="border-style:solid;border-color:#93c5fd;background:#eff6ff">{{ message }}</div>
+    {% endfor %}
+  {% endfor %}
+
+  {# IMPORTANT : pas de render_rest automatique à la fin #}
+  {{ form_start(form, { attr: { autocomplete: 'off', enctype: 'multipart/form-data' } }) }}
+
+  <div class="grid2">
+    {# ----- Eau Chaude ----- #}
+    <div class="block hot">
+      <div class="head"><div>Compteurs Eau Chaude</div><div class="meta">Total bloc : <span class="pill-total" id="block_total_hot">0</span> <span class="sub">(Cuisine: <b id="total_cuisine_chaude">0</b>, SDB: <b id="total_sdb_chaude">0</b>)</span></div></div>
+      <div class="inner">
+        {% set printed = 0 %}
+        {% for idx, item in items %}
+          {% set piece = item.piece ?? '' %}
+          {% set type  = item.typeEau ?? '' %}
+          {% if type == 'chaude' %}
+            {% set printed = printed + 1 %}
+            <div class="row small" data-kind="item">
+              <div class="rowgrid-top">
+                <div class="lbl">
+                  {{ piece|capitalize }}
+                  <br>
+                  {# Numéro cliquable (prend depuis le DTO avec fallback sur form) #}
+                  {% set cid = item.compteurId ?? (form.items[idx].compteurId.vars.data ?? '') %}
+                  {% set cnum = item.compteurNumero ?? (form.items[idx].compteurNumero.vars.data ?? ('#' ~ cid)) %}
+                  <a href="#"
+                     class="compteur-trigger"
+                     data-compteur-id="{{ cid }}"
+                     title="Cliquer pour ajouter/remplacer la photo">
+                    {{ cnum }}
+                  </a>
+                  {% set photo = item.photoUrl ?? (form.items[idx].vars.data.photoUrl ?? null) %}
+                  {% if cid %}
+                    <br>
+                    <a class="compteur-history-link" href="{{ path('compteur_photo_history', {id: cid, photo: photo}) }}" target="_blank" rel="noopener">Historique photos</a>
+                  {% endif %}
+
+                  {# Vignette cliquable: ouvre dans un nouvel onglet #}
+                  <a
+                    class="compteur-photo-link"
+                    data-compteur-id="{{ cid }}"
+                    href="{{ photo ? photo : '#' }}"
+                    target="_blank"
+                    rel="noopener"
+                    style="{{ photo ? '' : 'display:none;' }}"
+                  >
+                    <img
+                      class="compteur-photo"
+                      data-compteur-id="{{ cid }}"
+                      src="{{ photo ? photo : '' }}"
+                      alt="Photo compteur {{ cnum }}"
+                      style="margin-top:4px;height:40px;width:auto;border:1px solid #d1d5db;border-radius:6px;background:#fff;"
+                    >
+                  </a>
+                </div>
+                <div class="meta">N-1 : <b class="n1">{{ item.indexPrevious ?? 0 }}</b></div>
+                <div class="field-etat">{{ form_row(form.items[idx].etat, {'label':'État'}) }}</div>
+                <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'N'}) }}</div>
+                <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
+                <div class="conso">
+                  <div class="meta">Conso calculée</div>
+                  <div class="v cons-val" data-piece="{{ piece }}" data-type="{{ type }}">0</div>
+                  <div class="forfait-hint">Forfait +0 m3</div>
+                </div>
+              </div>
+              <div class="rowgrid-replace">
+                <div class="field-numero">{{ form_row(form.items[idx].compteurNumero, {'label':'N° compteur (optionnel)'}) }}</div>
+                <div class="field-dateInstallation">{{ form_row(form.items[idx].dateInstallation, {'label':"Date d'installation"}) }}</div>
+                <div class="field-indexDemonte">{{ form_row(form.items[idx].indexDemonte, {'label':'Index ancien (démonté)'}) }}</div>
+                <div class="field-indexNouveau">{{ form_row(form.items[idx].indexNouveau, {'label':'Index nouveau (N du nouveau compteur)'}) }}</div>
+                <div class="field-ancienFonctionnaitEncore" style="grid-column:1/-1">
+                  {{ form_row(form.items[idx].ancienFonctionnaitEncore, {'label': 'Ancien compteur encore en service (conso = index ancien démonté - N-1 + index nouveau)'}) }}
+                </div>
+                <div class="comment" style="grid-column:1/-1">{{ form_row(form.items[idx].commentaire, {'label':'Commentaire'}) }}</div>
+
+                {# Input fichier caché lié à ce compteur #}
+                <div class="visually-hidden">
+                  {{ form_widget(form.items[idx].photoFile, {
+                    attr: {
+                      'data-compteur-id': cid,
+                      class: 'photo-input'
+                    }
+                  }) }}
+                </div>
+                <div style="grid-column:1/-1; margin-top:4px;">
+                  {{ form_row(form.items[idx].removePhoto, {'label': 'Supprimer la photo actuelle'}) }}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+        {% if printed == 0 %}<div class="empty">Aucun compteur dans ce bloc.</div>{% endif %}
+      </div>
+    </div>
+
+    {# ----- Eau Froide ----- #}
+    <div class="block cold">
+      <div class="head"><div>Compteurs Eau Froide</div><div class="meta">Total bloc : <span class="pill-total" id="block_total_cold">0</span> <span class="sub">(Cuisine: <b id="total_cuisine_froide">0</b>, SDB: <b id="total_sdb_froide">0</b>)</span></div></div>
+      <div class="inner">
+        {% set printed = 0 %}
+        {% for idx, item in items %}
+          {% set piece = item.piece ?? '' %}
+          {% set type  = item.typeEau ?? '' %}
+          {% if type == 'froide' %}
+            {% set printed = printed + 1 %}
+            <div class="row small" data-kind="item">
+              <div class="rowgrid-top">
+                <div class="lbl">
+                  {{ piece|capitalize }}
+                  <br>
+                  {% set cid = item.compteurId ?? (form.items[idx].compteurId.vars.data ?? '') %}
+                  {% set cnum = item.compteurNumero ?? (form.items[idx].compteurNumero.vars.data ?? ('#' ~ cid)) %}
+                  <a href="#"
+                     class="compteur-trigger"
+                     data-compteur-id="{{ cid }}"
+                     title="Cliquer pour ajouter/remplacer la photo">
+                    {{ cnum }}
+                  </a>
+                  {% set photo = item.photoUrl ?? (form.items[idx].vars.data.photoUrl ?? null) %}
+                  {% if cid %}
+                    <br>
+                    <a class="compteur-history-link" href="{{ path('compteur_photo_history', {id: cid, photo: photo}) }}" target="_blank" rel="noopener">Historique photos</a>
+                  {% endif %}
+
+                  <a
+                    class="compteur-photo-link"
+                    data-compteur-id="{{ cid }}"
+                    href="{{ photo ? photo : '#' }}"
+                    target="_blank"
+                    rel="noopener"
+                    style="{{ photo ? '' : 'display:none;' }}"
+                  >
+                    <img
+                      class="compteur-photo"
+                      data-compteur-id="{{ cid }}"
+                      src="{{ photo ? photo : '' }}"
+                      alt="Photo compteur {{ cnum }}"
+                      style="margin-top:4px;height:40px;width:auto;border:1px solid #d1d5db;border-radius:6px;background:#fff;"
+                    >
+                  </a>
+                </div>
+                <div class="meta">N-1 : <b class="n1">{{ item.indexPrevious ?? 0 }}</b></div>
+                <div class="field-etat">{{ form_row(form.items[idx].etat, {'label':'État'}) }}</div>
+                <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'N'}) }}</div>
+                <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
+                <div class="conso">
+                  <div class="meta">Conso calculée</div>
+                  <div class="v cons-val" data-piece="{{ piece }}" data-type="{{ type }}">0</div>
+                  <div class="forfait-hint">Forfait +0 m3</div>
+                </div>
+              </div>
+              <div class="rowgrid-replace">
+                <div class="field-numero">{{ form_row(form.items[idx].compteurNumero, {'label':'N° compteur (optionnel)'}) }}</div>
+                <div class="field-dateInstallation">{{ form_row(form.items[idx].dateInstallation, {'label':"Date d'installation"}) }}</div>
+                <div class="field-indexDemonte">{{ form_row(form.items[idx].indexDemonte, {'label':'Index ancien (démonté)'}) }}</div>
+                <div class="field-indexNouveau">{{ form_row(form.items[idx].indexNouveau, {'label':'Index nouveau (N du nouveau compteur)'}) }}</div>
+                <div class="field-ancienFonctionnaitEncore" style="grid-column:1/-1">
+                  {{ form_row(form.items[idx].ancienFonctionnaitEncore, {'label': 'Ancien compteur encore en service (conso = index ancien démonté - N-1 + index nouveau)'}) }}
+                </div>
+                <div class="comment" style="grid-column:1/-1">{{ form_row(form.items[idx].commentaire, {'label':'Commentaire'}) }}</div>
+
+                <div class="visually-hidden">
+                  {{ form_widget(form.items[idx].photoFile, {
+                    attr: {
+                      'data-compteur-id': cid,
+                      class: 'photo-input'
+                    }
+                  }) }}
+                </div>
+                <div style="grid-column:1/-1; margin-top:4px;">
+                  {{ form_row(form.items[idx].removePhoto, {'label': 'Supprimer la photo actuelle'}) }}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+        {% if printed == 0 %}<div class="empty">Aucun compteur dans ce bloc.</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="totals">
+    <h3 style="margin:0 0 8px 0;">Totaux</h3>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;">
+      <div>Cuisine – Chaude : <b id="t_cuisine_chaude">0</b></div>
+      <div>SDB – Chaude : <b id="t_sdb_chaude">0</b></div>
+      <div>Total Eau chaude : <b id="t_global_chaude">0</b></div>
+      <div>Cuisine – Froide : <b id="t_cuisine_froide">0</b></div>
+      <div>SDB – Froide : <b id="t_sdb_froide">0</b></div>
+      <div>Total Eau froide : <b id="t_global_froide">0</b></div>
+      <div>Forfaits Chaude : <b id="t_forfait_chaude">0</b> m3</div>
+      <div>Forfaits Froide : <b id="t_forfait_froide">0</b> m3</div>
+      <div style="flex:1 0 100%"></div>
+      <div>Total forfaits : <b id="t_forfait_total">0</b> m3</div>
+      <div>Total général : <b id="t_global_total">0</b></div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn" {{ not isEditable ? 'disabled' : '' }}>💾 Enregistrer</button>
+    </div>
+  </div>
+
+  {{ form_row(form._token) }}
+  {{ form_end(form, { render_rest: false }) }}
+</div>
+
+<script>
+(function(){
+  // ---- Navigation Lot/Année ----
+  const goBtn=document.getElementById('btn_go');
+  const selLot=document.getElementById('sel_lot');
+  const selAn =document.getElementById('sel_annee');
+  const protoUrl="{{ path('saisie_index_form', { lotId: 999999, annee: 1999 }) }}";
+  goBtn?.addEventListener('click', ()=> {
+    const lotId=selLot?selLot.value:'{{ lot.id }}';
+    const annee=selAn?selAn.value:'{{ annee }}';
+    const url=protoUrl.replace('999999', lotId).replace('1999', annee);
+    window.location.href=url;
+  });
+
+  function toInt(v){ v=(v??'').toString().trim(); const n=parseInt(v,10); return isNaN(n)?0:n; }
+  function isForfaitLike(etatTxt){
+    etatTxt=(etatTxt||'').toLowerCase();
+    return etatTxt.includes('forfait')
+      || etatTxt.includes('bloqu')
+      || etatTxt.includes('non communiqu')
+      || etatTxt.includes('index compteur non');
+  }
+
+  function toggleFields(card, etatTxt){
+    etatTxt=(etatTxt||'').toLowerCase();
+    const show = sel => { const el=card.querySelector(sel); if(el) el.style.removeProperty('display'); };
+    const hide = sel => { const el=card.querySelector(sel); if(el) el.style.display='none'; };
+    const indexNInput = card.querySelector('input[id$="_indexN"]');
+
+    hide('.field-indexN'); hide('.field-forfait');
+    hide('.field-dateInstallation');
+    hide('.field-indexDemonte'); hide('.field-indexNouveau');
+    hide('.field-ancienFonctionnaitEncore');
+    if (indexNInput) {
+      indexNInput.disabled = false;
+      indexNInput.style.backgroundColor = '';
+      indexNInput.style.color = '';
+      indexNInput.style.cursor = '';
+    }
+
+    if(etatTxt.includes('suppr')) {
+      if (indexNInput) {
+        indexNInput.disabled = true;
+        indexNInput.style.backgroundColor = '#e5e7eb';
+        indexNInput.style.color = '#6b7280';
+        indexNInput.style.cursor = 'not-allowed';
+      }
+    }
+    else if(isForfaitLike(etatTxt)) { show('.field-forfait'); }
+    else if(etatTxt.includes('nouveau')) {
+      show('.field-dateInstallation');
+      show('.field-indexDemonte');    show('.field-indexNouveau');
+      show('.field-ancienFonctionnaitEncore');
+    }
+    else if(etatTxt.includes('remplac') || etatTxt.includes('démont') || etatTxt.includes('demonte')) {
+      show('.field-dateInstallation');
+      show('.field-indexDemonte');    show('.field-indexNouveau');
+    } else {
+      show('.field-indexN');
+    }
+  }
+
+  function recompute(){
+    const blocTotals={cuisine_chaude:0,cuisine_froide:0,sdb_chaude:0,sdb_froide:0};
+    let tHot=0,tCold=0,tAll=0;
+    let fHot=0,fCold=0,fAll=0;
+
+    document.querySelectorAll('.row[data-kind="item"]').forEach(card=>{
+      const consEl=card.querySelector('.cons-val'); if(!consEl) return;
+      const forfaitHint=card.querySelector('.forfait-hint');
+      const piece=consEl.dataset.piece || '';
+      const type =consEl.dataset.type  || '';
+
+      const prev=toInt(card.querySelector('.n1')?.textContent);
+      const sel =card.querySelector('.field-etat select');
+      const etat=(sel && sel.options[sel.selectedIndex]) ? sel.options[sel.selectedIndex].text.toLowerCase() : '';
+
+      const getInput=(suffix)=>card.querySelector(`input[id$="${suffix}"]`);
+      const n  = toInt(getInput('_indexN')?.value);
+      const f  = toInt(getInput('_forfait')?.value);
+      const dm = toInt(getInput('_indexDemonte')?.value);
+      const nw = toInt(getInput('_indexNouveau')?.value);
+      const ancienEncore = !!card.querySelector('input[type=\"checkbox\"][id$=\"_ancienFonctionnaitEncore\"]:checked');
+
+      // Préremplir "ancien" avec N-1 si vide et remplacé
+      if ((dm===0 || getInput('_indexDemonte')?.value==='') 
+          && prev>0 && (etat.includes('remplac') || etat.includes('démont') || etat.includes('demonte'))) {
+        const dmInput=getInput('_indexDemonte');
+        if (dmInput && dmInput.value==='') dmInput.value = String(prev);
+      }
+
+      toggleFields(card, etat);
+
+      let cons=0;
+      let forfaitM3=0;
+      if(etat.includes('suppr')) cons=0;
+      else if(isForfaitLike(etat)) { cons=f; forfaitM3=f; }
+      else if(etat.includes('nouveau')){
+        const ancienActif = ancienEncore || (dm > prev);
+        if (ancienActif) {
+          cons = Math.max(0, dm - prev) + Math.max(0, nw); // ancien démonté - N-1 + nouveau
+        } else {
+          cons = Math.max(0, nw); // nouveau seul
+        }
+      }
+      else if(etat.includes('remplac') || etat.includes('démont') || etat.includes('demonte')){
+        cons = Math.max(0, dm - prev) + Math.max(0, nw); // (ancien - N-1) + nouveau
+      } else {
+        cons = Math.max(0, n - prev);
+      }
+
+      consEl.textContent=String(cons);
+      if (forfaitHint) {
+        if (forfaitM3 > 0) {
+          forfaitHint.style.display = 'inline-block';
+          forfaitHint.textContent = `Forfait +${forfaitM3} m3`;
+        } else {
+          forfaitHint.style.display = 'none';
+          forfaitHint.textContent = 'Forfait +0 m3';
+        }
+      }
+
+      const key=`${piece}_${type}`;
+      if(key in blocTotals){
+        blocTotals[key]+=cons;
+        if(type==='chaude') tHot+=cons;
+        if(type==='froide') tCold+=cons;
+        if(type==='chaude') fHot+=forfaitM3;
+        if(type==='froide') fCold+=forfaitM3;
+        fAll += forfaitM3;
+        tAll+=cons;
+      }else{
+        fAll += forfaitM3;
+        tAll+=cons;
+      }
+    });
+
+    const ids={
+      total_cuisine_chaude:blocTotals.cuisine_chaude, total_sdb_chaude:blocTotals.sdb_chaude,
+      total_cuisine_froide:blocTotals.cuisine_froide, total_sdb_froide:blocTotals.sdb_froide,
+      t_cuisine_chaude:blocTotals.cuisine_chaude, t_sdb_chaude:blocTotals.sdb_chaude,
+      t_cuisine_froide:blocTotals.cuisine_froide, t_sdb_froide:blocTotals.sdb_froide,
+      t_global_chaude:tHot, t_global_froide:tCold, t_global_total:tAll,
+      t_forfait_chaude:fHot, t_forfait_froide:fCold, t_forfait_total:fAll,
+      block_total_hot:tHot, block_total_cold:tCold
+    };
+    Object.entries(ids).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.textContent=String(val); });
+  }
+
+  document.addEventListener('input', e=>{ if(e.target.matches('input, select, textarea')) recompute(); });
+  document.addEventListener('change', e=>{ if(e.target.matches('input, select')) recompute(); });
+
+  // Premier passage
+  document.querySelectorAll('.row[data-kind="item"]').forEach(card=>{
+    const sel=card.querySelector('.field-etat select');
+    const et=(sel && sel.options[sel.selectedIndex]) ? sel.options[sel.selectedIndex].text.toLowerCase() : '';
+    toggleFields(card, et);
+  });
+  recompute();
+
+  // Numéro cliquable -> ouvre l'input fichier correspondant
+  document.querySelectorAll('.compteur-trigger').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      const id = this.getAttribute('data-compteur-id');
+      const input = document.querySelector('input.photo-input[data-compteur-id="'+id+'"]');
+      if (input) { input.click(); }
+    });
+  });
+
+  // --- Gestion des aperçus & ouverture dans un nouvel onglet ---
+  // Conserve la dernière blob URL par compteur pour pouvoir la révoquer lors d’un nouveau choix
+  const blobUrls = new Map();
+
+  document.querySelectorAll('input.photo-input').forEach(function (input) {
+    input.addEventListener('change', function () {
+      const id   = this.getAttribute('data-compteur-id');
+      const link = document.querySelector('.compteur-trigger[data-compteur-id="'+id+'"]');
+      const img  = document.querySelector('.compteur-photo[data-compteur-id="'+id+'"]');
+      const a    = document.querySelector('.compteur-photo-link[data-compteur-id="'+id+'"]');
+
+      if (this.files && this.files[0]) {
+        const file = this.files[0];
+        if (link) link.setAttribute('title', 'Sélectionné : ' + file.name);
+
+        // Révoque l’ancienne blob URL si existante
+        const oldUrl = blobUrls.get(id);
+        if (oldUrl) {
+          try { URL.revokeObjectURL(oldUrl); } catch(e) {}
+        }
+
+        const url = URL.createObjectURL(file);
+        blobUrls.set(id, url);
+
+        if (img) {
+          img.src = url;
+          img.style.display = '';
+        }
+        if (a) {
+          a.href = url;
+          a.style.display = '';
+          a.title = 'Ouvrir l’image dans un nouvel onglet';
+        }
+      }
+    });
+  });
+
+  // Si "Supprimer la photo" est coché, on masque l'aperçu localement.
+  document.querySelectorAll('input[type="checkbox"][id$="_removePhoto"]').forEach(function (chk) {
+    chk.addEventListener('change', function () {
+      if (!this.checked) return;
+      const card = this.closest('.row[data-kind="item"]');
+      if (!card) return;
+      const img = card.querySelector('.compteur-photo');
+      const a = card.querySelector('.compteur-photo-link');
+      if (img) img.style.display = 'none';
+      if (a) {
+        a.style.display = 'none';
+        a.setAttribute('href', '#');
+      }
+    });
+  });
+
+  // Empêche le clic sur un lien sans href valide
+  document.addEventListener('click', function (e) {
+    const a = e.target.closest('.compteur-photo-link');
+    if (!a) return;
+    const href = a.getAttribute('href');
+    if (!href || href === '#') e.preventDefault();
+  });
+
+  // Lecture seule client-side : on gèle les champs si non éditable
+  {% if not isEditable %}
+    (function lockReadOnly(){
+      const formEl = document.querySelector('form');
+      if(!formEl) return;
+      formEl.querySelectorAll('input, select, textarea, button').forEach(el=>{
+        if (el.type !== 'button' && el.type !== 'submit') { el.setAttribute('disabled','disabled'); }
+      });
+      // On réactive explicitement le bouton Aller de la toolbar
+      document.getElementById('btn_go')?.removeAttribute('disabled');
+      // Empêche l’ouverture de l’upload par clic sur le numéro
+      document.querySelectorAll('.compteur-trigger').forEach(a=>{
+        a.addEventListener('click', (e)=>{ e.preventDefault(); });
+        a.setAttribute('title','Lecture seule');
+        a.style.pointerEvents='none';
+        a.style.opacity='0.6';
+      });
+    })();
+  {% endif %}
+})();
+</script>
+{% endblock %}

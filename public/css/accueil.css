@@ -1,0 +1,47 @@
+.accueil-container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 2rem;
+    text-align: center;
+    background-color: #f7faff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #0077cc;
+    font-size: 24px;
+    margin-bottom: 2rem;
+}
+
+.login-block {
+    margin: 2rem 0;
+}
+
+.login-block input {
+    display: block;
+    margin: 10px auto;
+    padding: 10px;
+    width: 80%;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.login-block button {
+    padding: 10px 20px;
+    background-color: #0077cc;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.login-block button:hover {
+    background-color: #005fa3;
+}
+
+.footer-info {
+    margin-top: 2rem;
+    font-size: 14px;
+    color: #444;
+}

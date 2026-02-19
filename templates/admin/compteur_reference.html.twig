@@ -1,0 +1,75 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Référentiel compteurs{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Référentiel des compteurs</h1>
+    <p>Éditez ici les numéros de compteur de référence (EC/EF cuisine/sdb) pour chaque lot.</p>
+    <p>Les valeurs modifiées sont reprises dans la saisie par lot.</p>
+  </div>
+  <div class="card">
+    <h3>Import / Export CSV</h3>
+    <p><a class="btn btn-ghost" href="{{ path('admin_compteurs_reference_export') }}">Exporter le CSV</a></p>
+    <form method="post" enctype="multipart/form-data" action="{{ path('admin_compteurs_reference_import') }}">
+      <input type="hidden" name="_token" value="{{ csrf_token('admin_compteurs_reference_import') }}">
+      <div class="form-row">
+        <label for="csv_file">Fichier CSV</label>
+        <input id="csv_file" type="file" name="csv_file" accept=".csv,text/csv" required>
+      </div>
+      <button class="btn btn-primary" type="submit">Importer</button>
+    </form>
+  </div>
+</section>
+
+<section class="card" style="margin-top: 20px;">
+  <form method="post" action="{{ path('admin_compteurs_reference') }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_compteurs_reference_save') }}">
+    <div style="overflow-x:auto;">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Lot</th>
+            <th>Copropriétaire (actuel)</th>
+            <th>EC SDB</th>
+            <th>EC Cuisine</th>
+            <th>EF SDB</th>
+            <th>EF Cuisine</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for lot in lots %}
+            {% set lotSlots = byLotAndSlot[lot.id] ?? {} %}
+            {% set copro = lot.getCoproprietaire(date()) %}
+            <tr>
+              <td><strong>Lot {{ lot.numeroLot }}</strong></td>
+              <td>{{ copro ? copro.nomComplet : 'N/A' }}</td>
+              {% for slot in slots %}
+                {% set compteur = lotSlots[slot] ?? null %}
+                <td>
+                  <input
+                    type="text"
+                    name="rows[{{ lot.id }}][{{ slot }}]"
+                    value="{{ compteur ? (compteur.numeroSerie ?? '') : '' }}"
+                    placeholder="{{ compteur ? 'N° compteur' : 'Compteur absent' }}"
+                    {{ compteur ? '' : 'disabled' }}
+                    style="min-width: 140px;"
+                  >
+                </td>
+              {% endfor %}
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="6">Aucun lot trouvé.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top: 12px;">
+      <button class="btn btn-primary" type="submit">Enregistrer les modifications</button>
+    </p>
+  </form>
+</section>
+{% endblock %}

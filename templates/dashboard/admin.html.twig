@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Console administrateur</h1>
+    <p>Année active : <strong>{{ anneeActive }}</strong></p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ path('admin_historique') }}">Historique global</a>
+      <a class="btn btn-ghost" href="{{ path('admin_tableau') }}">Tableau global</a>
+      <a class="btn btn-ghost" href="{{ path('admin_compteurs_reference') }}">Référentiel compteurs</a>
+      <a class="btn btn-ghost" href="{{ path('admin_parametres') }}">Paramètres</a>
+      <a class="btn btn-ghost" href="{{ path('admin_lot_transfer') }}">Transférer un lot</a>
+      <a class="btn btn-ghost" href="{{ path('admin_easy') }}">EasyAdmin</a>
+      <a class="btn btn-ghost" href="{{ path('saisie_index_form', { lotId: lots[0].id ?? 1, annee: anneeActive }) }}">Saisie par lot</a>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Tri des lots</h3>
+    <form method="get">
+      <div class="form-row">
+        <label for="sortBy">Trier par</label>
+        <select name="sortBy" onchange="this.form.submit()">
+          <option value="lot" {{ sortBy|default('lot') == 'lot' ? 'selected' : '' }}>N° lot</option>
+          <option value="copro" {{ sortBy|default('lot') == 'copro' ? 'selected' : '' }}>Nom copropriétaire</option>
+          <option value="etage" {{ sortBy|default('lot') == 'etage' ? 'selected' : '' }}>Étage</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="sortDir">Ordre</label>
+        <select name="sortDir" onchange="this.form.submit()">
+          <option value="asc" {{ sortDir|default('asc') == 'asc' ? 'selected' : '' }}>Croissant</option>
+          <option value="desc" {{ sortDir|default('asc') == 'desc' ? 'selected' : '' }}>Décroissant</option>
+        </select>
+      </div>
+    </form>
+  </div>
+  <div class="card">
+    <h3>Lots disponibles</h3>
+    {% if lots is empty %}
+      <p>Aucun lot n’est enregistré.</p>
+    {% else %}
+      <ul class="list">
+        {% for lot in lots %}
+          <li>
+            <a href="{{ path('admin_historique', { lotId: lot.id, sortBy: sortBy|default('lot'), sortDir: sortDir|default('asc') }) }}">
+              Lot {{ lot.numeroLot }} — {{ lot.emplacement }}
+              <span class="badge">Historique</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</section>
+
+<section class="grid">
+  <article class="card">
+    <h3>Correctifs exceptionnels</h3>
+    <p>Les corrections d’historique doivent être tracées et limitées aux cas nécessaires.</p>
+  </article>
+  <article class="card">
+    <h3>Gestion des données</h3>
+    <p>Import et mise à jour des lots, compteurs et relevés.</p>
+  </article>
+</section>
+{% endblock %}

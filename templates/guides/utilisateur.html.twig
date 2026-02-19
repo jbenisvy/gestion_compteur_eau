@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Didacticiel Utilisateur{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Didacticiel Utilisateur</h1>
+    <p>Parcours complet pour copropriétaire: connexion, saisie, historique et gestion du compte.</p>
+  </div>
+  <div class="card">
+    <h3>Prérequis</h3>
+    <ul class="list">
+      <li>Votre compte utilisateur doit exister avec une adresse email valide.</li>
+      <li>Votre lot doit être rattaché à votre copropriétaire.</li>
+      <li>L’année de saisie active est définie par l’administrateur.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="grid">
+  <article class="card">
+    <h3>Page 1: Connexion</h3>
+    <p>Route: <code>/login</code></p>
+    <p>1. Saisissez votre email.</p>
+    <p>2. Cliquez sur <code>Recevoir mon lien</code>.</p>
+    <p>3. Ouvrez l’email et cliquez le lien sécurisé.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 2: Mes lots</h3>
+    <p>Route: <code>/dashboard</code></p>
+    <p>1. Vérifiez l’année active en haut de page.</p>
+    <p>2. Cliquez sur votre lot pour accéder à la saisie.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 3: Saisie des index</h3>
+    <p>Route: <code>/saisie/{lotId}/{annee}</code></p>
+    <p>1. Choisissez lot et année via la barre en haut.</p>
+    <p>2. Renseignez l’état de chaque compteur.</p>
+    <p>3. Saisissez l’index N (et champs remplacement si nécessaire).</p>
+    <p>4. Optionnel: saisissez le N° compteur.</p>
+    <p>5. Optionnel: ajoutez la photo via clic sur le numéro du compteur.</p>
+    <p>6. Enregistrez.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 4: Historique photos</h3>
+    <p>Route: <code>/compteur/{id}/photos</code></p>
+    <p>1. Depuis la saisie, cliquez <code>Historique photos</code>.</p>
+    <p>2. Vérifiez les versions et la photo active.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 5: Historique de consommation</h3>
+    <p>Route: <code>/historique</code></p>
+    <p>1. Consultez les index et consommations annuelles.</p>
+    <p>2. Les calculs utilisent le N-1 disponible du compteur.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 6: Mon compte</h3>
+    <p>Route: <code>/compte/email</code></p>
+    <p>1. Modifiez l’email si nécessaire.</p>
+    <p>2. Re-validez l’email via le lien reçu.</p>
+  </article>
+</section>
+{% endblock %}
+

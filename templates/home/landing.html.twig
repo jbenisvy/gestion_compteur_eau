@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des compteurs d’eau{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Votre copropriété, vos consommations, en toute clarté.</h1>
+    <p>Accédez à vos compteurs, saisissez vos index annuels et consultez votre historique en quelques minutes.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ path('app_login') }}">Connexion copropriétaire</a>
+      <a class="btn btn-ghost" href="{{ path('app_login_admin') }}">Accès administrateur</a>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h3>Ce que vous pouvez faire</h3>
+      <ul class="list">
+        <li>Déclarer vos index pour l’année en cours</li>
+        <li>Joindre une photo du compteur si besoin</li>
+        <li>Consulter l’historique de consommation</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="grid">
+  <article class="card">
+    <h3>Suivi annuel</h3>
+    <p>Un formulaire guidé, des valeurs N-1 en référence et des consommations calculées automatiquement.</p>
+  </article>
+  <article class="card">
+    <h3>Traçabilité</h3>
+    <p>Chaque modification est sécurisée. L’historique reste consultable par année et par compteur.</p>
+  </article>
+  <article class="card">
+    <h3>Administration</h3>
+    <p>Gestion complète des lots, compteurs et relevés, avec corrections exceptionnelles contrôlées.</p>
+  </article>
+</section>
+{% endblock %}

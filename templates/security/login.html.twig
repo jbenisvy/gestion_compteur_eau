@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion copropriétaire{% endblock %}
+
+{% block body %}
+<div class="login-card">
+    <h1>Connexion par lien sécurisé</h1>
+    <p>Saisissez l'adresse email enregistrée sur votre compte. Vous recevrez un lien à usage unique.</p>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+    <form method="post" action="{{ path('app_login_send') }}">
+        <div class="form-row">
+            <label for="inputEmail">Adresse email</label>
+            <input type="email" name="email" id="inputEmail" required autofocus autocomplete="email">
+        </div>
+
+        <input type="hidden" name="_token" value="{{ csrf_token('magic_login_request') }}">
+        <button class="btn btn-primary" type="submit">Recevoir mon lien</button>
+    </form>
+
+    <p style="margin-top: 1rem;">
+        Accès administrateur:
+        <a href="{{ path('app_login_admin') }}">connexion par mot de passe</a>
+    </p>
+</div>
+{% endblock %}

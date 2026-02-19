@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Didacticiel Admin{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Didacticiel Admin</h1>
+    <p>Guide d’administration: transfert de lot, paramètres, contrôle global, correction et maintenance.</p>
+  </div>
+  <div class="card">
+    <h3>Prérequis</h3>
+    <ul class="list">
+      <li>Compte avec rôle <code>ROLE_ADMIN</code>.</li>
+      <li>Migrations appliquées avant utilisation en production.</li>
+      <li>Sauvegarde DB recommandée avant corrections massives.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="grid">
+  <article class="card">
+    <h3>Page 1: Connexion admin</h3>
+    <p>Route: <code>/admin/login</code></p>
+    <p>1. Connectez-vous avec email + mot de passe.</p>
+    <p>2. Vous êtes redirigé vers l’accueil.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 2: Dashboard admin</h3>
+    <p>Route: <code>/admin</code></p>
+    <p>1. Vérifiez l’année active.</p>
+    <p>2. Accédez aux modules: Historique global, Tableau, Paramètres, Transfert, EasyAdmin.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 3: Paramètres forfaits</h3>
+    <p>Route: <code>/admin/parametres</code></p>
+    <p>1. Définissez l’année active de saisie.</p>
+    <p>2. Configurez forfait EC/EF par année.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 4: Transférer un lot</h3>
+    <p>Route: <code>/admin/transfert-lot</code></p>
+    <p>1. Sélectionnez lot + nouveau copropriétaire.</p>
+    <p>2. Choisissez la date d’effet (rétroactive autorisée jusqu’à aujourd’hui).</p>
+    <p>3. Appliquez le transfert.</p>
+    <p>4. Vérifiez l’impact dans l’historique global.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 5: Historique global</h3>
+    <p>Route: <code>/admin/historique</code></p>
+    <p>1. Sélectionnez un lot.</p>
+    <p>2. Analysez les segments par copropriétaire.</p>
+    <p>3. Contrôlez les consommations annuelles.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 6: Tableau global</h3>
+    <p>Route: <code>/admin/tableau</code></p>
+    <p>1. Filtrez par année ou affichez toutes les années.</p>
+    <p>2. Vérifiez l’affectation lot/copro au 1er janvier.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 7: EasyAdmin</h3>
+    <p>Route: <code>/admin/easy</code></p>
+    <p>1. Gérez Utilisateurs, Copropriétaires, Lots, Compteurs, États, Relevés.</p>
+    <p>2. Utilisez les filtres triés par N° de lot.</p>
+    <p>3. Vérifiez les numéros de compteur historisés dans <code>Relevés (détails)</code>.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 8: Saisie par lot (admin)</h3>
+    <p>Route: <code>/saisie/{lotId}/{annee}</code></p>
+    <p>1. Utilisez la même page que l’utilisateur.</p>
+    <p>2. Contrôlez les états et photos des compteurs.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 9: Référentiel compteurs</h3>
+    <p>Route: <code>/admin/compteurs-reference</code></p>
+    <p>1. Vérifiez les 4 cases par lot: EC SDB, EC Cuisine, EF SDB, EF Cuisine.</p>
+    <p>2. Modifiez directement les numéros de compteur puis enregistrez.</p>
+    <p>3. Exportez/éditez/importez le CSV pour mises à jour en masse.</p>
+  </article>
+
+  <article class="card">
+    <h3>Page 10: Photos copropriétaire</h3>
+    <p>Les photos sont conservées dans <code>/public/uploads/coproprietaires/&lt;dossier&gt;</code>.</p>
+    <p>Vous pouvez y déposer des images manuellement: elles restent visibles dans l’historique photo.</p>
+  </article>
+</section>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }} — Prototype{% endblock %}
+
+{% block body %}
+  <main class="container">
+    <div class="card">
+      <h1 style="margin:0 0 8px 0;">{{ title }}</h1>
+      <p style="color:#6b7280;">Page en cours de développement. Le lien fonctionne ✅</p>
+      <p><a href="{{ path('home') }}">⟵ Retour à l’accueil</a></p>
+    </div>
+  </main>
+  <style>
+    .container { max-width: 920px; margin: 0 auto; padding: 24px; font-family: system-ui, Arial, sans-serif; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 20px; }
+  </style>
+{% endblock %}

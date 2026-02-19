@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Paramètres{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Paramètres forfaits</h1>
+    <p>Définir les valeurs de forfait par année. Les index restent inchangés; seule la consommation annuelle est ajustée.</p>
+  </div>
+  <div class="card">
+    <h3>Année active de saisie</h3>
+    <p>Année active actuelle: <strong>{{ activeYear }}</strong></p>
+    <form method="post">
+      <input type="hidden" name="_token" value="{{ csrf_token('admin_parametres') }}">
+      <input type="hidden" name="action" value="active_year">
+      <div class="form-row">
+        <label for="active_saisie_year">Dernière année active</label>
+        <input id="active_saisie_year" type="number" name="active_saisie_year" min="2000" max="2100" value="{{ activeYear }}" required>
+      </div>
+      <button class="btn btn-primary" type="submit">Définir l'année active</button>
+    </form>
+  </div>
+  <div class="card">
+    <h3>Édition</h3>
+    <form method="post">
+      <input type="hidden" name="_token" value="{{ csrf_token('admin_parametres') }}">
+      <input type="hidden" name="action" value="forfaits">
+      <div class="form-row">
+        <label for="annee">Année</label>
+        <input id="annee" type="number" name="annee" min="2000" max="2100" value="{{ selectedYear }}" required>
+      </div>
+      <div class="form-row">
+        <label for="forfait_ec">Forfait EC</label>
+        <input id="forfait_ec" type="number" step="0.001" min="0" name="forfait_ec" value="{{ currentEc }}" required>
+      </div>
+      <div class="form-row">
+        <label for="forfait_ef">Forfait EF</label>
+        <input id="forfait_ef" type="number" step="0.001" min="0" name="forfait_ef" value="{{ currentEf }}" required>
+      </div>
+      <button class="btn btn-primary" type="submit">Enregistrer</button>
+    </form>
+  </div>
+</section>
+
+<section class="card" style="margin-top: 20px;">
+  <h3>Historique des paramètres</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Année</th>
+        <th>Forfait EC</th>
+        <th>Forfait EF</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in params %}
+        <tr>
+          <td>{{ p.annee ?? 'Défaut' }}</td>
+          <td>{{ p.forfaitEc }}</td>
+          <td>{{ p.forfaitEf }}</td>
+          <td>
+            {% if p.annee is not null %}
+              <a class="btn btn-ghost" href="{{ path('admin_parametres', { annee: p.annee }) }}">Modifier</a>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4">Aucun paramètre enregistré.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

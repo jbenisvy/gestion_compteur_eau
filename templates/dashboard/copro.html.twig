@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes lots{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Bonjour {{ copro.nomComplet }}</h1>
+    <p>Année de saisie active : <strong>{{ anneeActive }}</strong></p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ path('copro_historique') }}">Voir mon historique</a>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Vos lots rattachés</h3>
+    {% if lots is empty %}
+      <p>Aucun lot actif n’est rattaché à votre compte.</p>
+    {% else %}
+      <ul class="list">
+        {% for lot in lots %}
+          <li>
+            <a href="{{ path('saisie_index_form', { lotId: lot.id, annee: anneeActive }) }}">
+              Lot {{ lot.numeroLot }} — {{ lot.emplacement }}
+              <span class="badge">Saisie {{ anneeActive }}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</section>
+
+<section class="grid">
+  <article class="card">
+    <h3>Consignes</h3>
+    <p>Si un compteur est remplacé ou bloqué, précisez-le lors de la saisie.</p>
+  </article>
+  <article class="card">
+    <h3>Support</h3>
+    <p>Contactez l’administrateur en cas de difficulté d’accès ou de saisie.</p>
+  </article>
+</section>
+{% endblock %}

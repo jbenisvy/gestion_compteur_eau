@@ -1,0 +1,180 @@
+{% extends 'base.html.twig' %}
+{% block title %}Saisie des index{% endblock %}
+
+{% block body %}
+<h1>📝 Saisie des index de compteurs {% if annee is defined %}- {{ annee }}{% endif %}</h1>
+
+{# ⚠️ SAFE-GUARD: nécessaire pour l’upload de fichiers #}
+{{ form_start(form, { attr: { enctype: 'multipart/form-data' } }) }}
+
+{# ⚠️ SAFE-GUARD: on s’appuie sur form.items (CollectionType de SaisieIndexItemType)
+   Si ton contrôleur ne passe pas `items`, envoie-moi le code pour adapter sans rien casser. #}
+
+{% if isEditable is defined and not isEditable %}
+  <div class="alert alert-warning">Lecture seule : l’année demandée n’est pas l’année active.</div>
+{% endif %}
+
+<div class="grid-container">
+  {# On parcourt chaque "bloc" (un compteur = un item) #}
+  {% for child in form.items %}
+    {% set compteurId = child.compteurId.vars.data %}
+    {% set numero     = child.compteurNumero.vars.data %}
+    {% set photoBase  = (upload_public_path is defined ? upload_public_path : '/uploads/compteurs') ~ '/compteur_' ~ compteurId %}
+    {% set possible_exts = ['jpg','jpeg','png','webp','gif','heic','heif'] %}
+    {# Twig ne peut pas vérifier l’existence fichier côté serveur; on propose une première URL, le navigateur gèrera (404 visuelle non bloquante) #}
+    {% set photoUrl = photoBase ~ '.jpg' %}
+
+    <div class="bloc">
+      <div class="bloc-header">
+        <div class="compteur-head">
+          <label class="label">Compteur</label>
+          <a href="#"
+             class="compteur-trigger"
+             data-compteur-id="{{ compteurId }}"
+             title="Cliquer pour ajouter/remplacer la photo">
+            {{ numero }}
+          </a>
+        </div>
+
+        <div class="preview">
+          <img src="{{ photoUrl }}"
+               alt="Photo compteur {{ numero }}"
+               onerror="this.style.display='none';"
+               class="preview-img">
+        </div>
+      </div>
+
+      <div class="bloc-fields">
+        {# Index N-1 (lecture seule) #}
+        {{ form_row(child.indexPrevious, {
+          label: 'Index N-1',
+          attr: { readonly: true }
+        }) }}
+
+        {# Index N (editable si année active) #}
+        {{ form_row(child.indexN, {
+          label: 'Index N',
+          attr: { readonly: (isEditable is defined ? (not isEditable) : false) }
+        }) }}
+
+        {# Etat #}
+        {{ form_row(child.etat, {
+          label: 'État',
+          attr: { disabled: (isEditable is defined ? (not isEditable) : false) }
+        }) }}
+
+        {# Index démonté / nouveau (si remplacement) #}
+        {{ form_row(child.indexDemonte, {
+          label: 'Index compteur démonté',
+          attr: { readonly: (isEditable is defined ? (not isEditable) : false) }
+        }) }}
+        {{ form_row(child.indexNouveau, {
+          label: 'Index nouveau compteur',
+          attr: { readonly: (isEditable is defined ? (not isEditable) : false) }
+        }) }}
+
+        {# Commentaire #}
+        {{ form_row(child.commentaire, {
+          label: 'Commentaire',
+          attr: { readonly: (isEditable is defined ? (not isEditable) : false), rows: 2 }
+        }) }}
+
+        {# Champs techniques (cachés) #}
+        {{ form_widget(child.compteurId) }}
+
+        {# Input fichier masqué, déclenché par clic sur le numéro #}
+        <div class="visually-hidden">
+          {{ form_widget(child.photoFile, {
+            attr: { 'data-compteur-id': compteurId, class: 'photo-input' }
+          }) }}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="actions">
+  <a href="{{ path('app_home') }}" class="btn btn-outline-secondary">Retour</a>
+  {% if isEditable is not defined or isEditable %}
+    <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+  {% endif %}
+</div>
+
+{{ form_end(form) }}
+
+{# ⚠️ SAFE-GUARD: JS minimal et isolé. Ne pas renommer les classes sans adapter. #}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Clic sur le numéro de compteur -> ouvre l'input fichier correspondant
+  document.querySelectorAll('.compteur-trigger').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      const id = this.getAttribute('data-compteur-id');
+      const input = document.querySelector('input.photo-input[data-compteur-id="'+id+'"]');
+      if (input) { input.click(); }
+    });
+  });
+
+  // Optionnel : lorsque l'utilisateur choisit un fichier, on met à jour le title
+  document.querySelectorAll('input.photo-input').forEach(function (input) {
+    input.addEventListener('change', function () {
+      const id   = this.getAttribute('data-compteur-id');
+      const link = document.querySelector('.compteur-trigger[data-compteur-id="'+id+'"]');
+      if (link && this.files && this.files[0]) {
+        link.setAttribute('title', 'Sélectionné : ' + this.files[0].name);
+      }
+    });
+  });
+});
+</script>
+
+<style>
+/* ⚠️ SAFE-GUARD: styles isolés pour ne pas impacter le reste du site */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(320px, 1fr));
+  gap: 16px;
+}
+.bloc {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.03);
+}
+.bloc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.compteur-head .label {
+  display: block;
+  font-size: .85rem;
+  color: #666;
+  margin-bottom: 2px;
+}
+.compteur-trigger {
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px dashed #888;
+}
+.compteur-trigger:hover { text-decoration: underline; }
+.preview { flex-shrink: 0; }
+.preview-img {
+  max-height: 60px;
+  border-radius: 6px;
+  display: block;
+}
+.bloc-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+.bloc-fields .form-group, .bloc-fields .form-row { margin-bottom: 0; }
+
+.actions { margin-top: 16px; display: flex; gap: 8px; }
+
+@media (max-width: 820px) {
+  .grid-container { grid-template-columns: 1fr; }
+  .bloc-fields { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}

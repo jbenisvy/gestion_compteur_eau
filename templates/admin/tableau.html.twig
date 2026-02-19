@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau des lots par année{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Tableau des lots par année</h1>
+    <p>Vue annuelle de tous les lots, triée par année puis par numéro de lot.</p>
+  </div>
+  <div class="card">
+    <h3>Filtre</h3>
+    <form method="get">
+      <div class="form-row">
+        <label for="annee">Année</label>
+        <select id="annee" name="annee" onchange="this.form.submit()">
+          <option value="0" {{ annee == 0 ? 'selected' : '' }}>Toutes les années</option>
+          {% for y in years %}
+            <option value="{{ y }}" {{ y == annee ? 'selected' : '' }}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </form>
+  </div>
+</section>
+
+{% for year, rows in rowsByYear %}
+  <section class="card" style="margin-top: 20px;">
+    <h3>Année {{ year }}</h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Année</th>
+          <th>N° du lot</th>
+          <th>Emplacement</th>
+          <th>Type</th>
+          <th>Copropriétaire</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td>{{ year }}</td>
+            <td>{{ row.lot.numeroLot }}</td>
+            <td>{{ row.lot.emplacement }}</td>
+            <td>{{ row.lot.typeAppartement }}</td>
+            <td>{{ row.coproNom }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5">Aucun lot pour cette année.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% else %}
+  <section class="card" style="margin-top: 20px;">
+    <p>Aucune année disponible.</p>
+  </section>
+{% endfor %}
+{% endblock %}

@@ -1,17 +1,56 @@
+{# templates/base.html.twig #}
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Welcome!{% endblock %}</title>
 
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
-    </head>
-    <body>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+
+    {# ✅ Un seul bloc stylesheets #}
+    {% block stylesheets %}
+      <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    {% endblock %}
+
+    {# ✅ Un seul bloc javascripts, avec importmap si tu l’utilises #}
+    {% block javascripts %}
+      {% block importmap %}{{ importmap('app') }}{% endblock %}
+    {% endblock %}
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">Eau</span>
+          <span class="brand-sub">Gestion Copropriété</span>
+        </div>
+        <nav class="topnav">
+          <button type="button" class="print-btn" onclick="window.print()">Imprimer les états</button>
+          <a href="{{ path('guides_index') }}">Didacticiels</a>
+          <a href="{{ path('home') }}">Accueil</a>
+          {% if app.user %}
+            {% if is_granted('ROLE_ADMIN') %}
+              <a href="{{ path('admin_dashboard') }}">Admin</a>
+              <a href="{{ path('admin_compteurs_reference') }}">Réf. compteurs</a>
+              <a href="{{ path('admin_historique') }}">Historique global</a>
+            {% else %}
+              <a href="{{ path('copro_dashboard') }}">Mes lots</a>
+              <a href="{{ path('copro_historique') }}">Historique</a>
+            {% endif %}
+            <a href="{{ path('app_account_email') }}">Mon compte</a>
+            <a class="cta" href="{{ path('app_logout') }}">Déconnexion</a>
+          {% else %}
+            <a class="cta" href="{{ path('app_login') }}">Connexion</a>
+          {% endif %}
+        </nav>
+      </header>
+      <main class="page">
         {% block body %}{% endblock %}
-    </body>
+      </main>
+      <footer class="footer">
+        <span>Gestion des compteurs d’eau — copropriété</span>
+      </footer>
+    </div>
+  </body>
 </html>

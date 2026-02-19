@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<header>
+    <h1>💧 Gestion des compteurs</h1>
+</header>
+
+<section class="card">
+    <h2>👤 Fonctionnalités Copropriétaire</h2>
+    <ul>
+        <li>📝 Saisie des index de compteurs :</li>
+        <ul>
+            {% for lot in lots %}
+                <li>
+                    <a href="{{ path('saisie_index_form', { lotId: lot.id, annee: annee }) }}">
+                        Lot {{ lot.id }} - {{ lot.emplacement }}
+                    </a>
+                </li>
+            {% else %}
+                <li>Aucun lot disponible</li>
+            {% endfor %}
+        </ul>
+
+        <li><a href="/historique">📊 Consultation de l'historique</a></li>
+    </ul>
+</section>
+
+<section class="card">
+    <h2>🔧 Fonctionnalités Administrateur</h2>
+    <ul>
+        <li>Gestion des copropriétaires</li>
+        <li>Gestion des lots</li>
+        <li>Gestion des compteurs</li>
+    </ul>
+</section>
+{% endblock %}

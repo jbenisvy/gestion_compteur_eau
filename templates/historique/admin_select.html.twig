@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Historique global{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Historique global</h1>
+    <p>Sélectionnez un lot pour consulter l’historique détaillé.</p>
+  </div>
+  <div class="card">
+    <h3>Tri</h3>
+    <form method="get">
+      <div class="form-row">
+        <label for="sortBy">Trier par</label>
+        <select name="sortBy" onchange="this.form.submit()">
+          <option value="lot" {{ sortBy|default('lot') == 'lot' ? 'selected' : '' }}>N° lot</option>
+          <option value="copro" {{ sortBy|default('lot') == 'copro' ? 'selected' : '' }}>Nom copropriétaire</option>
+          <option value="etage" {{ sortBy|default('lot') == 'etage' ? 'selected' : '' }}>Étage</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="sortDir">Ordre</label>
+        <select name="sortDir" onchange="this.form.submit()">
+          <option value="asc" {{ sortDir|default('asc') == 'asc' ? 'selected' : '' }}>Croissant</option>
+          <option value="desc" {{ sortDir|default('asc') == 'desc' ? 'selected' : '' }}>Décroissant</option>
+        </select>
+      </div>
+    </form>
+  </div>
+  <div class="card">
+    <h3>Lots</h3>
+    {% if lots is empty %}
+      <p>Aucun lot disponible.</p>
+    {% else %}
+      <ul class="list">
+        {% for lot in lots %}
+          <li>
+            <a href="{{ path('admin_historique', { lotId: lot.id, sortBy: sortBy|default('lot'), sortDir: sortDir|default('asc') }) }}">
+              Lot {{ lot.numeroLot }} — {{ lot.emplacement }}
+              <span class="badge">Voir</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+    <h1>Page d'accueil</h1>
+    <p>Bienvenue sur l'application de gestion des compteurs d'eau.</p>
+
+    <h2>Navigation</h2>
+    <ul>
+        {% for route in routes %}
+            <li><a href="{{ path(route.name, route.params|default({})) }}">{{ route.label }}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}

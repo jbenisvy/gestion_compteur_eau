@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Historique photos compteur{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Historique photos</h1>
+    <p>
+      Compteur <strong>{{ compteur.numeroSerie ?: ('#' ~ compteur.id) }}</strong>
+      • Lot <strong>{{ compteur.lot.numeroLot }}</strong>
+      • {{ compteur.emplacement }} ({{ compteur.type }})
+    </p>
+  </div>
+  <div class="card">
+    <h3>Versions</h3>
+    <p>{{ photos|length }} photo(s) trouvée(s)</p>
+  </div>
+</section>
+
+<section class="grid" style="margin-top: 16px;">
+  {% for p in photos %}
+    <article class="card">
+      <a href="{{ p.url }}" target="_blank" rel="noopener">
+        <img src="{{ p.url }}" alt="{{ p.name }}" style="width:100%;max-height:240px;object-fit:cover;border-radius:10px;border:1px solid #e6dfd1;">
+      </a>
+      <p style="margin:10px 0 4px 0;"><strong>{{ p.name }}</strong></p>
+      <p style="margin:0;color:#5b5b5b;">
+        {{ p.source ?? 'Dossier' }}
+        {% if p.updated_at or p.size_kb is not null %} • {% endif %}
+        {% if p.updated_at %}
+          {{ p.updated_at|date('d/m/Y H:i') }}
+        {% else %}
+          Date inconnue
+        {% endif %}
+        {% if p.size_kb is not null %} • {{ p.size_kb }} KB{% endif %}
+      </p>
+      {% if p.is_current %}
+        <p style="margin-top:8px;"><span class="badge">Photo active</span></p>
+      {% endif %}
+    </article>
+  {% else %}
+    <article class="card">
+      <p>Aucune photo enregistrée pour ce compteur.</p>
+    </article>
+  {% endfor %}
+</section>
+{% endblock %}

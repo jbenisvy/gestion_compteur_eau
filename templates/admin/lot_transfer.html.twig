@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Transférer un lot{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Transférer un lot</h1>
+    <p>Cette opération clôture les liens actifs à la date d’effet et rattache le lot au nouveau copropriétaire.</p>
+    <p>Règle appliquée: la date d’effet doit être comprise entre <strong>{{ minimumEffectiveDate|date('d/m/Y') }}</strong> et <strong>{{ maximumEffectiveDate|date('d/m/Y') }}</strong>.</p>
+    <div class="hero-actions">
+      <a class="btn btn-ghost" href="{{ path('admin_dashboard') }}">Retour admin</a>
+      <a class="btn btn-ghost" href="{{ path('admin_easy') }}">EasyAdmin</a>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Propriétaire actif</h3>
+    {% if selectedLot %}
+      <p>
+        Lot <strong>{{ selectedLot.numeroLot }}</strong>
+        {% if currentLink and currentLink.coproprietaire %}
+          : <strong>{{ currentLink.coproprietaire.nomComplet }}</strong>
+          (du {{ currentLink.dateDebut|date('d/m/Y') }}{% if currentLink.dateFin %} au {{ currentLink.dateFin|date('d/m/Y') }}{% else %} à ce jour{% endif %})
+        {% else %}
+          : <em>Aucun lien actif trouvé pour la date sélectionnée.</em>
+        {% endif %}
+      </p>
+    {% else %}
+      <p>Sélectionne un lot pour afficher le propriétaire actif.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="card" style="margin-top: 20px;">
+  {% for type, messages in app.flashes %}
+    {% for message in messages %}
+      <div class="form-row" style="margin-bottom: 10px;">
+        <div style="padding:10px 12px;border-radius:10px;border:1px solid #d6c9b5;background:#f6f1e8;">
+          {{ message }}
+        </div>
+      </div>
+    {% endfor %}
+  {% endfor %}
+
+  {{ form_start(form) }}
+    <div class="form-row">
+      {{ form_label(form.lot) }}
+      {{ form_widget(form.lot) }}
+      {{ form_errors(form.lot) }}
+    </div>
+
+    <div class="form-row">
+      {{ form_label(form.newCoproprietaire) }}
+      {{ form_widget(form.newCoproprietaire) }}
+      {{ form_errors(form.newCoproprietaire) }}
+    </div>
+
+    <div class="form-row">
+      {{ form_label(form.effectiveDate) }}
+      {{ form_widget(form.effectiveDate) }}
+      {{ form_errors(form.effectiveDate) }}
+    </div>
+
+    <div class="form-row">
+      {{ form_label(form.commentaire) }}
+      {{ form_widget(form.commentaire) }}
+      {{ form_errors(form.commentaire) }}
+    </div>
+
+    <button class="btn btn-primary" type="submit">Appliquer le transfert</button>
+  {{ form_end(form) }}
+</section>
+{% endblock %}

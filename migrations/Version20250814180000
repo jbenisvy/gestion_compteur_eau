@@ -1,0 +1,176 @@
+<?php
+
+declare(strict_types=1);
+
+namespace DoctrineMigrations;
+
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
+
+final class Version20250814180000 extends AbstractMigration
+{
+    public function getDescription(): string
+    {
+        return 'Migration robuste (sans renommage uniq_email) : lot, compteur, etat_compteur, coproprietaire.';
+    }
+
+    public function up(Schema $schema): void
+    {
+        $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'MySQL only.');
+
+        $sm = $this->connection->createSchemaManager();
+
+        // ---------- LOT ----------
+        if ($sm->tablesExist(['lot'])) {
+            $lot = $sm->introspectTable('lot');
+
+            // Drop FK coproprietaire_id si elle existe
+            foreach ($lot->getForeignKeys() as $fk) {
+                if (in_array('coproprietaire_id', $fk->getLocalColumns(), true)) {
+                    $this->addSql('ALTER TABLE lot DROP FOREIGN KEY ' . $fk->getName());
+                }
+            }
+
+            // Valeurs par défaut avant NOT NULL
+            $this->addSql("UPDATE lot SET type_appartement = COALESCE(type_appartement, 'Inconnu')");
+            $this->addSql('ALTER TABLE lot CHANGE coproprietaire_id coproprietaire_id INT NOT NULL, CHANGE type_appartement type_appartement VARCHAR(255) NOT NULL');
+
+            // Recréer FK
+            $this->addSql('ALTER TABLE lot ADD CONSTRAINT FK_B81291BFF2D1A27 FOREIGN KEY (coproprietaire_id) REFERENCES coproprietaire (id)');
+        }
+
+        // ---------- USER ----------
+        // On NE touche PAS aux index de user (suppression du renommage uniq_email)
+
+        // ---------- COMPTEUR ----------
+        if ($sm->tablesExist(['compteur'])) {
+            $compteur = $sm->introspectTable('compteur');
+
+            // Drop FKs existantes
+            foreach ($compteur->getForeignKeys() as $fk) {
+                $cols = $fk->getLocalColumns();
+                if (in_array('lot_id', $cols, true) || in_array('etat_compteur_id', $cols, true)) {
+                    $this->addSql('ALTER TABLE compteur DROP FOREIGN KEY ' . $fk->getName());
+                }
+            }
+
+            $cols = array_map(static fn($c) => $c->getName(), $compteur->getColumns());
+
+            // actif
+            if (!in_array('actif', $cols, true)) {
+                $this->addSql('ALTER TABLE compteur ADD actif TINYINT(1) NULL');
+            }
+            $this->addSql('UPDATE compteur SET actif = 1 WHERE actif IS NULL');
+            $this->addSql('ALTER TABLE compteur CHANGE actif actif TINYINT(1) NOT NULL');
+
+            // numero_serie
+            if (!in_array('numero_serie', $cols, true)) {
+                $this->addSql('ALTER TABLE compteur ADD numero_serie VARCHAR(255) DEFAULT NULL');
+            }
+
+            // emplacement
+            if (in_array('emplacement', $cols, true)) {
+                $this->addSql("UPDATE compteur SET emplacement = COALESCE(emplacement, 'Non renseigné')");
+                $this->addSql('ALTER TABLE compteur CHANGE emplacement emplacement VARCHAR(255) NOT NULL');
+            }
+
+            // lot_id / etat_compteur_id
+            if (in_array('lot_id', $cols, true)) {
+                $this->addSql('UPDATE compteur SET lot_id = (SELECT id FROM lot LIMIT 1) WHERE lot_id IS NULL');
+                $this->addSql('ALTER TABLE compteur CHANGE lot_id lot_id INT NOT NULL');
+            }
+            if (in_array('etat_compteur_id', $cols, true)) {
+                $this->addSql('UPDATE compteur SET etat_compteur_id = (SELECT id FROM etat_compteur LIMIT 1) WHERE etat_compteur_id IS NULL');
+                $this->addSql('ALTER TABLE compteur CHANGE etat_compteur_id etat_compteur_id INT NOT NULL');
+            }
+
+            // drop numero_compteur si présent
+            if (in_array('numero_compteur', $cols, true)) {
+                $this->addSql('ALTER TABLE compteur DROP COLUMN numero_compteur');
+            }
+
+            // Recréer FKs attendues
+            $this->addSql('ALTER TABLE compteur ADD CONSTRAINT FK_4D021BD5A8CBA5F7 FOREIGN KEY (lot_id) REFERENCES lot (id)');
+            $this->addSql('ALTER TABLE compteur ADD CONSTRAINT FK_4D021BD5C74F30C7 FOREIGN KEY (etat_compteur_id) REFERENCES etat_compteur (id)');
+        }
+
+        // ---------- ETAT_COMPTEUR ----------
+        if ($sm->tablesExist(['etat_compteur'])) {
+            $etat = $sm->introspectTable('etat_compteur');
+
+            // Drop index unique sur code si présent
+            foreach ($etat->getIndexes() as $idx) {
+                if ($idx->isUnique() && $idx->getColumns() === ['code']) {
+                    $this->addSql('DROP INDEX ' . $idx->getName() . ' ON etat_compteur');
+                }
+            }
+
+            // Drop colonnes obsolètes si présentes
+            $dropCols = ['actif','display_order','requires_index_n','requires_forfait','requires_index_demonte','requires_index_nouveau','requires_commentaire','consumption_formula'];
+            $etatCols = array_map(static fn($c) => $c->getName(), $etat->getColumns());
+            foreach ($dropCols as $c) {
+                if (in_array($c, $etatCols, true)) {
+                    $this->addSql("ALTER TABLE etat_compteur DROP $c");
+                }
+            }
+
+            // code VARCHAR(50) NOT NULL
+            $this->addSql('ALTER TABLE etat_compteur CHANGE code code VARCHAR(50) NOT NULL');
+        }
+
+        // ---------- COPROPRIETAIRE ----------
+        if ($sm->tablesExist(['coproprietaire'])) {
+            $cop = $sm->introspectTable('coproprietaire');
+
+            // Supprimer index unique surnuméraire sur user_id si présent
+            foreach ($cop->getIndexes() as $idx) {
+                if ($idx->isUnique() && in_array('user_id', $idx->getColumns(), true)) {
+                    $this->addSql('DROP INDEX ' . $idx->getName() . ' ON coproprietaire');
+                }
+            }
+
+            // Index simple sur user_id
+            $hasIdx = false;
+            foreach ($cop->getIndexes() as $idx) {
+                if ($idx->getColumns() === ['user_id'] && !$idx->isUnique()) {
+                    $hasIdx = true;
+                }
+            }
+            if (!$hasIdx) {
+                $this->addSql('CREATE INDEX IDX_1AB283E7A76ED395 ON coproprietaire (user_id)');
+            }
+
+            $copCols = array_map(static fn($c) => $c->getName(), $cop->getColumns());
+            if (!in_array('prenom', $copCols, true)) {
+                $this->addSql('ALTER TABLE coproprietaire ADD prenom VARCHAR(255) DEFAULT NULL');
+            }
+            if (!in_array('telephone', $copCols, true)) {
+                $this->addSql('ALTER TABLE coproprietaire ADD telephone VARCHAR(255) DEFAULT NULL');
+            }
+
+            $this->addSql("UPDATE coproprietaire SET prenom = COALESCE(prenom, 'N/A')");
+            $this->addSql("UPDATE coproprietaire SET telephone = COALESCE(telephone, 'N/A')");
+            $this->addSql('ALTER TABLE coproprietaire CHANGE prenom prenom VARCHAR(255) NOT NULL, CHANGE telephone telephone VARCHAR(255) NOT NULL');
+
+            foreach (['date_entree','date_sortie'] as $c) {
+                if (in_array($c, $copCols, true)) {
+                    $this->addSql("ALTER TABLE coproprietaire DROP $c");
+                }
+            }
+        }
+    }
+
+    public function down(Schema $schema): void
+    {
+        // Best-effort minimal
+        $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'MySQL only.');
+        try { $this->addSql('ALTER TABLE lot CHANGE type_appartement type_appartement VARCHAR(255) DEFAULT NULL, CHANGE coproprietaire_id coproprietaire_id INT DEFAULT NULL'); } catch (\Throwable $e) {}
+        try { $this->addSql('ALTER TABLE compteur ADD numero_compteur VARCHAR(255) DEFAULT NULL'); } catch (\Throwable $e) {}
+        try { $this->addSql('ALTER TABLE compteur CHANGE actif actif TINYINT(1) DEFAULT NULL'); } catch (\Throwable $e) {}
+        try { $this->addSql('ALTER TABLE compteur CHANGE emplacement emplacement VARCHAR(255) DEFAULT NULL'); } catch (\Throwable $e) {}
+        try { $this->addSql('ALTER TABLE compteur CHANGE lot_id lot_id INT DEFAULT NULL'); } catch (\Throwable $e) {}
+        try { $this->addSql('ALTER TABLE compteur CHANGE etat_compteur_id etat_compteur_id INT DEFAULT NULL'); } catch (\Throwable $e) {}
+        try { $this->addSql('ALTER TABLE etat_compteur CHANGE code code VARCHAR(255) NOT NULL'); } catch (\Throwable $e) {}
+        try { $this->addSql('ALTER TABLE coproprietaire CHANGE prenom prenom VARCHAR(255) DEFAULT NULL, CHANGE telephone telephone VARCHAR(255) DEFAULT NULL'); } catch (\Throwable $e) {}
+    }
+}
