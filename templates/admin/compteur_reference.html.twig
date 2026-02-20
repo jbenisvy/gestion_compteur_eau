@@ -26,7 +26,7 @@
 <section class="card" style="margin-top: 20px;">
   <form method="post" action="{{ path('admin_compteurs_reference') }}">
     <input type="hidden" name="_token" value="{{ csrf_token('admin_compteurs_reference_save') }}">
-    <div style="overflow-x:auto;">
+    <div class="table-wrap">
       <table class="table">
         <thead>
           <tr>
@@ -54,7 +54,7 @@
                     value="{{ compteur ? (compteur.numeroSerie ?? '') : '' }}"
                     placeholder="{{ compteur ? 'N° compteur' : 'Compteur absent' }}"
                     {{ compteur ? '' : 'disabled' }}
-                    style="min-width: 140px;"
+                    class="table-input"
                   >
                 </td>
               {% endfor %}

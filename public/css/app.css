@@ -41,6 +41,14 @@ body {
   z-index: 10;
 }
 
+.navbar-toggler {
+  border-color: #d6c9b5;
+}
+
+.navbar-toggler:focus {
+  box-shadow: 0 0 0 0.15rem rgba(15, 109, 93, 0.2);
+}
+
 .brand {
   display: flex;
   flex-direction: column;
@@ -63,6 +71,7 @@ body {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .topnav a {
@@ -106,6 +115,7 @@ body {
 .page {
   flex: 1;
   padding: 32px 28px 48px;
+  min-width: 0;
 }
 
 .hero {
@@ -232,6 +242,26 @@ body {
   font-weight: 600;
 }
 
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-wrap .table {
+  margin-bottom: 0;
+}
+
+.table-input {
+  min-width: 140px;
+}
+
+.badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .footer {
   padding: 18px 28px;
   color: var(--muted);
@@ -311,13 +341,88 @@ body {
 }
 
 @media (max-width: 720px) {
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
   .page {
     padding: 20px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .topbar {
+    padding: 12px 14px;
+  }
+
+  .brand-mark {
+    font-size: 1.15rem;
+  }
+
+  .brand-sub {
+    font-size: 0.78rem;
+  }
+
+  .topnav {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding-top: 10px;
+  }
+
+  .topnav a,
+  .print-btn {
+    width: 100%;
+    text-align: left;
+    border-radius: 10px;
+  }
+
+  .navbar-collapse {
+    width: 100%;
+  }
+
+  .page {
+    padding: 16px 12px 24px;
+  }
+
+  .hero {
+    padding: 22px 16px;
+    gap: 16px;
+  }
+
+  .hero h1 {
+    font-size: 1.6rem;
+  }
+
+  .grid,
+  .hero .hero-actions {
+    gap: 10px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-wrap .table {
+    min-width: 680px;
+  }
+
+  .table th,
+  .table td {
+    white-space: nowrap;
+  }
+
+  .table-wrap .btn,
+  .hero-actions .btn {
+    white-space: nowrap;
+  }
+
+  .table-input {
+    min-width: 120px;
   }
 }
 

@@ -42,6 +42,8 @@ h1{margin:10px 0 8px 0; font-size:28px;}
   gap:10px; align-items:end; margin-top:8px;
 }
 @media (max-width:700px){ .rowgrid-replace{grid-template-columns:1fr;} }
+.totals-grid{display:flex;gap:24px;flex-wrap:wrap;}
+.totals-actions{margin-top:10px;}
 /* Conso */
 .conso{text-align:right;}
 .conso .v{font-weight:800;font-size:18px}
@@ -55,6 +57,15 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 .compteur-trigger:hover{text-decoration:underline;}
 .compteur-history-link{display:inline-block; margin-top:4px; font-size:12px; color:#374151; text-decoration:underline;}
 .visually-hidden{position:absolute !important; height:1px; width:1px; overflow:hidden; clip:rect(1px, 1px, 1px, 1px);}
+@media (max-width:900px){
+  .toolbar{flex-direction:column;align-items:stretch;}
+  .toolbar > div{width:100%;}
+  .toolbar select,.toolbar button{width:100%;}
+  .block .head{flex-direction:column;align-items:flex-start;gap:4px;}
+  .conso{text-align:left;}
+  .totals-grid{gap:10px;}
+  .totals-actions .btn{width:100%;}
+}
 </style>
 
 <div class="page">
@@ -286,7 +297,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 
   <div class="totals">
     <h3 style="margin:0 0 8px 0;">Totaux</h3>
-    <div style="display:flex;gap:24px;flex-wrap:wrap;">
+    <div class="totals-grid">
       <div>Cuisine – Chaude : <b id="t_cuisine_chaude">0</b></div>
       <div>SDB – Chaude : <b id="t_sdb_chaude">0</b></div>
       <div>Total Eau chaude : <b id="t_global_chaude">0</b></div>
@@ -299,7 +310,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
       <div>Total forfaits : <b id="t_forfait_total">0</b> m3</div>
       <div>Total général : <b id="t_global_total">0</b></div>
     </div>
-    <div style="margin-top:10px;">
+    <div class="totals-actions">
       <button class="btn" {{ not isEditable ? 'disabled' : '' }}>💾 Enregistrer</button>
     </div>
   </div>
