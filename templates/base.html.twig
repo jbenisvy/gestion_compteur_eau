@@ -38,17 +38,18 @@
           <span class="brand-sub">Gestion Copropriété</span>
         </div>
         <button
-          class="navbar-toggler d-lg-none"
+          class="navbar-toggler mobile-menu-btn"
           type="button"
           data-bs-toggle="offcanvas"
           data-bs-target="#mobileNavigation"
           aria-controls="mobileNavigation"
           aria-label="Basculer la navigation"
         >
-          <span class="navbar-toggler-icon"></span>
+          <span class="hamburger-glyph" aria-hidden="true">☰</span>
+          <span class="hamburger-label">Menu</span>
         </button>
 
-        <nav class="topnav d-none d-lg-flex">
+        <nav class="topnav desktop-nav">
           <button type="button" class="print-btn" onclick="window.print()">Imprimer les états</button>
           <a href="{{ path('guides_index') }}">Didacticiels</a>
           <a href="{{ path('home') }}">Accueil</a>
@@ -69,7 +70,7 @@
         </nav>
       </header>
 
-      <div class="offcanvas offcanvas-end d-lg-none" tabindex="-1" id="mobileNavigation" aria-labelledby="mobileNavigationLabel">
+      <div class="offcanvas offcanvas-end" tabindex="-1" id="mobileNavigation" aria-labelledby="mobileNavigationLabel">
         <div class="offcanvas-header">
           <h5 class="offcanvas-title" id="mobileNavigationLabel">Menu</h5>
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
@@ -103,5 +104,61 @@
         <span>Gestion des compteurs d’eau — copropriété</span>
       </footer>
     </div>
+    <script>
+      (function () {
+        function hardCloseMobileMenu() {
+          var offcanvasEl = document.getElementById('mobileNavigation');
+          if (!offcanvasEl) {
+            return;
+          }
+
+          if (window.bootstrap && window.bootstrap.Offcanvas) {
+            var instance = window.bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+            instance.hide();
+          }
+
+          offcanvasEl.classList.remove('show');
+          offcanvasEl.setAttribute('aria-hidden', 'true');
+          offcanvasEl.removeAttribute('aria-modal');
+          offcanvasEl.style.visibility = 'hidden';
+
+          document.querySelectorAll('.offcanvas-backdrop').forEach(function (el) {
+            el.remove();
+          });
+
+          document.body.classList.remove('offcanvas-backdrop', 'modal-open');
+          document.body.style.removeProperty('overflow');
+          document.body.style.removeProperty('padding-right');
+        }
+
+        function initMobileMenuLinks() {
+          var offcanvasEl = document.getElementById('mobileNavigation');
+          if (!offcanvasEl || offcanvasEl.dataset.linksInit === '1') {
+            return;
+          }
+          offcanvasEl.dataset.linksInit = '1';
+
+          offcanvasEl.querySelectorAll('a, button.print-btn').forEach(function (el) {
+            el.addEventListener('click', function () {
+              hardCloseMobileMenu();
+            });
+          });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+          hardCloseMobileMenu();
+          initMobileMenuLinks();
+        });
+
+        document.addEventListener('turbo:load', function () {
+          hardCloseMobileMenu();
+          initMobileMenuLinks();
+        });
+
+        document.addEventListener('turbo:before-cache', function () {
+          hardCloseMobileMenu();
+        });
+      })();
+    </script>
   </body>
 </html>
