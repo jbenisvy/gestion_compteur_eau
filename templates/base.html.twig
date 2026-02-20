@@ -32,44 +32,70 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="topbar navbar navbar-expand-lg navbar-light">
+      <header class="topbar navbar navbar-light">
         <div class="brand">
           <span class="brand-mark">Eau</span>
           <span class="brand-sub">Gestion Copropriété</span>
         </div>
         <button
-          class="navbar-toggler"
+          class="navbar-toggler d-lg-none"
           type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#mainNavigation"
-          aria-controls="mainNavigation"
-          aria-expanded="false"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#mobileNavigation"
+          aria-controls="mobileNavigation"
           aria-label="Basculer la navigation"
         >
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse justify-content-end" id="mainNavigation">
-          <nav class="topnav">
-            <button type="button" class="print-btn" onclick="window.print()">Imprimer les états</button>
-            <a href="{{ path('guides_index') }}">Didacticiels</a>
-            <a href="{{ path('home') }}">Accueil</a>
+
+        <nav class="topnav d-none d-lg-flex">
+          <button type="button" class="print-btn" onclick="window.print()">Imprimer les états</button>
+          <a href="{{ path('guides_index') }}">Didacticiels</a>
+          <a href="{{ path('home') }}">Accueil</a>
+          {% if app.user %}
+            {% if is_granted('ROLE_ADMIN') %}
+              <a href="{{ path('admin_dashboard') }}">Admin</a>
+              <a href="{{ path('admin_compteurs_reference') }}">Réf. compteurs</a>
+              <a href="{{ path('admin_historique') }}">Historique global</a>
+            {% else %}
+              <a href="{{ path('copro_dashboard') }}">Mes lots</a>
+              <a href="{{ path('copro_historique') }}">Historique</a>
+            {% endif %}
+            <a href="{{ path('app_account_email') }}">Mon compte</a>
+            <a class="cta" href="{{ path('app_logout') }}">Déconnexion</a>
+          {% else %}
+            <a class="cta" href="{{ path('app_login') }}">Connexion</a>
+          {% endif %}
+        </nav>
+      </header>
+
+      <div class="offcanvas offcanvas-end d-lg-none" tabindex="-1" id="mobileNavigation" aria-labelledby="mobileNavigationLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="mobileNavigationLabel">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+        </div>
+        <div class="offcanvas-body">
+          <nav class="topnav topnav-mobile">
+            <button type="button" class="print-btn" onclick="window.print()" data-bs-dismiss="offcanvas">Imprimer les états</button>
+            <a data-bs-dismiss="offcanvas" href="{{ path('guides_index') }}">Didacticiels</a>
+            <a data-bs-dismiss="offcanvas" href="{{ path('home') }}">Accueil</a>
             {% if app.user %}
               {% if is_granted('ROLE_ADMIN') %}
-                <a href="{{ path('admin_dashboard') }}">Admin</a>
-                <a href="{{ path('admin_compteurs_reference') }}">Réf. compteurs</a>
-                <a href="{{ path('admin_historique') }}">Historique global</a>
+                <a data-bs-dismiss="offcanvas" href="{{ path('admin_dashboard') }}">Admin</a>
+                <a data-bs-dismiss="offcanvas" href="{{ path('admin_compteurs_reference') }}">Réf. compteurs</a>
+                <a data-bs-dismiss="offcanvas" href="{{ path('admin_historique') }}">Historique global</a>
               {% else %}
-                <a href="{{ path('copro_dashboard') }}">Mes lots</a>
-                <a href="{{ path('copro_historique') }}">Historique</a>
+                <a data-bs-dismiss="offcanvas" href="{{ path('copro_dashboard') }}">Mes lots</a>
+                <a data-bs-dismiss="offcanvas" href="{{ path('copro_historique') }}">Historique</a>
               {% endif %}
-              <a href="{{ path('app_account_email') }}">Mon compte</a>
-              <a class="cta" href="{{ path('app_logout') }}">Déconnexion</a>
+              <a data-bs-dismiss="offcanvas" href="{{ path('app_account_email') }}">Mon compte</a>
+              <a class="cta" data-bs-dismiss="offcanvas" href="{{ path('app_logout') }}">Déconnexion</a>
             {% else %}
-              <a class="cta" href="{{ path('app_login') }}">Connexion</a>
+              <a class="cta" data-bs-dismiss="offcanvas" href="{{ path('app_login') }}">Connexion</a>
             {% endif %}
           </nav>
         </div>
-      </header>
+      </div>
       <main class="page">
         {% block body %}{% endblock %}
       </main>

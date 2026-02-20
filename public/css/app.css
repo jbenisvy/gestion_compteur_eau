@@ -359,23 +359,26 @@ body {
     font-size: 0.78rem;
   }
 
-  .topnav {
+  .topnav-mobile {
     width: 100%;
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
-    padding-top: 10px;
   }
 
-  .topnav a,
+  .topnav-mobile a,
   .print-btn {
     width: 100%;
     text-align: left;
     border-radius: 10px;
   }
 
-  .navbar-collapse {
-    width: 100%;
+  .offcanvas .offcanvas-body {
+    padding-top: 0;
+  }
+
+  .offcanvas .topnav-mobile .cta {
+    text-align: left;
   }
 
   .page {
