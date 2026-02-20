@@ -50,7 +50,7 @@ body {
 }
 
 .mobile-menu-btn {
-  display: none;
+  display: inline-flex !important;
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
@@ -92,7 +92,7 @@ body {
 }
 
 .desktop-nav {
-  display: flex;
+  display: none !important;
 }
 
 .topnav a {
@@ -380,14 +380,6 @@ body {
     font-size: 0.78rem;
   }
 
-  .mobile-menu-btn {
-    display: inline-flex;
-  }
-
-  .desktop-nav {
-    display: none;
-  }
-
   .topnav-mobile {
     width: 100%;
     flex-direction: column;
@@ -463,6 +455,14 @@ body {
 }
 
 @media (min-width: 992px) {
+  .mobile-menu-btn {
+    display: none !important;
+  }
+
+  .desktop-nav {
+    display: flex !important;
+  }
+
   #mobileNavigation {
     display: none !important;
   }
