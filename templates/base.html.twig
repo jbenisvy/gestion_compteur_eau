@@ -38,11 +38,11 @@
           <span class="brand-sub">Gestion Copropriété</span>
         </div>
         <button
+          id="mobileMenuButton"
           class="navbar-toggler mobile-menu-btn"
           type="button"
-          data-bs-toggle="offcanvas"
-          data-bs-target="#mobileNavigation"
-          aria-controls="mobileNavigation"
+          aria-controls="mobileMenuPanel"
+          aria-expanded="false"
           aria-label="Basculer la navigation"
         >
           <span class="hamburger-glyph" aria-hidden="true">☰</span>
@@ -69,34 +69,32 @@
           {% endif %}
         </nav>
       </header>
-
-      <div class="offcanvas offcanvas-end" tabindex="-1" id="mobileNavigation" aria-labelledby="mobileNavigationLabel">
-        <div class="offcanvas-header">
-          <h5 class="offcanvas-title" id="mobileNavigationLabel">Menu</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+      <div id="mobileMenuOverlay" class="mobile-menu-overlay" hidden></div>
+      <aside id="mobileMenuPanel" class="mobile-menu-panel" hidden>
+        <div class="mobile-menu-head">
+          <strong>Menu</strong>
+          <button id="mobileMenuClose" type="button" class="mobile-menu-close" aria-label="Fermer">✕</button>
         </div>
-        <div class="offcanvas-body">
-          <nav class="topnav topnav-mobile">
-            <button type="button" class="print-btn" onclick="window.print()" data-bs-dismiss="offcanvas">Imprimer les états</button>
-            <a data-bs-dismiss="offcanvas" href="{{ path('guides_index') }}">Didacticiels</a>
-            <a data-bs-dismiss="offcanvas" href="{{ path('home') }}">Accueil</a>
-            {% if app.user %}
-              {% if is_granted('ROLE_ADMIN') %}
-                <a data-bs-dismiss="offcanvas" href="{{ path('admin_dashboard') }}">Admin</a>
-                <a data-bs-dismiss="offcanvas" href="{{ path('admin_compteurs_reference') }}">Réf. compteurs</a>
-                <a data-bs-dismiss="offcanvas" href="{{ path('admin_historique') }}">Historique global</a>
-              {% else %}
-                <a data-bs-dismiss="offcanvas" href="{{ path('copro_dashboard') }}">Mes lots</a>
-                <a data-bs-dismiss="offcanvas" href="{{ path('copro_historique') }}">Historique</a>
-              {% endif %}
-              <a data-bs-dismiss="offcanvas" href="{{ path('app_account_email') }}">Mon compte</a>
-              <a class="cta" data-bs-dismiss="offcanvas" href="{{ path('app_logout') }}">Déconnexion</a>
+        <nav class="topnav topnav-mobile">
+          <button type="button" class="print-btn" onclick="window.print()">Imprimer les états</button>
+          <a href="{{ path('guides_index') }}">Didacticiels</a>
+          <a href="{{ path('home') }}">Accueil</a>
+          {% if app.user %}
+            {% if is_granted('ROLE_ADMIN') %}
+              <a href="{{ path('admin_dashboard') }}">Admin</a>
+              <a href="{{ path('admin_compteurs_reference') }}">Réf. compteurs</a>
+              <a href="{{ path('admin_historique') }}">Historique global</a>
             {% else %}
-              <a class="cta" data-bs-dismiss="offcanvas" href="{{ path('app_login') }}">Connexion</a>
+              <a href="{{ path('copro_dashboard') }}">Mes lots</a>
+              <a href="{{ path('copro_historique') }}">Historique</a>
             {% endif %}
-          </nav>
-        </div>
-      </div>
+            <a href="{{ path('app_account_email') }}">Mon compte</a>
+            <a class="cta" href="{{ path('app_logout') }}">Déconnexion</a>
+          {% else %}
+            <a class="cta" href="{{ path('app_login') }}">Connexion</a>
+          {% endif %}
+        </nav>
+      </aside>
       <main class="page">
         {% block body %}{% endblock %}
       </main>
@@ -106,58 +104,75 @@
     </div>
     <script>
       (function () {
-        function hardCloseMobileMenu() {
-          var offcanvasEl = document.getElementById('mobileNavigation');
-          if (!offcanvasEl) {
-            return;
-          }
+        var body = document.body;
+        var menuButton = document.getElementById('mobileMenuButton');
+        var menuPanel = document.getElementById('mobileMenuPanel');
+        var menuOverlay = document.getElementById('mobileMenuOverlay');
+        var menuClose = document.getElementById('mobileMenuClose');
+        var desktopNav = document.querySelector('.desktop-nav');
 
-          if (window.bootstrap && window.bootstrap.Offcanvas) {
-            var instance = window.bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
-            instance.hide();
-          }
-
-          offcanvasEl.classList.remove('show');
-          offcanvasEl.setAttribute('aria-hidden', 'true');
-          offcanvasEl.removeAttribute('aria-modal');
-          offcanvasEl.style.visibility = 'hidden';
-
-          document.querySelectorAll('.offcanvas-backdrop').forEach(function (el) {
-            el.remove();
-          });
-
-          document.body.classList.remove('offcanvas-backdrop', 'modal-open');
-          document.body.style.removeProperty('overflow');
-          document.body.style.removeProperty('padding-right');
+        if (!menuButton || !menuPanel || !menuOverlay) {
+          return;
         }
 
-        function initMobileMenuLinks() {
-          var offcanvasEl = document.getElementById('mobileNavigation');
-          if (!offcanvasEl || offcanvasEl.dataset.linksInit === '1') {
-            return;
-          }
-          offcanvasEl.dataset.linksInit = '1';
-
-          offcanvasEl.querySelectorAll('a, button.print-btn').forEach(function (el) {
-            el.addEventListener('click', function () {
-              hardCloseMobileMenu();
-            });
-          });
+        function isMobile() {
+          return window.matchMedia('(max-width: 991.98px)').matches;
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-          hardCloseMobileMenu();
-          initMobileMenuLinks();
+        function openMenu() {
+          if (!isMobile()) {
+            return;
+          }
+          menuPanel.hidden = false;
+          menuOverlay.hidden = false;
+          menuButton.setAttribute('aria-expanded', 'true');
+          body.classList.add('menu-open');
+        }
+
+        function closeMenu() {
+          menuPanel.hidden = true;
+          menuOverlay.hidden = true;
+          menuButton.setAttribute('aria-expanded', 'false');
+          body.classList.remove('menu-open');
+        }
+
+        function syncByViewport() {
+          if (isMobile()) {
+            menuButton.hidden = false;
+            if (desktopNav) {
+              desktopNav.style.display = 'none';
+            }
+            closeMenu();
+          } else {
+            menuButton.hidden = true;
+            if (desktopNav) {
+              desktopNav.style.display = 'flex';
+            }
+            closeMenu();
+          }
+        }
+
+        menuButton.addEventListener('click', function () {
+          if (menuPanel.hidden) {
+            openMenu();
+          } else {
+            closeMenu();
+          }
+        }
+        );
+        menuClose && menuClose.addEventListener('click', closeMenu);
+        menuOverlay.addEventListener('click', closeMenu);
+
+        menuPanel.querySelectorAll('a, button.print-btn').forEach(function (el) {
+          el.addEventListener('click', closeMenu);
         });
 
-        document.addEventListener('turbo:load', function () {
-          hardCloseMobileMenu();
-          initMobileMenuLinks();
-        });
+        document.addEventListener('DOMContentLoaded', syncByViewport);
+        document.addEventListener('turbo:load', syncByViewport);
+        document.addEventListener('turbo:before-cache', closeMenu);
+        window.addEventListener('resize', syncByViewport);
 
-        document.addEventListener('turbo:before-cache', function () {
-          hardCloseMobileMenu();
-        });
+        syncByViewport();
       })();
     </script>
   </body>
