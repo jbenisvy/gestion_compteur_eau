@@ -86,9 +86,15 @@ class HistoriqueController extends AbstractController
 
         if (!$lot) {
             $lots = $lotRepo->findBy([], ['id' => 'ASC']);
-            $this->sortLots($lots, $sortBy, $sortDir);
+            $today = new \DateTimeImmutable('today');
+            $activeCoproNames = [];
+            foreach ($lots as $candidateLot) {
+                $activeCoproNames[$candidateLot->getId()] = $this->resolveActiveCoproName($candidateLot, $today);
+            }
+            $this->sortLots($lots, $sortBy, $sortDir, $activeCoproNames);
             return $this->render('historique/admin_select.html.twig', [
                 'lots' => $lots,
+                'activeCoproNames' => $activeCoproNames,
                 'sortBy' => $sortBy,
                 'sortDir' => $sortDir,
             ]);
@@ -102,13 +108,13 @@ class HistoriqueController extends AbstractController
     }
 
     /** @param array<int,\App\Entity\Lot> $lots */
-    private function sortLots(array &$lots, string $sortBy, string $sortDir): void
+    private function sortLots(array &$lots, string $sortBy, string $sortDir, array $activeCoproNames = []): void
     {
         $direction = $sortDir === 'desc' ? -1 : 1;
-        usort($lots, function (\App\Entity\Lot $a, \App\Entity\Lot $b) use ($sortBy, $direction): int {
+        usort($lots, function (\App\Entity\Lot $a, \App\Entity\Lot $b) use ($sortBy, $direction, $activeCoproNames): int {
             if ($sortBy === 'copro') {
-                $aValue = mb_strtolower($a->getCoproprietaire()?->getNomComplet() ?? '');
-                $bValue = mb_strtolower($b->getCoproprietaire()?->getNomComplet() ?? '');
+                $aValue = mb_strtolower((string)($activeCoproNames[$a->getId()] ?? ''));
+                $bValue = mb_strtolower((string)($activeCoproNames[$b->getId()] ?? ''));
                 $cmp = $aValue <=> $bValue;
             } elseif ($sortBy === 'etage') {
                 $aValue = (string)$this->extractFloor($a->getEmplacement());
@@ -151,6 +157,37 @@ class HistoriqueController extends AbstractController
             return (int)$m[1];
         }
         return 999;
+    }
+
+    private function resolveActiveCoproName(Lot $lot, \DateTimeInterface $date): ?string
+    {
+        $activeLink = null;
+        foreach ($lot->getCoproprietaires() as $link) {
+            if (!$link->isActiveAt($date)) {
+                continue;
+            }
+
+            if (
+                $activeLink === null
+                || $link->getDateDebut() > $activeLink->getDateDebut()
+                || (
+                    $link->getDateDebut() == $activeLink->getDateDebut()
+                    && $link->getId() !== null
+                    && $activeLink->getId() !== null
+                    && $link->getId() > $activeLink->getId()
+                )
+            ) {
+                $activeLink = $link;
+            }
+        }
+
+        $copro = $activeLink?->getCoproprietaire() ?? $lot->getCoproprietaire($date);
+        if (!$copro instanceof Coproprietaire) {
+            return null;
+        }
+
+        $name = trim($copro->getNomComplet());
+        return $name !== '' ? $name : null;
     }
 
     #[Route('/historique-demo', name: 'historique_demo')]

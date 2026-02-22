@@ -46,7 +46,13 @@
         {% for lot in lots %}
           <li>
             <a href="{{ path('admin_historique', { lotId: lot.id, sortBy: sortBy|default('lot'), sortDir: sortDir|default('asc') }) }}">
-              Lot {{ lot.numeroLot }} — {{ lot.emplacement }}
+              Lot {{ lot.numeroLot }}
+              {% if activeCoproNames[lot.id] is defined and activeCoproNames[lot.id] %}
+                — {{ activeCoproNames[lot.id] }}
+              {% else %}
+                — N/A
+              {% endif %}
+              — {{ lot.emplacement }}
               <span class="badge">Historique</span>
             </a>
           </li>

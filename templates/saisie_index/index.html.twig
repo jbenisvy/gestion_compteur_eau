@@ -47,13 +47,13 @@
       <div class="bloc-fields">
         {# Index N-1 (lecture seule) #}
         {{ form_row(child.indexPrevious, {
-          label: 'Index N-1',
+          label: 'Ind. n-1',
           attr: { readonly: true }
         }) }}
 
         {# Index N (editable si année active) #}
         {{ form_row(child.indexN, {
-          label: 'Index N',
+          label: 'Ind. n',
           attr: { readonly: (isEditable is defined ? (not isEditable) : false) }
         }) }}
 

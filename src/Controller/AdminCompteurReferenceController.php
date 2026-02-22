@@ -10,6 +10,7 @@ use App\Repository\CompteurRepository;
 use App\Repository\LotRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,36 +39,96 @@ class AdminCompteurReferenceController extends AbstractController
             }
 
             $postedRows = $request->request->all('rows');
+            $postedPhotos = $request->files->all('photos');
+            $postedRemovePhotos = $request->request->all('removePhotos');
             $updated = 0;
+            $photosUpdated = 0;
+            $photosRemoved = 0;
+            $photoErrors = 0;
 
-            foreach ($postedRows as $lotId => $row) {
+            foreach ($byLotAndSlot as $lotId => $slotMap) {
                 $lotId = (int) $lotId;
-                if (!isset($byLotAndSlot[$lotId]) || !is_array($row)) {
-                    continue;
+                $row = $postedRows[$lotId] ?? [];
+                $photoRow = $postedPhotos[$lotId] ?? [];
+                $removeRow = $postedRemovePhotos[$lotId] ?? [];
+                if (!is_array($row)) {
+                    $row = [];
+                }
+                if (!is_array($photoRow)) {
+                    $photoRow = [];
+                }
+                if (!is_array($removeRow)) {
+                    $removeRow = [];
                 }
 
                 foreach (self::SLOTS as $slot) {
-                    if (!isset($byLotAndSlot[$lotId][$slot]) || !$byLotAndSlot[$lotId][$slot] instanceof Compteur) {
+                    if (!isset($slotMap[$slot]) || !$slotMap[$slot] instanceof Compteur) {
                         continue;
                     }
 
-                    $value = isset($row[$slot]) ? trim((string) $row[$slot]) : '';
-                    $newNumero = $value !== '' ? $value : null;
-                    $compteur = $byLotAndSlot[$lotId][$slot];
+                    $compteur = $slotMap[$slot];
+                    if (array_key_exists($slot, $row)) {
+                        $value = trim((string) $row[$slot]);
+                        $newNumero = $value !== '' ? $value : null;
 
-                    if ($compteur->getNumeroSerie() !== $newNumero) {
-                        $compteur->setNumeroSerie($newNumero);
+                        if ($compteur->getNumeroSerie() !== $newNumero) {
+                            $compteur->setNumeroSerie($newNumero);
+                            $em->persist($compteur);
+                            $updated++;
+                        }
+                    }
+
+                    $shouldRemovePhoto = isset($removeRow[$slot]) && (string) $removeRow[$slot] === '1';
+                    if ($shouldRemovePhoto && $compteur->getPhoto()) {
+                        $this->deleteCompteurPhotoFile($compteur->getPhoto());
+                        $compteur->setPhoto(null);
                         $em->persist($compteur);
-                        $updated++;
+                        $photosRemoved++;
+                    }
+
+                    $photoFile = $photoRow[$slot] ?? null;
+                    if ($photoFile instanceof UploadedFile) {
+                        if (!$photoFile->isValid()) {
+                            $photoErrors++;
+                            continue;
+                        }
+
+                        try {
+                            $webPath = $this->storeCompteurPhoto($compteur, $photoFile);
+                            if ($compteur->getPhoto() !== $webPath) {
+                                $compteur->setPhoto($webPath);
+                                $em->persist($compteur);
+                                $photosUpdated++;
+                            }
+                        } catch (FileException $e) {
+                            $photoErrors++;
+                        }
                     }
                 }
             }
 
-            if ($updated > 0) {
+            if ($updated > 0 || $photosUpdated > 0 || $photosRemoved > 0) {
                 $em->flush();
-                $this->addFlash('success', sprintf('%d compteur(s) mis à jour.', $updated));
+                $this->addFlash(
+                    'success',
+                    sprintf(
+                        '%d numéro(s) mis à jour, %d photo(s) ajoutée(s), %d photo(s) supprimée(s).',
+                        $updated,
+                        $photosUpdated,
+                        $photosRemoved
+                    )
+                );
             } else {
                 $this->addFlash('info', 'Aucune modification détectée.');
+            }
+            if ($photoErrors > 0) {
+                $this->addFlash(
+                    'error',
+                    sprintf(
+                        '%d photo(s) non enregistrée(s): dossier d’upload non accessible en écriture.',
+                        $photoErrors
+                    )
+                );
             }
 
             return $this->redirectToRoute('admin_compteurs_reference');
@@ -287,5 +348,60 @@ class AdminCompteurReferenceController extends AbstractController
         }
 
         return $isSdb ? 'EF_SDB' : 'EF_CUISINE';
+    }
+
+    private function storeCompteurPhoto(Compteur $compteur, UploadedFile $file): string
+    {
+        $projectDir = (string) $this->getParameter('kernel.project_dir');
+        $uploadDir = $projectDir . '/public/uploads/compteurs';
+        if (!is_dir($uploadDir)) {
+            if (!@mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+                throw new FileException('Impossible de créer le dossier d’upload.');
+            }
+        }
+        if (!is_writable($uploadDir)) {
+            throw new FileException('Dossier d’upload non accessible en écriture.');
+        }
+
+        $ext = strtolower($file->guessExtension() ?: $file->getClientOriginalExtension() ?: 'jpg');
+        if (!preg_match('/^(jpe?g|png|webp|gif|heic|heif)$/', $ext)) {
+            $ext = 'jpg';
+        }
+
+        $numeroSlug = trim((string) ($compteur->getNumeroSerie() ?? ''));
+        $numeroSlug = $numeroSlug !== '' ? mb_strtolower($numeroSlug) : 'sans-numero';
+        $numeroSlug = preg_replace('/[^a-z0-9]+/u', '-', $numeroSlug) ?? 'sans-numero';
+        $numeroSlug = trim($numeroSlug, '-');
+        if ($numeroSlug === '') {
+            $numeroSlug = 'sans-numero';
+        }
+
+        $basename = sprintf(
+            'compteur_%d_%s_%s_%s.%s',
+            (int) $compteur->getId(),
+            $numeroSlug,
+            date('YmdHis'),
+            substr(bin2hex(random_bytes(3)), 0, 6),
+            $ext
+        );
+        $file->move($uploadDir, $basename);
+
+        return '/uploads/compteurs/' . $basename;
+    }
+
+    private function deleteCompteurPhotoFile(?string $webPath): void
+    {
+        $path = trim((string) $webPath);
+        if ($path === '' || !str_starts_with($path, '/uploads/')) {
+            return;
+        }
+
+        $projectDir = (string) $this->getParameter('kernel.project_dir');
+        $absolutePath = $projectDir . '/public' . $path;
+        if (!is_file($absolutePath)) {
+            return;
+        }
+
+        @unlink($absolutePath);
     }
 }

@@ -20,7 +20,8 @@
         {% for lot in lots %}
           <li>
             <a href="{{ path('saisie_index_form', { lotId: lot.id, annee: anneeActive }) }}">
-              Lot {{ lot.numeroLot }} — {{ lot.emplacement }}
+              {% set activeCopro = lot.getCoproprietaire(date()) %}
+              Lot {{ lot.numeroLot }} {{ activeCopro ? activeCopro.nomComplet : 'N/A' }} {{ lot.emplacement }}
               <span class="badge">Saisie {{ anneeActive }}</span>
             </a>
           </li>

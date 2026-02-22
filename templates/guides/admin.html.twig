@@ -3,94 +3,163 @@
 {% block title %}Didacticiel Admin{% endblock %}
 
 {% block body %}
-<section class="hero">
-  <div>
-    <h1>Didacticiel Admin</h1>
-    <p>Guide d’administration: transfert de lot, paramètres, contrôle global, correction et maintenance.</p>
-  </div>
-  <div class="card">
-    <h3>Prérequis</h3>
-    <ul class="list">
-      <li>Compte avec rôle <code>ROLE_ADMIN</code>.</li>
-      <li>Migrations appliquées avant utilisation en production.</li>
-      <li>Sauvegarde DB recommandée avant corrections massives.</li>
-    </ul>
-  </div>
-</section>
+<div class="container-fluid px-0">
+  <section class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-4 align-items-start">
+        <div class="col-lg-8">
+          <h1 class="h2 mb-2">Didacticiel Admin</h1>
+          <p class="text-muted mb-0">Guide d'administration: transfert de lot, historique, referentiel et saisie.</p>
+        </div>
+        <div class="col-lg-4">
+          <div class="alert alert-info mb-0" role="alert">
+            <strong>Prerequis</strong>
+            <ul class="mb-0 mt-2">
+              <li>Compte avec role <code>ROLE_ADMIN</code></li>
+              <li>Migrations appliquees</li>
+              <li>Sauvegarde DB avant corrections massives</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<section class="grid">
-  <article class="card">
-    <h3>Page 1: Connexion admin</h3>
-    <p>Route: <code>/admin/login</code></p>
-    <p>1. Connectez-vous avec email + mot de passe.</p>
-    <p>2. Vous êtes redirigé vers l’accueil.</p>
-  </article>
+  <section class="row g-3">
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 1: Connexion admin</h3>
+          <p class="mb-1">Route: <code>/admin/login</code></p>
+          <ol class="mb-0">
+            <li>Connectez-vous avec email + mot de passe.</li>
+            <li>Vous etes redirige vers l'accueil admin.</li>
+          </ol>
+        </div>
+      </article>
+    </div>
 
-  <article class="card">
-    <h3>Page 2: Dashboard admin</h3>
-    <p>Route: <code>/admin</code></p>
-    <p>1. Vérifiez l’année active.</p>
-    <p>2. Accédez aux modules: Historique global, Tableau, Paramètres, Transfert, EasyAdmin.</p>
-  </article>
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 2: Dashboard admin</h3>
+          <p class="mb-1">Route: <code>/admin</code></p>
+          <ol class="mb-0">
+            <li>Verifiez l'annee active.</li>
+            <li>Liste des lots au format: <strong>Lot XX Coproprietaire actif Description</strong>.</li>
+            <li>Accedez aux modules Historique, Tableau, Parametres, Transfert, EasyAdmin.</li>
+          </ol>
+        </div>
+      </article>
+    </div>
 
-  <article class="card">
-    <h3>Page 3: Paramètres forfaits</h3>
-    <p>Route: <code>/admin/parametres</code></p>
-    <p>1. Définissez l’année active de saisie.</p>
-    <p>2. Configurez forfait EC/EF par année.</p>
-  </article>
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 3: Parametres forfaits</h3>
+          <p class="mb-1">Route: <code>/admin/parametres</code></p>
+          <ol class="mb-0">
+            <li>Definissez l'annee active de saisie.</li>
+            <li>Configurez forfait EC/EF par annee.</li>
+          </ol>
+        </div>
+      </article>
+    </div>
 
-  <article class="card">
-    <h3>Page 4: Transférer un lot</h3>
-    <p>Route: <code>/admin/transfert-lot</code></p>
-    <p>1. Sélectionnez lot + nouveau copropriétaire.</p>
-    <p>2. Choisissez la date d’effet (rétroactive autorisée jusqu’à aujourd’hui).</p>
-    <p>3. Appliquez le transfert.</p>
-    <p>4. Vérifiez l’impact dans l’historique global.</p>
-  </article>
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 4: Transferer un lot</h3>
+          <p class="mb-1">Route: <code>/admin/transfert-lot</code></p>
+          <ol class="mb-0">
+            <li>Selectionnez lot + nouveau coproprietaire.</li>
+            <li>Choisissez la date d'effet (jusqu'a aujourd'hui).</li>
+            <li>Appliquez le transfert puis controlez l'impact.</li>
+          </ol>
+        </div>
+      </article>
+    </div>
 
-  <article class="card">
-    <h3>Page 5: Historique global</h3>
-    <p>Route: <code>/admin/historique</code></p>
-    <p>1. Sélectionnez un lot.</p>
-    <p>2. Analysez les segments par copropriétaire.</p>
-    <p>3. Contrôlez les consommations annuelles.</p>
-  </article>
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 5: Historique global</h3>
+          <p class="mb-1">Route: <code>/admin/historique</code></p>
+          <ol class="mb-2">
+            <li>Utilisez les tris: <code>N° lot</code>, <code>Nom coproprietaire</code>, <code>Etage</code>.</li>
+            <li>La liste affiche: <strong>Lot XX Coproprietaire actif Description</strong>.</li>
+            <li>Ouvrez un lot pour analyser index et consommations.</li>
+          </ol>
+          <span class="badge text-bg-secondary">Tri coherent avec le coproprietaire actif</span>
+        </div>
+      </article>
+    </div>
 
-  <article class="card">
-    <h3>Page 6: Tableau global</h3>
-    <p>Route: <code>/admin/tableau</code></p>
-    <p>1. Filtrez par année ou affichez toutes les années.</p>
-    <p>2. Vérifiez l’affectation lot/copro au 1er janvier.</p>
-  </article>
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 6: Tableau global</h3>
+          <p class="mb-1">Route: <code>/admin/tableau</code></p>
+          <ol class="mb-0">
+            <li>Filtrez par annee ou affichez toutes les annees.</li>
+            <li>Controlez l'affectation lot/copro au 1er janvier.</li>
+          </ol>
+        </div>
+      </article>
+    </div>
 
-  <article class="card">
-    <h3>Page 7: EasyAdmin</h3>
-    <p>Route: <code>/admin/easy</code></p>
-    <p>1. Gérez Utilisateurs, Copropriétaires, Lots, Compteurs, États, Relevés.</p>
-    <p>2. Utilisez les filtres triés par N° de lot.</p>
-    <p>3. Vérifiez les numéros de compteur historisés dans <code>Relevés (détails)</code>.</p>
-  </article>
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 7: EasyAdmin</h3>
+          <p class="mb-1">Route: <code>/admin/easy</code></p>
+          <ol class="mb-0">
+            <li>Gerez Utilisateurs, Coproprietaires, Lots, Compteurs, Etats, Releves.</li>
+            <li>Controlez les details de releve et numeros historises.</li>
+          </ol>
+        </div>
+      </article>
+    </div>
 
-  <article class="card">
-    <h3>Page 8: Saisie par lot (admin)</h3>
-    <p>Route: <code>/saisie/{lotId}/{annee}</code></p>
-    <p>1. Utilisez la même page que l’utilisateur.</p>
-    <p>2. Contrôlez les états et photos des compteurs.</p>
-  </article>
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 8: Saisie par lot (admin)</h3>
+          <p class="mb-1">Route: <code>/saisie/{lotId}/{annee}</code></p>
+          <ol class="mb-2">
+            <li>Meme ecran que le coproprietaire.</li>
+            <li>Barre filtre: tri <code>Lot</code>/<code>Nom coproprietaire</code> + annee + Aller.</li>
+            <li>Libelles: <code>Ind. n-1</code> et <code>Ind. n</code>.</li>
+          </ol>
+          <span class="badge text-bg-warning">Lecture seule si annee non active</span>
+        </div>
+      </article>
+    </div>
 
-  <article class="card">
-    <h3>Page 9: Référentiel compteurs</h3>
-    <p>Route: <code>/admin/compteurs-reference</code></p>
-    <p>1. Vérifiez les 4 cases par lot: EC SDB, EC Cuisine, EF SDB, EF Cuisine.</p>
-    <p>2. Modifiez directement les numéros de compteur puis enregistrez.</p>
-    <p>3. Exportez/éditez/importez le CSV pour mises à jour en masse.</p>
-  </article>
-
-  <article class="card">
-    <h3>Page 10: Photos copropriétaire</h3>
-    <p>Les photos sont conservées dans <code>/public/uploads/coproprietaires/&lt;dossier&gt;</code>.</p>
-    <p>Vous pouvez y déposer des images manuellement: elles restent visibles dans l’historique photo.</p>
-  </article>
-</section>
+    <div class="col-12">
+      <article class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 9: Referentiel compteurs</h3>
+          <p class="mb-1">Route: <code>/admin/compteurs-reference</code></p>
+          <div class="row g-3">
+            <div class="col-lg-6">
+              <ul class="list-group">
+                <li class="list-group-item">Edition des 4 cases: EC SDB, EC Cuisine, EF SDB, EF Cuisine</li>
+                <li class="list-group-item">Ajout de photo par case compteur</li>
+                <li class="list-group-item">Suppression de photo active via bouton <code>Suppr.</code></li>
+              </ul>
+            </div>
+            <div class="col-lg-6">
+              <ul class="list-group">
+                <li class="list-group-item">Acces a l'historique photo par compteur</li>
+                <li class="list-group-item">Entetes de colonnes figees</li>
+                <li class="list-group-item">Bouton Enregistrer toujours accessible (haut + flottant)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>
 {% endblock %}

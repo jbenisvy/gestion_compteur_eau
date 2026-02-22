@@ -16,5 +16,16 @@ class LotRepository extends ServiceEntityRepository
         parent::__construct($registry, Lot::class);
     }
 
-    // Ici tu peux ajouter des méthodes personnalisées si nécessaire
+    /**
+     * @return Lot[]
+     */
+    public function findAllForAdminDashboard(): array
+    {
+        return $this->createQueryBuilder('l')
+            ->leftJoin('l.coproprietaires', 'lc')->addSelect('lc')
+            ->leftJoin('lc.coproprietaire', 'c')->addSelect('c')
+            ->orderBy('l.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

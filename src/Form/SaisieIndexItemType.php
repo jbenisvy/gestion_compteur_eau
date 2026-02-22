@@ -46,14 +46,14 @@ class SaisieIndexItemType extends AbstractType
 
         // --- Index N-1 (lecture seule) ---
         $builder->add('indexPrevious', IntegerType::class, [
-            'label'    => 'Index N-1',
+            'label'    => 'Ind. n-1',
             'required' => false,
             'disabled' => true,
         ]);
 
         // --- Index N ---
         $builder->add('indexN', IntegerType::class, [
-            'label'    => 'Index N',
+            'label'    => 'Ind. n',
             'required' => false,
             'attr'     => ['readonly' => !$isEditable],
         ]);

@@ -40,6 +40,11 @@ class SaisieIndexController extends AbstractController
         EntityManagerInterface $em
     ): Response
     {
+        $sortBy = mb_strtolower(trim((string) $request->query->get('sortBy', 'lot')));
+        if (!in_array($sortBy, ['lot', 'copro'], true)) {
+            $sortBy = 'lot';
+        }
+
         $lot = $lotRepo->find($lotId);
         if (!$lot) {
             throw $this->createNotFoundException('Lot introuvable');
@@ -66,7 +71,11 @@ class SaisieIndexController extends AbstractController
 
         $anneeActive = $paramRepo->getAnneeEnCours((int)date('Y'));
         if ($anneeActive !== null && $annee > $anneeActive) {
-            return $this->redirectToRoute('saisie_index_form', ['lotId' => $lotId, 'annee' => $anneeActive]);
+            return $this->redirectToRoute('saisie_index_form', [
+                'lotId' => $lotId,
+                'annee' => $anneeActive,
+                'sortBy' => $sortBy,
+            ]);
         }
         $isEditable = ($anneeActive !== null) ? ($annee === $anneeActive) : false;
         $forfaitsAnnee = $paramRepo->getForfaitsForYear($annee);
@@ -261,7 +270,11 @@ class SaisieIndexController extends AbstractController
 
             if (!$isEditable) {
                 $this->addFlash('warning', "L'année $annee est figée. Aucune modification n'a été enregistrée.");
-                return $this->redirectToRoute('saisie_index_form', ['lotId' => $lotId, 'annee' => $annee]);
+                return $this->redirectToRoute('saisie_index_form', [
+                    'lotId' => $lotId,
+                    'annee' => $annee,
+                    'sortBy' => $sortBy,
+                ]);
             }
 
             // Récupération robuste des items soumis
@@ -278,7 +291,11 @@ class SaisieIndexController extends AbstractController
             }
             if (!is_iterable($submittedItems) || count($submittedItems) === 0) {
                 $this->addFlash('warning', 'Aucun élément à enregistrer (la collection d’items est vide).');
-                return $this->redirectToRoute('saisie_index_form', ['lotId' => $lotId, 'annee' => $annee]);
+                return $this->redirectToRoute('saisie_index_form', [
+                    'lotId' => $lotId,
+                    'annee' => $annee,
+                    'sortBy' => $sortBy,
+                ]);
             }
 
             $conn = $em->getConnection();
@@ -465,7 +482,11 @@ class SaisieIndexController extends AbstractController
                 $conn->commit();
 
                 $this->addFlash('success', "Relevés $annee enregistrés avec succès pour le lot {$lot->getId()}.");
-                return $this->redirectToRoute('saisie_index_form', ['lotId' => $lotId, 'annee' => $annee]);
+                return $this->redirectToRoute('saisie_index_form', [
+                    'lotId' => $lotId,
+                    'annee' => $annee,
+                    'sortBy' => $sortBy,
+                ]);
 
             } catch (\Throwable $e) {
                 $conn->rollBack();
@@ -476,17 +497,7 @@ class SaisieIndexController extends AbstractController
 
         // Données pour la barre lot/année
         $allLots = $lotRepo->findAll();
-        usort($allLots, static function ($a, $b): int {
-            $numeroA = trim((string) $a->getNumeroLot());
-            $numeroB = trim((string) $b->getNumeroLot());
-            $cmp = strnatcasecmp($numeroA, $numeroB);
-
-            if ($cmp !== 0) {
-                return $cmp;
-            }
-
-            return $a->getId() <=> $b->getId();
-        });
+        $today = new \DateTimeImmutable('today');
         $uniqueLots = [];
         foreach ($allLots as $candidateLot) {
             $numeroKey = mb_strtolower(trim((string) $candidateLot->getNumeroLot()));
@@ -495,6 +506,25 @@ class SaisieIndexController extends AbstractController
             }
         }
         $allLots = array_values($uniqueLots);
+        usort($allLots, function ($a, $b) use ($sortBy, $today): int {
+            if ($sortBy === 'copro') {
+                $aName = mb_strtolower(trim((string)($a->getCoproprietaire($today)?->getNomComplet() ?? '')));
+                $bName = mb_strtolower(trim((string)($b->getCoproprietaire($today)?->getNomComplet() ?? '')));
+                $cmp = $aName <=> $bName;
+                if ($cmp !== 0) {
+                    return $cmp;
+                }
+            }
+
+            $numeroA = trim((string) $a->getNumeroLot());
+            $numeroB = trim((string) $b->getNumeroLot());
+            $cmp = strnatcasecmp($numeroA, $numeroB);
+            if ($cmp !== 0) {
+                return $cmp;
+            }
+
+            return $a->getId() <=> $b->getId();
+        });
         $anneeBase = $anneeActive ?? (int)date('Y');
         $annees = range(max(2000, $anneeBase - 3), $anneeBase);
         $copro   = method_exists($lot, 'getCoproprietaire')
@@ -509,6 +539,7 @@ class SaisieIndexController extends AbstractController
             'items'      => $items,
             'totaux'     => $totaux,
             'allLots'    => $allLots,
+            'sortBy'     => $sortBy,
             'annees'     => $annees,
             'isEditable' => $isEditable,
             'maxAnnee'   => $maxAnnee,

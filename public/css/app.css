@@ -318,6 +318,37 @@ body.menu-open {
   min-width: 140px;
 }
 
+.compteur-reference-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.compteur-reference-section .table-wrap {
+  max-height: calc(100vh - 260px);
+  overflow: auto;
+}
+
+.compteur-reference-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.compteur-reference-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  box-shadow: inset 0 -1px 0 #efe7da;
+}
+
+.compteur-reference-floating-save {
+  position: fixed;
+  top: 76px;
+  right: 24px;
+  z-index: 30;
+  box-shadow: var(--shadow);
+}
+
 .badges-row {
   display: flex;
   flex-wrap: wrap;
@@ -472,8 +503,23 @@ body.menu-open {
     -webkit-overflow-scrolling: touch;
   }
 
+  .compteur-reference-table {
+    display: table;
+    white-space: nowrap;
+  }
+
+  .compteur-reference-section .table-wrap {
+    max-height: calc(100vh - 220px);
+  }
+
   .table-wrap .table {
     min-width: 680px;
+  }
+
+  .compteur-reference-floating-save {
+    top: 68px;
+    right: 12px;
+    padding: 8px 12px;
   }
 
   .table th,
@@ -509,7 +555,8 @@ body.menu-open {
 @media print {
   .topbar,
   .footer,
-  .print-btn {
+  .print-btn,
+  .compteur-reference-floating-save {
     display: none !important;
   }
 

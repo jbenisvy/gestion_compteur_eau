@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Lot;
 use App\Entity\LotCoproprietaire;
+use App\Entity\Coproprietaire;
 use App\Repository\CoproprietaireRepository;
 use App\Repository\LotCoproprietaireRepository;
 use App\Repository\LotRepository;
@@ -57,7 +58,13 @@ class DashboardController extends AbstractController
         ParametreRepository $paramRepo
     ): Response {
         $anneeActive = $paramRepo->getAnneeEnCours((int)date('Y'));
-        $lots = $lotRepo->findBy([], ['id' => 'ASC']);
+        $lots = $lotRepo->findAllForAdminDashboard();
+        $today = new \DateTimeImmutable('today');
+        $activeCoproNames = [];
+        foreach ($lots as $lot) {
+            $activeCoproNames[$lot->getId()] = $this->resolveActiveCoproName($lot, $today);
+        }
+
         $sortBy = (string)($request->query->get('sortBy') ?? 'lot');
         $sortDir = strtolower((string)($request->query->get('sortDir') ?? 'asc'));
         if (!in_array($sortBy, ['lot', 'copro', 'etage'], true)) {
@@ -66,10 +73,11 @@ class DashboardController extends AbstractController
         if (!in_array($sortDir, ['asc', 'desc'], true)) {
             $sortDir = 'asc';
         }
-        $this->sortLots($lots, $sortBy, $sortDir);
+        $this->sortLots($lots, $sortBy, $sortDir, $activeCoproNames);
 
         return $this->render('dashboard/admin.html.twig', [
             'lots' => $lots,
+            'activeCoproNames' => $activeCoproNames,
             'anneeActive' => $anneeActive,
             'sortBy' => $sortBy,
             'sortDir' => $sortDir,
@@ -77,13 +85,13 @@ class DashboardController extends AbstractController
     }
 
     /** @param array<int,Lot> $lots */
-    private function sortLots(array &$lots, string $sortBy, string $sortDir): void
+    private function sortLots(array &$lots, string $sortBy, string $sortDir, array $activeCoproNames = []): void
     {
         $direction = $sortDir === 'desc' ? -1 : 1;
-        usort($lots, function (Lot $a, Lot $b) use ($sortBy, $direction): int {
+        usort($lots, function (Lot $a, Lot $b) use ($sortBy, $direction, $activeCoproNames): int {
             if ($sortBy === 'copro') {
-                $aValue = mb_strtolower($a->getCoproprietaire()?->getNomComplet() ?? '');
-                $bValue = mb_strtolower($b->getCoproprietaire()?->getNomComplet() ?? '');
+                $aValue = mb_strtolower((string)($activeCoproNames[$a->getId()] ?? ''));
+                $bValue = mb_strtolower((string)($activeCoproNames[$b->getId()] ?? ''));
                 $cmp = $aValue <=> $bValue;
             } elseif ($sortBy === 'etage') {
                 $aValue = (string)$this->extractFloor($a->getEmplacement());
@@ -126,5 +134,36 @@ class DashboardController extends AbstractController
             return (int)$m[1];
         }
         return 999;
+    }
+
+    private function resolveActiveCoproName(Lot $lot, \DateTimeInterface $date): ?string
+    {
+        $activeLink = null;
+        foreach ($lot->getCoproprietaires() as $link) {
+            if (!$link->isActiveAt($date)) {
+                continue;
+            }
+
+            if (
+                $activeLink === null
+                || $link->getDateDebut() > $activeLink->getDateDebut()
+                || (
+                    $link->getDateDebut() == $activeLink->getDateDebut()
+                    && $link->getId() !== null
+                    && $activeLink->getId() !== null
+                    && $link->getId() > $activeLink->getId()
+                )
+            ) {
+                $activeLink = $link;
+            }
+        }
+
+        $copro = $activeLink?->getCoproprietaire() ?? $lot->getCoproprietaire($date);
+        if (!$copro instanceof Coproprietaire) {
+            return null;
+        }
+
+        $name = trim($copro->getNomComplet());
+        return $name !== '' ? $name : null;
     }
 }

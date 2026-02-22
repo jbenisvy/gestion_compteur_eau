@@ -51,6 +51,9 @@
           <table class="table">
             <thead>
               <tr>
+                <th colspan="{{ section.consoYears|length }}">Index</th>
+              </tr>
+              <tr>
                 {% for y in section.consoYears %}
                   <th>{{ y }}</th>
                 {% endfor %}
@@ -84,6 +87,11 @@
     <div class="table-wrap">
       <table class="table">
         <thead>
+          <tr>
+            <th colspan="4"></th>
+            <th colspan="{{ section.years|length }}">Index</th>
+            <th colspan="{{ section.consoYears|default([])|length }}">Consommation</th>
+          </tr>
           <tr>
             <th>Compteur</th>
             <th>Pièce</th>

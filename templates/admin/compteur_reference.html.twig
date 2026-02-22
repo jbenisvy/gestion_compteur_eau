@@ -23,11 +23,14 @@
   </div>
 </section>
 
-<section class="card" style="margin-top: 20px;">
-  <form method="post" action="{{ path('admin_compteurs_reference') }}">
+<section class="card compteur-reference-section" style="margin-top: 20px;">
+  <form id="compteurs-reference-form" method="post" action="{{ path('admin_compteurs_reference') }}" enctype="multipart/form-data">
     <input type="hidden" name="_token" value="{{ csrf_token('admin_compteurs_reference_save') }}">
+    <div class="compteur-reference-toolbar">
+      <button class="btn btn-primary" type="submit">Enregistrer les modifications</button>
+    </div>
     <div class="table-wrap">
-      <table class="table">
+      <table class="table compteur-reference-table">
         <thead>
           <tr>
             <th>Lot</th>
@@ -36,6 +39,7 @@
             <th>EC Cuisine</th>
             <th>EF SDB</th>
             <th>EF Cuisine</th>
+            <th>Photos</th>
           </tr>
         </thead>
         <tbody>
@@ -56,20 +60,49 @@
                     {{ compteur ? '' : 'disabled' }}
                     class="table-input"
                   >
+                  <input
+                    type="file"
+                    name="photos[{{ lot.id }}][{{ slot }}]"
+                    accept="image/*"
+                    {{ compteur ? '' : 'disabled' }}
+                    style="margin-top:6px;max-width: 220px;"
+                  >
+                  {% if compteur and compteur.photo %}
+                    <div style="margin-top:4px;">
+                      <a class="badge" href="{{ compteur.photo }}" target="_blank" rel="noopener">Photo actuelle</a>
+                    </div>
+                  {% endif %}
                 </td>
               {% endfor %}
+              <td>
+                {% for slot in slots %}
+                  {% set compteur = lotSlots[slot] ?? null %}
+                  {% if compteur %}
+                    <a class="badge" href="{{ path('compteur_photo_history', { id: compteur.id }) }}" target="_blank" rel="noopener">{{ slot|replace({'_':' '}) }}</a>
+                    <button
+                      type="submit"
+                      name="removePhotos[{{ lot.id }}][{{ slot }}]"
+                      value="1"
+                      class="badge"
+                      style="border:none;cursor:pointer;{{ compteur.photo ? '' : 'opacity:.45;cursor:not-allowed;' }}"
+                      {{ compteur.photo ? '' : 'disabled' }}
+                      onclick="return confirm('Supprimer la photo active de {{ slot|replace({'_':' '}) }} pour le lot {{ lot.numeroLot }} ?');"
+                    >Suppr.</button>
+                  {% endif %}
+                {% endfor %}
+              </td>
             </tr>
           {% else %}
             <tr>
-              <td colspan="6">Aucun lot trouvé.</td>
+              <td colspan="7">Aucun lot trouvé.</td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-    <p style="margin-top: 12px;">
-      <button class="btn btn-primary" type="submit">Enregistrer les modifications</button>
-    </p>
   </form>
 </section>
+<button class="btn btn-primary compteur-reference-floating-save" type="submit" form="compteurs-reference-form">
+  Enregistrer les modifications
+</button>
 {% endblock %}

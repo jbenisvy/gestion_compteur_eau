@@ -25,6 +25,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 .block .inner{padding:10px 12px}
 .row{border:1px dashed #e2e8f0;border-radius:10px;padding:10px;margin-bottom:10px;background:#fff9;}
 .meta{font-size:12px;color:#6b7280}
+.meta .n1{font-size:14px;font-weight:600;color:#111827}
 .lbl{font-weight:600}
 .small input, .small select, .small textarea{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:14px;min-width:0;}
 /* Ligne 1 (commune) */

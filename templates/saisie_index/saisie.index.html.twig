@@ -11,6 +11,7 @@
 h1{margin:10px 0 8px 0; font-size:28px;}
 /* Toolbar Lot/Année */
 .toolbar{display:flex;gap:10px;align-items:flex-end;background:#eaf2ff;padding:10px 12px;border-radius:10px;margin-bottom:12px;}
+.toolbar-right{margin-left:auto;display:flex;gap:10px;align-items:flex-end;}
 .toolbar label{font-weight:600;font-size:14px;color:#111}
 .toolbar select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;}
 .btn{background:var(--brand);color:#fff;border:none;border-radius:10px;padding:9px 14px;cursor:pointer;}
@@ -25,6 +26,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 .block .inner{padding:10px 12px}
 .row{border:1px dashed #e2e8f0;border-radius:10px;padding:10px;margin-bottom:10px;background:#fff9;}
 .meta{font-size:12px;color:#6b7280}
+.meta .n1{font-size:14px;font-weight:600;color:#111827}
 .lbl{font-weight:600}
 .small input, .small select, .small textarea{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:14px;min-width:0;}
 /* Ligne 1 (commune) */
@@ -60,6 +62,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 @media (max-width:900px){
   .toolbar{flex-direction:column;align-items:stretch;}
   .toolbar > div{width:100%;}
+  .toolbar-right{margin-left:0;display:grid;grid-template-columns:1fr;gap:10px;width:100%;}
   .toolbar select,.toolbar button{width:100%;}
   .block .head{flex-direction:column;align-items:flex-start;gap:4px;}
   .conso{text-align:left;}
@@ -76,21 +79,32 @@ h1{margin:10px 0 8px 0; font-size:28px;}
       <label for="sel_lot">Lot</label><br>
       <select id="sel_lot">
         {% for l in allLots %}
+          {% set activeCopro = l.getCoproprietaire(date()) %}
+          {% set activeCoproName = activeCopro ? activeCopro.nomComplet : 'N/A' %}
           <option value="{{ l.id }}" {{ l.id == lot.id ? 'selected' : '' }}>
-            Lot {{ attribute(l,'numeroLot') is defined and l.numeroLot is not null ? l.numeroLot : l.id }} — {{ attribute(l,'emplacement') is defined ? l.emplacement : 'Lot' }}
+            Lot {{ attribute(l,'numeroLot') is defined and l.numeroLot is not null ? l.numeroLot : l.id }} {{ activeCoproName }} {{ attribute(l,'emplacement') is defined ? l.emplacement : 'Lot' }}
           </option>
         {% endfor %}
       </select>
     </div>
-    <div>
-      <label for="sel_annee">Année</label><br>
-      <select id="sel_annee">
-        {% for a in annees %}
-          <option value="{{ a }}" {{ a == annee ? 'selected' : '' }}>{{ a }}</option>
-        {% endfor %}
-      </select>
+    <div class="toolbar-right">
+      <div>
+        <label for="sel_sort">Trier par</label><br>
+        <select id="sel_sort">
+          <option value="lot" {{ (sortBy|default('lot')) == 'lot' ? 'selected' : '' }}>Lot</option>
+          <option value="copro" {{ (sortBy|default('lot')) == 'copro' ? 'selected' : '' }}>Nom copropriétaire</option>
+        </select>
+      </div>
+      <div>
+        <label for="sel_annee">Année</label><br>
+        <select id="sel_annee">
+          {% for a in annees %}
+            <option value="{{ a }}" {{ a == annee ? 'selected' : '' }}>{{ a }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div><button id="btn_go" class="btn">Aller</button></div>
     </div>
-    <div><button id="btn_go" class="btn">Aller</button></div>
   </div>
 
   <h1>💧 Saisie des index – {{ annee }}</h1>
@@ -169,9 +183,9 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                     >
                   </a>
                 </div>
-                <div class="meta">N-1 : <b class="n1">{{ item.indexPrevious ?? 0 }}</b></div>
+                <div class="meta">Ind. n-1 : <b class="n1">{{ item.indexPrevious ?? 0 }}</b></div>
                 <div class="field-etat">{{ form_row(form.items[idx].etat, {'label':'État'}) }}</div>
-                <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'N'}) }}</div>
+                <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'Ind. n'}) }}</div>
                 <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
                 <div class="conso">
                   <div class="meta">Conso calculée</div>
@@ -255,9 +269,9 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                     >
                   </a>
                 </div>
-                <div class="meta">N-1 : <b class="n1">{{ item.indexPrevious ?? 0 }}</b></div>
+                <div class="meta">Ind. n-1 : <b class="n1">{{ item.indexPrevious ?? 0 }}</b></div>
                 <div class="field-etat">{{ form_row(form.items[idx].etat, {'label':'État'}) }}</div>
-                <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'N'}) }}</div>
+                <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'Ind. n'}) }}</div>
                 <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
                 <div class="conso">
                   <div class="meta">Conso calculée</div>
@@ -325,11 +339,13 @@ h1{margin:10px 0 8px 0; font-size:28px;}
   const goBtn=document.getElementById('btn_go');
   const selLot=document.getElementById('sel_lot');
   const selAn =document.getElementById('sel_annee');
+  const selSort=document.getElementById('sel_sort');
   const protoUrl="{{ path('saisie_index_form', { lotId: 999999, annee: 1999 }) }}";
   goBtn?.addEventListener('click', ()=> {
     const lotId=selLot?selLot.value:'{{ lot.id }}';
     const annee=selAn?selAn.value:'{{ annee }}';
-    const url=protoUrl.replace('999999', lotId).replace('1999', annee);
+    const sortBy=selSort?selSort.value:'{{ sortBy|default('lot') }}';
+    const url=protoUrl.replace('999999', lotId).replace('1999', annee) + '?sortBy=' + encodeURIComponent(sortBy);
     window.location.href=url;
   });
 
