@@ -27,6 +27,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 .row{border:1px dashed #e2e8f0;border-radius:10px;padding:10px;margin-bottom:10px;background:#fff9;}
 .meta{font-size:12px;color:#6b7280}
 .meta .n1{font-size:14px;font-weight:600;color:#111827}
+.meta.index-meta{padding:6px 8px;border:1px solid #93c5fd;border-radius:8px;background:#dbeafe}
 .lbl{font-weight:600}
 .small input, .small select, .small textarea{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:14px;min-width:0;}
 /* Ligne 1 (commune) */
@@ -49,6 +50,8 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 /* Conso */
 .conso{text-align:right;}
 .conso .v{font-weight:800;font-size:18px}
+.field-indexN{padding:6px 8px;border:1px solid #60a5fa;border-radius:8px;background:#dbeafe}
+.conso{padding:6px 8px;border:1px solid #fb923c;border-radius:8px;background:#ffedd5}
 .forfait-hint{display:none;margin-top:4px;font-size:12px;color:#7a5b00;background:#fff3cd;border:1px solid #ffe69c;border-radius:8px;padding:2px 6px}
 .empty{color:#9ca3af;font-style:italic;padding:12px}
 .totals{margin-top:12px;padding:12px;border-radius:12px;background:#f8fafc;border:1px solid var(--line)}
@@ -66,6 +69,15 @@ h1{margin:10px 0 8px 0; font-size:28px;}
   .toolbar select,.toolbar button{width:100%;}
   .block .head{flex-direction:column;align-items:flex-start;gap:4px;}
   .conso{text-align:left;}
+  .meta.index-meta,.field-indexN,.conso{margin-top:4px;}
+  .meta.index-meta{font-size:13px;border-width:2px;}
+  .meta.index-meta .n1{font-size:16px;color:#1e3a8a;}
+  .field-indexN{border-width:2px;}
+  .field-indexN .form-label{font-weight:800;color:#1e40af;}
+  .field-indexN input{font-size:16px;font-weight:700;color:#0f172a;}
+  .conso{border-width:2px;}
+  .conso .meta{font-weight:800;color:#9a3412;}
+  .conso .v{font-size:20px;color:#7c2d12;}
   .totals-grid{gap:10px;}
   .totals-actions .btn{width:100%;}
 }
@@ -183,7 +195,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                     >
                   </a>
                 </div>
-                <div class="meta">Ind. n-1 : <b class="n1">{{ item.indexPrevious ?? 0 }}</b></div>
+                <div class="meta index-meta">Ind. n-1 : <b class="n1">{{ item.indexPrevious ?? 0 }}</b></div>
                 <div class="field-etat">{{ form_row(form.items[idx].etat, {'label':'État'}) }}</div>
                 <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'Ind. n'}) }}</div>
                 <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
@@ -197,9 +209,9 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                 <div class="field-numero">{{ form_row(form.items[idx].compteurNumero, {'label':'N° compteur (optionnel)'}) }}</div>
                 <div class="field-dateInstallation">{{ form_row(form.items[idx].dateInstallation, {'label':"Date d'installation"}) }}</div>
                 <div class="field-indexDemonte">{{ form_row(form.items[idx].indexDemonte, {'label':'Index ancien (démonté)'}) }}</div>
-                <div class="field-indexNouveau">{{ form_row(form.items[idx].indexNouveau, {'label':'Index nouveau (N du nouveau compteur)'}) }}</div>
+                <div class="field-indexNouveau">{{ form_row(form.items[idx].indexNouveau, {'label':'Index nouveau (Ind. n du nouveau compteur)'}) }}</div>
                 <div class="field-ancienFonctionnaitEncore" style="grid-column:1/-1">
-                  {{ form_row(form.items[idx].ancienFonctionnaitEncore, {'label': 'Ancien compteur encore en service (conso = index ancien démonté - N-1 + index nouveau)'}) }}
+                  {{ form_row(form.items[idx].ancienFonctionnaitEncore, {'label': 'Ancien compteur encore en service (conso = index ancien démonté - Ind. n-1 + index nouveau)'}) }}
                 </div>
                 <div class="comment" style="grid-column:1/-1">{{ form_row(form.items[idx].commentaire, {'label':'Commentaire'}) }}</div>
 
@@ -269,7 +281,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                     >
                   </a>
                 </div>
-                <div class="meta">Ind. n-1 : <b class="n1">{{ item.indexPrevious ?? 0 }}</b></div>
+                <div class="meta index-meta">Ind. n-1 : <b class="n1">{{ item.indexPrevious ?? 0 }}</b></div>
                 <div class="field-etat">{{ form_row(form.items[idx].etat, {'label':'État'}) }}</div>
                 <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'Ind. n'}) }}</div>
                 <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
@@ -283,9 +295,9 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                 <div class="field-numero">{{ form_row(form.items[idx].compteurNumero, {'label':'N° compteur (optionnel)'}) }}</div>
                 <div class="field-dateInstallation">{{ form_row(form.items[idx].dateInstallation, {'label':"Date d'installation"}) }}</div>
                 <div class="field-indexDemonte">{{ form_row(form.items[idx].indexDemonte, {'label':'Index ancien (démonté)'}) }}</div>
-                <div class="field-indexNouveau">{{ form_row(form.items[idx].indexNouveau, {'label':'Index nouveau (N du nouveau compteur)'}) }}</div>
+                <div class="field-indexNouveau">{{ form_row(form.items[idx].indexNouveau, {'label':'Index nouveau (Ind. n du nouveau compteur)'}) }}</div>
                 <div class="field-ancienFonctionnaitEncore" style="grid-column:1/-1">
-                  {{ form_row(form.items[idx].ancienFonctionnaitEncore, {'label': 'Ancien compteur encore en service (conso = index ancien démonté - N-1 + index nouveau)'}) }}
+                  {{ form_row(form.items[idx].ancienFonctionnaitEncore, {'label': 'Ancien compteur encore en service (conso = index ancien démonté - Ind. n-1 + index nouveau)'}) }}
                 </div>
                 <div class="comment" style="grid-column:1/-1">{{ form_row(form.items[idx].commentaire, {'label':'Commentaire'}) }}</div>
 
