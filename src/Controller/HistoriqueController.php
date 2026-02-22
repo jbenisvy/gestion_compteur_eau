@@ -373,41 +373,60 @@ class HistoriqueController extends AbstractController
                 $isForfaitFlag = false;
                 $indexCompteurDem = null;
                 $indexNouveauCompteur = null;
+                $savedConsommation = null;
                 $r = $relevesByYear[$y] ?? null;
                 if ($r) {
                     foreach ($r->getItems() as $item) {
                         if ($item->getCompteur() && $item->getCompteur()->getId() === $cmp->getId()) {
                             $etatId = $item->getEtatId();
-                            $etatCode = $etatId !== null && isset($etatMap[$etatId]) ? $etatMap[$etatId]->getCode() : null;
+                            $etatCode = $etatId !== null && isset($etatMap[$etatId])
+                                ? mb_strtolower((string) $etatMap[$etatId]->getCode())
+                                : null;
                             $isForfaitFlag = $item->isForfait();
                             $indexCompteurDem = $item->getIndexCompteurDemonté();
                             $indexNouveauCompteur = $item->getIndexNouveauCompteur();
+                            $savedConsommation = $item->getConsommation();
                             break;
                         }
                     }
                 }
 
-                $isRemplacement = in_array($etatCode, ['remplace', 'remplace_sans_date'], true)
-                    || $indexCompteurDem !== null
-                    || $indexNouveauCompteur !== null;
-                if ($isRemplacement) {
-                    $oldPart = (is_numeric($indexCompteurDem) && is_numeric($n1))
-                        ? max(0, (int)$indexCompteurDem - (int)$n1)
-                        : 0;
-                    $newPart = is_numeric($indexNouveauCompteur)
-                        ? max(0, (int)$indexNouveauCompteur)
-                        : (is_numeric($n) ? max(0, (int)$n) : 0);
-                    $delta = $oldPart + $newPart;
+                $isForfait = ($etatCode !== null && str_contains($etatCode, 'forfait')) || $isForfaitFlag;
+                $forfaitValue = 0.0;
+
+                if (is_numeric($savedConsommation)) {
+                    // Source de vérité: la consommation calculée et enregistrée lors de la saisie.
+                    $delta = max(0, (int)round((float)$savedConsommation));
+                } else {
+                    $isRemplacement = $etatCode !== null && (
+                        str_contains($etatCode, 'remplac')
+                        || str_contains($etatCode, 'demonte')
+                        || str_contains($etatCode, 'démont')
+                        || str_contains($etatCode, 'nouveau')
+                    );
+                    if ($isRemplacement) {
+                        $oldPart = (is_numeric($indexCompteurDem) && is_numeric($n1))
+                            ? max(0, (int)$indexCompteurDem - (int)$n1)
+                            : 0;
+                        $newPart = is_numeric($indexNouveauCompteur)
+                            ? max(0, (int)$indexNouveauCompteur)
+                            : (is_numeric($n) ? max(0, (int)$n) : 0);
+                        $delta = $oldPart + $newPart;
+                    }
+
+                    if ($etatCode === 'supprime' || $isForfait) {
+                        $delta = 0;
+                    }
+                    if ($isForfait) {
+                        $forfaitValue = $cmp->getType() === 'EF' ? (float)$forfaitsYear['ef'] : (float)$forfaitsYear['ec'];
+                        $delta += $forfaitValue;
+                    }
                 }
 
-                $isForfait = $etatCode === 'forfait' || $isForfaitFlag;
-                if ($etatCode === 'supprime' || $isForfait) {
-                    $delta = 0;
-                }
-                $forfaitValue = 0.0;
                 if ($isForfait) {
-                    $forfaitValue = $cmp->getType() === 'EF' ? (float)$forfaitsYear['ef'] : (float)$forfaitsYear['ec'];
-                    $delta += $forfaitValue;
+                    if ($forfaitValue <= 0.0) {
+                        $forfaitValue = $cmp->getType() === 'EF' ? (float)$forfaitsYear['ef'] : (float)$forfaitsYear['ec'];
+                    }
                     $forfaitCount++;
                     $forfaitTotal += $forfaitValue;
                 }
