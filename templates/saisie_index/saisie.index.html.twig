@@ -36,7 +36,18 @@ h1{margin:10px 0 8px 0; font-size:28px;}
   grid-template-columns: 110px 90px minmax(180px,1fr) 110px 120px 110px;
   gap:10px; align-items:center;
 }
-@media (max-width:1100px){ .rowgrid-top{grid-template-columns: 120px 90px 1fr 100px 110px 100px;} }
+.conso{
+  grid-column: 1 / -1;
+  text-align:left;
+}
+@media (max-width:1500px){
+  .rowgrid-top{
+    grid-template-columns: repeat(3, minmax(140px, 1fr));
+    row-gap: 8px;
+    align-items: start;
+  }
+}
+@media (max-width:1100px){ .rowgrid-top{grid-template-columns:repeat(2, minmax(140px,1fr)); row-gap:6px;} }
 @media (max-width:900px){ .rowgrid-top{grid-template-columns:1fr 1fr; row-gap:6px;} }
 /* Ligne 2 (remplacement) : 2 colonnes pour bien voir les 4 champs */
 .rowgrid-replace{
@@ -48,10 +59,38 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 .totals-grid{display:flex;gap:24px;flex-wrap:wrap;}
 .totals-actions{margin-top:10px;}
 /* Conso */
-.conso{text-align:right;}
-.conso .v{font-weight:800;font-size:18px}
+.conso{
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+  min-height:auto;
+  padding:0;
+  border:none;
+  background:transparent;
+}
+.conso-box{
+  width:82px;
+  border:1px solid #fb923c;
+  border-radius:8px;
+  background:#ffedd5;
+  padding:4px 6px;
+}
+.conso-box-label{
+  display:block;
+  font-size:11px;
+  font-weight:700;
+  color:#9a3412;
+  line-height:1.1;
+  margin-bottom:2px;
+}
+.cons-val{
+  display:block;
+  font-weight:800;
+  font-size:16px;
+  color:#7c2d12;
+  line-height:1.15;
+}
 .field-indexN{padding:6px 8px;border:1px solid #60a5fa;border-radius:8px;background:#dbeafe}
-.conso{padding:6px 8px;border:1px solid #fb923c;border-radius:8px;background:#ffedd5}
 .forfait-hint{display:none;margin-top:4px;font-size:12px;color:#7a5b00;background:#fff3cd;border:1px solid #ffe69c;border-radius:8px;padding:2px 6px}
 .empty{color:#9ca3af;font-style:italic;padding:12px}
 .totals{margin-top:12px;padding:12px;border-radius:12px;background:#f8fafc;border:1px solid var(--line)}
@@ -75,9 +114,8 @@ h1{margin:10px 0 8px 0; font-size:28px;}
   .field-indexN{border-width:2px;}
   .field-indexN .form-label{font-weight:800;color:#1e40af;}
   .field-indexN input{font-size:16px;font-weight:700;color:#0f172a;}
-  .conso{border-width:2px;}
-  .conso .meta{font-weight:800;color:#9a3412;}
-  .conso .v{font-size:20px;color:#7c2d12;}
+  .conso-box{border-width:2px;}
+  .cons-val{font-size:18px;color:#7c2d12;}
   .totals-grid{gap:10px;}
   .totals-actions .btn{width:100%;}
 }
@@ -200,8 +238,10 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                 <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'Ind. n'}) }}</div>
                 <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
                 <div class="conso">
-                  <div class="meta">Conso calculée</div>
-                  <div class="v cons-val" data-piece="{{ piece }}" data-type="{{ type }}">0</div>
+                  <div class="conso-box">
+                    <span class="conso-box-label">Conso</span>
+                    <span class="cons-val" data-piece="{{ piece }}" data-type="{{ type }}">0</span>
+                  </div>
                   <div class="forfait-hint">Forfait +0 m3</div>
                 </div>
               </div>
@@ -286,8 +326,10 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                 <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'Ind. n'}) }}</div>
                 <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
                 <div class="conso">
-                  <div class="meta">Conso calculée</div>
-                  <div class="v cons-val" data-piece="{{ piece }}" data-type="{{ type }}">0</div>
+                  <div class="conso-box">
+                    <span class="conso-box-label">Conso</span>
+                    <span class="cons-val" data-piece="{{ piece }}" data-type="{{ type }}">0</span>
+                  </div>
                   <div class="forfait-hint">Forfait +0 m3</div>
                 </div>
               </div>
