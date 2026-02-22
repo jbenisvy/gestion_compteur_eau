@@ -96,6 +96,27 @@
         </nav>
       </aside>
       <main class="page">
+        {% set currentRoute = app.request.attributes.get('_route') ?? '' %}
+        {% set backExcludedRoutes = [
+          'home',
+          'admin_dashboard',
+          'copro_dashboard',
+          'app_login',
+          'app_login_admin',
+          'app_login_magic'
+        ] %}
+        {% set fallbackBack = is_granted('ROLE_ADMIN')
+          ? path('admin_dashboard')
+          : (is_granted('ROLE_USER') ? path('copro_dashboard') : path('home')) %}
+        {% if app.user and currentRoute not in backExcludedRoutes %}
+          <div class="page-tools">
+            <a
+              class="btn btn-ghost page-back-btn"
+              href="{{ app.request.headers.get('referer') ?: fallbackBack }}"
+              onclick="if (window.history.length > 1) { event.preventDefault(); window.history.back(); }"
+            >Retour</a>
+          </div>
+        {% endif %}
         {% block body %}{% endblock %}
       </main>
       <footer class="footer">

@@ -180,6 +180,16 @@ body.menu-open {
   min-width: 0;
 }
 
+.page-tools {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.page-back-btn {
+  padding: 8px 14px;
+}
+
 .hero {
   background: var(--card);
   border-radius: 18px;
@@ -476,6 +486,10 @@ body.menu-open {
 
   .page {
     padding: 16px 12px 24px;
+  }
+
+  .page-tools {
+    margin-bottom: 10px;
   }
 
   .hero {
