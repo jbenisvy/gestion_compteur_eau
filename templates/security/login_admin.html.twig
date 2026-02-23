@@ -25,7 +25,16 @@
 
         <div class="form-row">
             <label for="inputPassword">Mot de passe</label>
-            <input type="password" name="password" id="inputPassword" required>
+            <div class="password-field">
+                <input type="password" name="password" id="inputPassword" required autocomplete="current-password">
+                <button
+                    type="button"
+                    class="password-toggle"
+                    id="togglePassword"
+                    aria-label="Afficher le mot de passe"
+                    aria-pressed="false"
+                >&#128065;</button>
+            </div>
         </div>
 
         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
@@ -37,4 +46,21 @@
         <a href="{{ path('app_login') }}">connexion par lien sécurisé</a>
     </p>
 </div>
+
+<script>
+  (function () {
+    var input = document.getElementById('inputPassword');
+    var toggle = document.getElementById('togglePassword');
+    if (!input || !toggle) {
+      return;
+    }
+
+    toggle.addEventListener('click', function () {
+      var show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      toggle.setAttribute('aria-pressed', show ? 'true' : 'false');
+      toggle.setAttribute('aria-label', show ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+    });
+  })();
+</script>
 {% endblock %}

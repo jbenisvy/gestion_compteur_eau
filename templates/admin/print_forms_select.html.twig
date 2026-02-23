@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Impression fiches papier{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Impression des fiches copropriétaires</h1>
+    <p>Choisissez l’année puis imprimez toutes les fiches ou uniquement une sélection.</p>
+  </div>
+</section>
+
+<section class="grid">
+  <article class="card print-select-card">
+    <form method="get" action="{{ path('admin_print_forms') }}">
+      <div class="print-select-toolbar">
+        <label for="annee">Année</label>
+        <input id="annee" name="annee" type="number" min="2000" max="2100" value="{{ anneeActive }}" class="table-input">
+      </div>
+
+      <div class="print-select-actions">
+        <button type="submit" name="scope" value="all" class="btn btn-primary">Imprimer toutes les fiches</button>
+        <button type="submit" name="scope" value="selection" class="btn btn-ghost">Imprimer la sélection</button>
+      </div>
+
+      <div class="print-select-bulk">
+        <label>
+          <input type="checkbox" id="selectAllLots">
+          Tout sélectionner / désélectionner
+        </label>
+      </div>
+
+      {% if rows is empty %}
+        <p>Aucun lot disponible.</p>
+      {% else %}
+        <ul class="print-select-list">
+          {% for row in rows %}
+            <li>
+              <label>
+                <input type="checkbox" name="lotIds[]" value="{{ row.lot.id }}" class="lot-checkbox">
+                <strong>Lot {{ row.lot.numeroLot }}</strong>
+                {% if row.coproName %}
+                  - {{ row.coproName }}
+                {% else %}
+                  - N/A
+                {% endif %}
+                - {{ row.lot.emplacement }}
+              </label>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </form>
+  </article>
+</section>
+
+<script>
+  (function () {
+    var selectAll = document.getElementById('selectAllLots');
+    if (!selectAll) {
+      return;
+    }
+    var boxes = Array.prototype.slice.call(document.querySelectorAll('.lot-checkbox'));
+    selectAll.addEventListener('change', function () {
+      boxes.forEach(function (box) {
+        box.checked = selectAll.checked;
+      });
+    });
+  })();
+</script>
+{% endblock %}

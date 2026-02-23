@@ -50,7 +50,9 @@
         </button>
 
         <nav class="topnav desktop-nav">
-          <button type="button" class="print-btn" onclick="window.print()">Imprimer les états</button>
+          {% if app.user and is_granted('ROLE_ADMIN') %}
+            <a class="print-btn" href="{{ path('admin_print_forms_select') }}">Imprimer formulaires</a>
+          {% endif %}
           <a href="{{ path('guides_index') }}">Didacticiels</a>
           <a href="{{ path('home') }}">Accueil</a>
           {% if app.user %}
@@ -76,7 +78,9 @@
           <button id="mobileMenuClose" type="button" class="mobile-menu-close" aria-label="Fermer">✕</button>
         </div>
         <nav class="topnav topnav-mobile">
-          <button type="button" class="print-btn" onclick="window.print()">Imprimer les états</button>
+          {% if app.user and is_granted('ROLE_ADMIN') %}
+            <a class="print-btn" href="{{ path('admin_print_forms_select') }}">Imprimer formulaires</a>
+          {% endif %}
           <a href="{{ path('guides_index') }}">Didacticiels</a>
           <a href="{{ path('home') }}">Accueil</a>
           {% if app.user %}

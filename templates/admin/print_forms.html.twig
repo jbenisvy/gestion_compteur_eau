@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Formulaires papier{% endblock %}
+
+{% block body %}
+<div class="print-toolbar no-print">
+  <a href="{{ path('admin_print_forms_select') }}" class="btn btn-ghost">Retour à la sélection</a>
+  <button type="button" class="btn btn-primary" onclick="window.print()">Lancer l'impression</button>
+</div>
+
+{% if fiches is empty %}
+  <section class="card">
+    <h3>Aucune fiche à imprimer</h3>
+    {% if scope == 'selection' %}
+      <p>Vous avez choisi une impression partielle sans sélectionner de fiche.</p>
+    {% else %}
+      <p>Aucun lot disponible.</p>
+    {% endif %}
+  </section>
+{% else %}
+  <div class="paper-stack">
+    {% for fiche in fiches %}
+      <article class="paper-sheet">
+        <h2>Relevé de vos compteurs d'eau pour l'année : {{ annee }}</h2>
+
+        <div class="paper-meta-grid">
+          <div class="paper-field">
+            <span class="paper-label">Nom du copropriétaire</span>
+            <span class="paper-value">{{ fiche.coproName ?: '' }}</span>
+          </div>
+          <div class="paper-field">
+            <span class="paper-label">Emplacement</span>
+            <span class="paper-value">{{ fiche.lot.emplacement }}</span>
+          </div>
+          <div class="paper-field paper-lot">
+            <span class="paper-label">Lot n°</span>
+            <span class="paper-value">{{ fiche.lot.numeroLot }}</span>
+          </div>
+        </div>
+
+        <div class="paper-field paper-blank">
+          <span class="paper-label">Nom du locataire (si le logement est en location)</span>
+          <span class="paper-value paper-fill-zone"></span>
+        </div>
+
+        <div class="paper-instructions">
+          <p>Merci de compléter les zones grisées et de déposer ce document accompagné des photos des compteurs. Le tout est à déposer dans la boîte aux lettres de Mr Dallot avant le 10 janvier.</p>
+          <p>
+            Pour les compteurs bloqués l'année précédente et non remplacés, et dans le cas où la présente fiche n'est pas transmise dans les délais,
+            les forfaits votés en AG seront appliqués à savoir :
+            <strong>{{ forfaits.ef|default(150)|replace({'.': ','}) }} m³</strong> pour chaque compteur eau froide et
+            <strong>{{ forfaits.ec|default(75)|replace({'.': ','}) }} m³</strong> pour chaque compteur eau chaude.
+          </p>
+          <ul>
+            <li>Seul l'index N-1 est prérempli.</li>
+            <li>Les champs "Année en cours", commentaires et signature sont à compléter manuellement.</li>
+          </ul>
+        </div>
+
+        <div class="meter-columns">
+          <section>
+            <h3>CUISINE</h3>
+            <div class="meter-card meter-card-hot">
+              <div class="meter-title">Compteur eau chaude</div>
+              <div class="meter-row"><span>Année précédente (N-1) :</span><span class="meter-box">{{ fiche.slots.cuisine_chaude.indexN1 is not null ? fiche.slots.cuisine_chaude.indexN1 : '' }}</span></div>
+              <div class="meter-row"><span>Année en cours :</span><span class="meter-box meter-box-fill"></span></div>
+            </div>
+            <div class="meter-card meter-card-cold">
+              <div class="meter-title">Compteur eau froide</div>
+              <div class="meter-row"><span>Année précédente (N-1) :</span><span class="meter-box">{{ fiche.slots.cuisine_froide.indexN1 is not null ? fiche.slots.cuisine_froide.indexN1 : '' }}</span></div>
+              <div class="meter-row"><span>Année en cours :</span><span class="meter-box meter-box-fill"></span></div>
+            </div>
+          </section>
+
+          <section>
+            <h3>SALLE DE BAINS - WC</h3>
+            <div class="meter-card meter-card-hot">
+              <div class="meter-title">Compteur eau chaude</div>
+              <div class="meter-row"><span>Année précédente (N-1) :</span><span class="meter-box">{{ fiche.slots.sdb_chaude.indexN1 is not null ? fiche.slots.sdb_chaude.indexN1 : '' }}</span></div>
+              <div class="meter-row"><span>Année en cours :</span><span class="meter-box meter-box-fill"></span></div>
+            </div>
+            <div class="meter-card meter-card-cold">
+              <div class="meter-title">Compteur eau froide</div>
+              <div class="meter-row"><span>Année précédente (N-1) :</span><span class="meter-box">{{ fiche.slots.sdb_froide.indexN1 is not null ? fiche.slots.sdb_froide.indexN1 : '' }}</span></div>
+              <div class="meter-row"><span>Année en cours :</span><span class="meter-box meter-box-fill"></span></div>
+            </div>
+          </section>
+        </div>
+
+        <div class="paper-comments">
+          <div>Commentaires compteurs eau chaude :</div>
+          <div class="paper-line paper-fill-zone"></div>
+          <div>Commentaires compteurs eau froide :</div>
+          <div class="paper-line paper-fill-zone"></div>
+        </div>
+
+        <div class="paper-signature">
+          <div class="paper-sign-field paper-fill-zone">Date :</div>
+          <div class="paper-sign-field paper-fill-zone">Signature :</div>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}
