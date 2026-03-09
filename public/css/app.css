@@ -480,12 +480,12 @@ body.menu-open {
 
 .meter-card-hot {
   border-color: #d79a7b;
-  background: #fff7f2;
+  background: #fdeeee;
 }
 
 .meter-card-cold {
   border-color: #7eaed7;
-  background: #f2f8ff;
+  background: #eef5ff;
 }
 
 .meter-card-hot .meter-title {
@@ -560,13 +560,19 @@ body.menu-open {
 }
 
 @media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   @page {
     size: A4 portrait;
-    margin: 0;
+    margin: 4mm;
   }
 
+  html,
   body {
-    background: #fff;
+    margin: 0 !important;
+    background: #fff !important;
   }
 
   .topbar,
@@ -580,31 +586,126 @@ body.menu-open {
 
   .page {
     padding: 0 !important;
+    background: #fff !important;
   }
 
   .paper-stack {
     gap: 0;
+    background: #fff !important;
   }
 
   .paper-sheet {
     box-shadow: none;
     border: 0;
     border-radius: 0;
-    width: 210mm;
-    min-height: 297mm;
-    padding: 10mm;
+    width: 100%;
+    min-height: 0;
+    padding: 2mm;
     margin: 0 auto;
     page-break-after: always;
+    background: #fff !important;
+  }
+
+  .paper-sheet h2 {
+    font-size: 1.05rem;
+    margin: 0 0 3px;
+  }
+
+  .paper-meta-grid,
+  .meter-columns,
+  .paper-signature {
+    gap: 4px;
+  }
+
+  .paper-field {
+    min-height: 34px;
+    padding: 2px 4px;
+  }
+
+  .paper-label {
+    font-size: 0.7rem;
+    margin-bottom: 1px;
+  }
+
+  .paper-value {
+    min-height: 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  .paper-instructions {
+    margin-top: 3px;
+    font-size: 0.7rem;
+    line-height: 1.1;
+  }
+
+  .paper-instructions p {
+    margin: 0 0 2px;
+  }
+
+  .paper-instructions ul {
+    margin: 1px 0 0;
+    padding-left: 14px;
+  }
+
+  .meter-columns {
+    margin-top: 4px;
+  }
+
+  .meter-columns h3 {
+    margin: 0 0 3px;
+    font-size: 0.9rem;
+  }
+
+  .meter-card {
+    padding: 4px;
+    margin-bottom: 4px;
+  }
+
+  .meter-title {
+    margin-bottom: 2px;
+    font-size: 0.8rem;
+  }
+
+  .meter-row {
+    grid-template-columns: 1fr 150px;
+    margin-bottom: 2px;
+    gap: 4px;
+    font-size: 0.8rem;
+  }
+
+  .meter-box {
+    min-height: 20px;
+    padding: 0 4px;
+  }
+
+  .paper-comments {
+    margin-top: 4px;
+    font-size: 0.8rem;
+  }
+
+  .paper-line {
+    height: 20px;
+    margin: 2px 0 4px;
+  }
+
+  .paper-signature {
+    margin-top: 4px;
+    gap: 5px;
+  }
+
+  .paper-sign-field {
+    min-height: 30px;
+    padding: 3px 4px;
   }
 
   .meter-card-hot {
     border-color: #b0b0b0;
-    background: #f7f7f7 !important;
+    background: #fdeeee !important;
   }
 
   .meter-card-cold {
     border-color: #b0b0b0;
-    background: #f7f7f7 !important;
+    background: #eef5ff !important;
   }
 
   .meter-card-hot .meter-title,
