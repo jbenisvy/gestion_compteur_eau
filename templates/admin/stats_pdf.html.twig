@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      body {
+        font-family: DejaVu Sans, Arial, sans-serif;
+        font-size: 11px;
+        color: #111;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 6px 0;
+      }
+      .meta {
+        margin-bottom: 12px;
+        font-size: 10px;
+        color: #444;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        border: 1px solid #ccc;
+        padding: 4px 6px;
+        vertical-align: top;
+      }
+      th {
+        background: #f0f0f0;
+      }
+      .grise {
+        color: #777;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Statistiques</h1>
+    <div class="meta">
+      Genere le {{ generatedAt|date('d/m/Y H:i') }}
+      | Filtres: {% if filters.annee is defined %}Annee {{ filters.annee }}{% else %}De {{ filters.from|default('-') }} a {{ filters.to|default('-') }}{% endif %}
+      | Supprimes: {{ options.include_supprime ? 'oui' : 'non' }}
+      | Inactifs: {{ options.include_inactif ? 'oui' : 'non' }}
+      | Forfaits: {{ options.include_forfait ? 'oui' : 'non' }}
+      | Grises: {{ options.include_grise ? 'oui' : 'non' }}
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Annee</th>
+          <th>Lot</th>
+          <th>Proprietaire</th>
+          <th>Locataire</th>
+          <th>Compteur</th>
+          <th>Nature</th>
+          <th>Emplacement</th>
+          <th>Statut</th>
+          <th>Conso</th>
+          <th>Forfait</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in payload.rows|default([]) %}
+          <tr class="{{ row.ligne_grisee ? 'grise' : '' }}">
+            <td>{{ row.annee }}</td>
+            <td>{{ row.lot_numero }}</td>
+            <td>{{ row.proprietaire_nom }}</td>
+            <td>{{ row.locataire_nom }}</td>
+            <td>{{ row.compteur_reference ?? row.compteur_id }}</td>
+            <td>{{ row.compteur_nature }}</td>
+            <td>{{ row.compteur_emplacement }}</td>
+            <td>{{ row.compteur_statut }}</td>
+            <td>{{ row.consommation }}</td>
+            <td>{{ row.forfait_applique ? (row.forfait_valeur ?? 'oui') : 'non' }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="10">Aucune donnee.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>

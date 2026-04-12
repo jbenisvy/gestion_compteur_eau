@@ -1,0 +1,175 @@
+.stats-page {
+  display: grid;
+  gap: 20px;
+}
+
+.muted {
+  color: var(--muted, #5b5b5b);
+}
+
+.stats-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stats-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stats-filters .filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 18px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.stats-filters label {
+  font-weight: 600;
+}
+
+.filter-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+}
+
+.filter-block input,
+.filter-block select {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #d9d2c4;
+  font: inherit;
+  background: #fff;
+}
+
+.filter-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.column-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.stats-table #statsTable {
+  margin-top: 10px;
+}
+
+.stats-detail #statsDetailTable {
+  margin-top: 10px;
+}
+
+.stats-detail-notice {
+  padding: 10px 12px;
+  border: 1px dashed #c8bca6;
+  background: #fff7e8;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.row-grise {
+  opacity: 0.6;
+}
+
+.stats-pivot #statsPivot {
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.stats-pivot-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stats-pivot-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stats-pivot-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  padding-bottom: 2px;
+}
+
+.stats-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.stats-detail-table caption {
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.stats-detail-table th,
+.stats-detail-table td {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  vertical-align: top;
+}
+
+.stats-detail-table thead th {
+  background: #f4f2ec;
+}
+
+.stats-detail-table tfoot td {
+  background: #faf7ef;
+  font-weight: 600;
+}
+
+.stats-detail-table .label {
+  text-align: right;
+}
+
+.stats-print-header {
+  display: none;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+  }
+
+  .topbar,
+  .footer,
+  .stats-actions,
+  .stats-filters,
+  .page-tools {
+    display: none !important;
+  }
+
+  .stats-print-header {
+    display: block;
+    margin-bottom: 14px;
+  }
+
+  .stats-page {
+    gap: 12px;
+  }
+
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ccc;
+  }
+}

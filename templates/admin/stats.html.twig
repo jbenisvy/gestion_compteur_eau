@@ -1,0 +1,144 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiques{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('vendor/tabulator/tabulator.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('vendor/pivottable/pivot.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/admin_stats.css') }}">
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script src="{{ asset('vendor/jquery/jquery.min.js') }}" defer></script>
+  <script src="{{ asset('vendor/jquery-ui/jquery-ui.min.js') }}" defer></script>
+  <script src="{{ asset('vendor/pivottable/pivot.min.js') }}" defer></script>
+  <script src="{{ asset('vendor/tabulator/tabulator.min.js') }}" defer></script>
+  <script src="{{ asset('vendor/xlsx/xlsx.full.min.js') }}" defer></script>
+  <script src="{{ asset('js/admin_stats.js') }}" defer></script>
+{% endblock %}
+
+{% block body %}
+<section class="stats-page" data-default-year="{{ defaultYear }}">
+  <div class="stats-print-header" id="statsPrintHeader" aria-hidden="true">
+    <h1>Statistiques</h1>
+    <p id="statsPrintMeta"></p>
+  </div>
+  <header class="stats-head">
+    <div>
+      <h1>Statistiques</h1>
+      <p class="muted">Module admin – données internes, lecture seule.</p>
+    </div>
+    <div class="stats-actions">
+      <button class="btn btn-ghost" id="statsPrintBtn">Imprimer</button>
+      <button class="btn btn-ghost" id="statsPdfBtn">Exporter PDF</button>
+      <button class="btn btn-primary" id="statsXlsxBtn">Exporter Excel</button>
+    </div>
+  </header>
+
+  <section class="card stats-filters">
+    <div class="filters-row">
+      <div class="filter-block">
+        <label for="statsYear">Année</label>
+        <select id="statsYear">
+          <option value="">Toutes</option>
+          {% for y in years %}
+            <option value="{{ y }}" {{ y == defaultYear ? 'selected' : '' }}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-block">
+        <label for="statsYearFrom">De</label>
+        <input id="statsYearFrom" type="number" placeholder="2018">
+      </div>
+      <div class="filter-block">
+        <label for="statsYearTo">À</label>
+        <input id="statsYearTo" type="number" placeholder="2025">
+      </div>
+      <div class="filter-block">
+        <label for="statsSearch">Recherche</label>
+        <input id="statsSearch" type="search" placeholder="lot, copro, compteur...">
+      </div>
+      <div class="filter-block">
+        <label for="statsPageSize">Pagination</label>
+        <select id="statsPageSize">
+          <option value="10">10</option>
+          <option value="25" selected>25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+    </div>
+    <div class="filters-row">
+      <label class="filter-check">
+        <input type="checkbox" id="includeSupprime" checked>
+        Inclure compteurs supprimés
+      </label>
+      <label class="filter-check">
+        <input type="checkbox" id="includeInactif" checked>
+        Inclure compteurs inactifs
+      </label>
+      <label class="filter-check">
+        <input type="checkbox" id="includeForfait" checked>
+        Inclure forfaits
+      </label>
+      <label class="filter-check">
+        <input type="checkbox" id="includeGrise" checked>
+        Inclure lignes grisées
+      </label>
+      <button class="btn btn-ghost" id="statsRefreshBtn">Actualiser</button>
+    </div>
+    <div class="filters-row">
+      <div class="filter-block column-toggle" id="statsColumns"></div>
+    </div>
+  </section>
+
+  <section class="card stats-table">
+    <h2>Tableau dynamique</h2>
+    <div id="statsTable"></div>
+  </section>
+
+  <section class="card stats-detail">
+    <h2>Rapport détaillé par copropriétaire</h2>
+    <p class="muted">Sélectionne une année pour afficher le détail par compteur, avec totaux EC/EF et Cuisine/SDB/WC/Autre.</p>
+    <div id="statsDetailNotice" class="stats-detail-notice" hidden>Choisis une année pour générer le rapport détaillé.</div>
+    <div id="statsDetailTable"></div>
+  </section>
+
+  <section class="card stats-pivot">
+    <div class="stats-pivot-head">
+      <div>
+        <h2>Analyse croisée</h2>
+        <p class="muted">Glisse-dépose les champs pour regrouper et agréger.</p>
+      </div>
+      <div class="stats-pivot-controls">
+        <div class="filter-block">
+          <label for="statsPivotPreset">Vue par défaut</label>
+          <select id="statsPivotPreset">
+            <option value="conso_copro_annee" selected>Conso par copro et année</option>
+            <option value="conso_lot_annee">Conso par lot et année</option>
+            <option value="conso_nature_annee">Conso par nature et année</option>
+            <option value="forfaits_annee">Forfaits par année</option>
+          </select>
+        </div>
+        <div class="filter-block">
+          <label for="statsPivotSaved">Tableaux mémorisés</label>
+          <select id="statsPivotSaved">
+            <option value="">Aucun</option>
+          </select>
+        </div>
+        <div class="filter-block">
+          <label for="statsPivotName">Nom</label>
+          <input id="statsPivotName" type="text" placeholder="Mon tableau">
+        </div>
+        <div class="stats-pivot-buttons">
+          <button class="btn btn-ghost" id="statsPivotSaveBtn">Enregistrer</button>
+          <button class="btn btn-ghost" id="statsPivotDeleteBtn" disabled>Supprimer</button>
+        </div>
+      </div>
+    </div>
+    <div id="statsPivot"></div>
+  </section>
+</section>
+{% endblock %}
