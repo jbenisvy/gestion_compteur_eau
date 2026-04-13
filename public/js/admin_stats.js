@@ -7,6 +7,8 @@
   var pivotState = null;
   var activeSavedPivot = "";
   var pivotStorageKey = "admin_stats_pivot_presets_v1";
+  var savedPivotCache = {};
+  var hasRemoteStorage = false;
 
   function qs(id) {
     return document.getElementById(id);
@@ -488,20 +490,49 @@
   }
 
   function readSavedPivots() {
-    if (!canUseStorage()) return {};
-    var raw = window.localStorage.getItem(pivotStorageKey);
-    if (!raw) return {};
-    try {
-      var parsed = JSON.parse(raw);
-      return parsed && typeof parsed === "object" ? parsed : {};
-    } catch (e) {
-      return {};
-    }
+    return savedPivotCache || {};
   }
 
   function writeSavedPivots(map) {
+    savedPivotCache = map || {};
+    if (hasRemoteStorage) return;
     if (!canUseStorage()) return;
-    window.localStorage.setItem(pivotStorageKey, JSON.stringify(map));
+    window.localStorage.setItem(pivotStorageKey, JSON.stringify(savedPivotCache));
+  }
+
+  function fetchSavedPivots() {
+    return fetch("/admin/stats/pivots", { headers: { "Accept": "application/json" } })
+      .then(function (r) {
+        if (!r.ok) throw new Error("load_failed");
+        return r.json();
+      })
+      .then(function (payload) {
+        hasRemoteStorage = true;
+        savedPivotCache = payload.items || {};
+        refreshSavedPivotSelect();
+        syncPivotSaveControls();
+      })
+      .catch(function () {
+        hasRemoteStorage = false;
+        // fallback localStorage
+        if (!canUseStorage()) {
+          savedPivotCache = {};
+          return;
+        }
+        var raw = window.localStorage.getItem(pivotStorageKey);
+        if (!raw) {
+          savedPivotCache = {};
+          return;
+        }
+        try {
+          var parsed = JSON.parse(raw);
+          savedPivotCache = parsed && typeof parsed === "object" ? parsed : {};
+        } catch (e) {
+          savedPivotCache = {};
+        }
+        refreshSavedPivotSelect();
+        syncPivotSaveControls();
+      });
   }
 
   function refreshSavedPivotSelect() {
@@ -556,6 +587,29 @@
     if (saved[name] && !confirm("Ce nom existe deja. Ecraser le tableau memorise ?")) {
       return;
     }
+
+    if (hasRemoteStorage) {
+      fetch("/admin/stats/pivots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name, config: state })
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error("save_failed");
+          return r.json();
+        })
+        .then(function (payload) {
+          savedPivotCache = payload.items || {};
+          activeSavedPivot = name;
+          refreshSavedPivotSelect();
+          syncPivotSaveControls();
+        })
+        .catch(function () {
+          alert("Impossible d'enregistrer le tableau memorise.");
+        });
+      return;
+    }
+
     saved[name] = {
       config: state,
       savedAt: new Date().toISOString(),
@@ -580,6 +634,25 @@
     var saved = readSavedPivots();
     if (!saved[name]) return;
     if (!confirm("Supprimer le tableau memorise \"" + name + "\" ?")) return;
+
+    if (hasRemoteStorage) {
+      fetch("/admin/stats/pivots/" + encodeURIComponent(name), { method: "DELETE" })
+        .then(function (r) {
+          if (!r.ok) throw new Error("delete_failed");
+          return r.json();
+        })
+        .then(function (payload) {
+          savedPivotCache = payload.items || {};
+          activeSavedPivot = "";
+          refreshSavedPivotSelect();
+          syncPivotSaveControls();
+        })
+        .catch(function () {
+          alert("Impossible de supprimer le tableau memorise.");
+        });
+      return;
+    }
+
     delete saved[name];
     writeSavedPivots(saved);
     activeSavedPivot = "";
@@ -660,6 +733,13 @@
       });
     }
 
+    var exportBtn = qs("statsPivotExportBtn");
+    if (exportBtn) {
+      exportBtn.addEventListener("click", function () {
+        window.open("/admin/stats/pivots/export", "_blank");
+      });
+    }
+
     qs("statsXlsxBtn").addEventListener("click", function () {
       if (!table || typeof table.download !== "function") {
         alert("Export Excel indisponible.");
@@ -681,8 +761,7 @@
 
   function init() {
     if (!qs("statsTable")) return;
-    refreshSavedPivotSelect();
-    syncPivotSaveControls();
+    fetchSavedPivots();
     bindEvents();
     refreshAll();
   }
