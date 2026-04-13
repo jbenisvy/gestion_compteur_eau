@@ -6,5 +6,19 @@
   <div class="content-panel">
     <h2>Administration EasyAdmin</h2>
     <p>Utilisez le menu de gauche pour gérer les données.</p>
+
+    <div class="content-panel">
+      <h3>Acces direct aux tables</h3>
+      <ul>
+        <li><a href="{{ ea_url().setController('App\\\\Controller\\\\Admin\\\\Crud\\\\UserCrudController').setAction('index') }}">Utilisateurs</a></li>
+        <li><a href="{{ ea_url().setController('App\\\\Controller\\\\Admin\\\\Crud\\\\CoproprietaireCrudController').setAction('index') }}">Coproprietaires</a></li>
+        <li><a href="{{ ea_url().setController('App\\\\Controller\\\\Admin\\\\Crud\\\\LotCrudController').setAction('index') }}">Lots</a></li>
+        <li><a href="{{ ea_url().setController('App\\\\Controller\\\\Admin\\\\Crud\\\\CompteurCrudController').setAction('index') }}">Compteurs</a></li>
+        <li><a href="{{ ea_url().setController('App\\\\Controller\\\\Admin\\\\Crud\\\\EtatCompteurCrudController').setAction('index') }}">Etats compteur</a></li>
+        <li><a href="{{ ea_url().setController('App\\\\Controller\\\\Admin\\\\Crud\\\\ReleveCrudController').setAction('index') }}">Releves (maitre)</a></li>
+        <li><a href="{{ ea_url().setController('App\\\\Controller\\\\Admin\\\\Crud\\\\ReleveItemCrudController').setAction('index') }}">Releves (details)</a></li>
+      </ul>
+      <p class="muted">Si le menu de gauche n'apparait pas, il manque les assets EasyAdmin. Voir la commande <code>php bin/console assets:install</code>.</p>
+    </div>
   </div>
 {% endblock %}
