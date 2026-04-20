@@ -373,8 +373,9 @@
       if (group.lot_description) title += " - " + escapeHtml(group.lot_description);
       if (group.proprietaire_nom) title += " | " + escapeHtml(group.proprietaire_nom);
 
+      html += "<section class=\"stats-detail-group\">";
+      html += "<div class=\"stats-detail-group-title\">" + title + "</div>";
       html += "<table class=\"stats-detail-table\">";
-      html += "<caption>" + title + "</caption>";
       html += "<thead>";
       html += "<tr>";
       html += "<th>Compteur</th>";
@@ -427,9 +428,73 @@
       html += "</tr>";
       html += "</tfoot>";
       html += "</table>";
+      html += "</section>";
     });
 
     container.innerHTML = html;
+  }
+
+  function sanitizeSheetName(value) {
+    var name = (value || "Rapport detaille").replace(/[\\/*?:\[\]]/g, " ").trim();
+    if (!name) name = "Rapport detaille";
+    return name.slice(0, 31);
+  }
+
+  function exportDetailTablesToExcel() {
+    if (typeof XLSX === "undefined" || !XLSX.utils) {
+      alert("Export Excel indisponible.");
+      return;
+    }
+
+    var year = qs("statsYear") ? qs("statsYear").value : "";
+    if (!year) {
+      alert("Choisis d'abord une annee pour exporter le rapport detaille.");
+      return;
+    }
+
+    var groups = Array.prototype.slice.call(document.querySelectorAll(".stats-detail-group"));
+    if (!groups.length) {
+      alert("Aucun tableau detaille a exporter.");
+      return;
+    }
+
+    var aoa = [];
+    groups.forEach(function (group, groupIndex) {
+      var titleEl = group.querySelector(".stats-detail-group-title");
+      var tableEl = group.querySelector(".stats-detail-table");
+      if (!tableEl) return;
+
+      aoa.push([titleEl ? titleEl.textContent.trim() : "Lot"]);
+
+      var rows = Array.prototype.slice.call(tableEl.querySelectorAll("tr"));
+      rows.forEach(function (row) {
+        var cells = Array.prototype.slice.call(row.querySelectorAll("th, td")).map(function (cell) {
+          return (cell.textContent || "").trim();
+        });
+        aoa.push(cells);
+      });
+
+      if (groupIndex < groups.length - 1) {
+        aoa.push([]);
+      }
+    });
+
+    var worksheet = XLSX.utils.aoa_to_sheet(aoa);
+    worksheet["!cols"] = [
+      { wch: 12 },
+      { wch: 20 },
+      { wch: 16 },
+      { wch: 18 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 14 },
+      { wch: 10 },
+      { wch: 16 },
+    ];
+
+    var workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, sanitizeSheetName("Detail " + year));
+    XLSX.writeFile(workbook, "statistiques-detail-" + year + ".xlsx");
   }
 
   function getNatureKey(row) {
@@ -747,6 +812,11 @@
       }
       table.download("xlsx", "statistiques.xlsx", { sheetName: "Statistiques" });
     });
+
+    var detailExportBtn = qs("statsDetailXlsxBtn");
+    if (detailExportBtn) {
+      detailExportBtn.addEventListener("click", exportDetailTablesToExcel);
+    }
 
     qs("statsPdfBtn").addEventListener("click", function () {
       var params = getFilters();

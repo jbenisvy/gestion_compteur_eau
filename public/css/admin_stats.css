@@ -15,6 +15,18 @@
   flex-wrap: wrap;
 }
 
+.stats-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stats-section-head h2 {
+  margin-bottom: 6px;
+}
+
 .stats-actions {
   display: flex;
   gap: 10px;
@@ -111,21 +123,25 @@
   padding-bottom: 2px;
 }
 
-.stats-detail-table {
-  width: 100%;
-  border-collapse: collapse;
+.stats-detail-group {
   margin: 12px 0 24px;
-  font-size: 13px;
 }
 
-.stats-detail-table:last-child {
+.stats-detail-group:last-child {
   margin-bottom: 0;
 }
 
-.stats-detail-table caption {
-  text-align: left;
+.stats-detail-group-title {
   font-weight: 600;
-  margin-bottom: 6px;
+  margin: 0 0 6px;
+  color: var(--muted, #5b5b5b);
+}
+
+.stats-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+  font-size: 13px;
 }
 
 .stats-detail-table th,

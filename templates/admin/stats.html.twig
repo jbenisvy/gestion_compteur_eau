@@ -101,8 +101,13 @@
   </section>
 
   <section class="card stats-detail">
-    <h2>Rapport détaillé par copropriétaire</h2>
-    <p class="muted">Sélectionne une année pour afficher le détail par compteur, avec totaux EC/EF et Cuisine/SDB/WC/Autre.</p>
+    <div class="stats-section-head">
+      <div>
+        <h2>Rapport détaillé par copropriétaire</h2>
+        <p class="muted">Sélectionne une année pour afficher le détail par compteur, avec totaux EC/EF et Cuisine/SDB/WC/Autre.</p>
+      </div>
+      <button class="btn btn-ghost" id="statsDetailXlsxBtn" type="button">Exporter ces tableaux Excel</button>
+    </div>
     <div id="statsDetailNotice" class="stats-detail-notice" hidden>Choisis une année pour générer le rapport détaillé.</div>
     <div id="statsDetailTable"></div>
   </section>
