@@ -135,7 +135,7 @@ class AdminPrintFormsController extends AbstractController
                 $currItem = $currByCompteurId[$compteur->getId()] ?? null;
                 $slots[$slotKey] = [
                     'indexN1' => $this->resolveIndexN1($prevItem, $currItem, $etatCodeById),
-                    'etatN1' => $this->resolveEtatN1($prevItem, $etatLabelById, $etatCodeById),
+                    'etatN1' => $this->resolveEtatN1($prevItem, $currItem, $compteur, $etatLabelById, $etatCodeById),
                     'description' => $this->formatCompteurDescription($compteur),
                 ];
             }
@@ -263,13 +263,46 @@ class AdminPrintFormsController extends AbstractController
         return null;
     }
 
-    private function resolveEtatN1(?ReleveItem $prevItem, array $etatLabelById, array $etatCodeById): ?string
+    private function resolveEtatN1(
+        ?ReleveItem $prevItem,
+        ?ReleveItem $currItem,
+        Compteur $compteur,
+        array $etatLabelById,
+        array $etatCodeById
+    ): ?string
     {
-        if (!$prevItem instanceof ReleveItem) {
-            return null;
+        if ($prevItem instanceof ReleveItem) {
+            $label = $this->resolveEtatLabelFromId($prevItem->getEtatId(), $etatLabelById, $etatCodeById);
+            if ($label !== null) {
+                return $label;
+            }
         }
 
-        $etatId = $prevItem->getEtatId();
+        if ($currItem instanceof ReleveItem) {
+            $label = $this->resolveEtatLabelFromId($currItem->getEtatId(), $etatLabelById, $etatCodeById);
+            if ($label !== null) {
+                return $label;
+            }
+        }
+
+        $compteurEtat = $compteur->getEtatCompteur();
+        if ($compteurEtat !== null) {
+            $label = trim((string) $compteurEtat->getLibelle());
+            if ($label !== '') {
+                return $label;
+            }
+
+            $code = trim((string) $compteurEtat->getCode());
+            if ($code !== '') {
+                return ucfirst(str_replace('_', ' ', $code));
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveEtatLabelFromId(?int $etatId, array $etatLabelById, array $etatCodeById): ?string
+    {
         if ($etatId === null) {
             return null;
         }
