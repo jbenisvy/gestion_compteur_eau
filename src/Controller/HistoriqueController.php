@@ -353,6 +353,7 @@ class HistoriqueController extends AbstractController
         $consosByCompteur = [];
         $forfaitByCompteur = [];
         $forfaitValueByCompteur = [];
+        $suppressionByCompteur = [];
         $forfaitCountByYear = [];
         $forfaitTotalByYear = [];
         foreach ($allYears as $pos => $y) {
@@ -397,6 +398,7 @@ class HistoriqueController extends AbstractController
                     || str_contains($etatCode, 'non communiqu')
                     || str_contains($etatCode, 'index compteur non')
                 )) || $isForfaitFlag;
+                $isSuppressionDefinitive = $etatCode !== null && str_contains($etatCode, 'supprime');
                 $forfaitValue = 0.0;
 
                 if (is_numeric($savedConsommation)) {
@@ -439,6 +441,7 @@ class HistoriqueController extends AbstractController
                 $consosByCompteur[$cmp->getId()][$y] = $delta;
                 $forfaitByCompteur[$cmp->getId()][$y] = $isForfait;
                 $forfaitValueByCompteur[$cmp->getId()][$y] = $forfaitValue;
+                $suppressionByCompteur[$cmp->getId()][$y] = $isSuppressionDefinitive;
             }
             $consos[$y] = $total;
             $forfaitCountByYear[$y] = $forfaitCount;
@@ -455,6 +458,7 @@ class HistoriqueController extends AbstractController
                 $consosByCompteur,
                 $forfaitByCompteur,
                 $forfaitValueByCompteur,
+                $suppressionByCompteur,
                 $forfaitCountByYear,
                 $forfaitTotalByYear
             );
@@ -467,6 +471,7 @@ class HistoriqueController extends AbstractController
             'consosByCompteur' => $consosByCompteur,
             'forfaitByCompteur' => $forfaitByCompteur,
             'forfaitValueByCompteur' => $forfaitValueByCompteur,
+            'suppressionByCompteur' => $suppressionByCompteur,
             'forfaitCountByYear' => $forfaitCountByYear,
             'forfaitTotalByYear' => $forfaitTotalByYear,
             'ownerSegments' => $ownerSegments,
@@ -481,6 +486,7 @@ class HistoriqueController extends AbstractController
         array $consosByCompteur,
         array $forfaitByCompteur,
         array $forfaitValueByCompteur,
+        array $suppressionByCompteur,
         array $forfaitCountByYear,
         array $forfaitTotalByYear
     ): array
@@ -544,6 +550,7 @@ class HistoriqueController extends AbstractController
                 $consosByCompteur,
                 $forfaitByCompteur,
                 $forfaitValueByCompteur,
+                $suppressionByCompteur,
                 $forfaitCountByYear,
                 $forfaitTotalByYear
             );
@@ -560,6 +567,7 @@ class HistoriqueController extends AbstractController
                 $consosByCompteur,
                 $forfaitByCompteur,
                 $forfaitValueByCompteur,
+                $suppressionByCompteur,
                 $forfaitCountByYear,
                 $forfaitTotalByYear
             );
@@ -576,6 +584,7 @@ class HistoriqueController extends AbstractController
         array $consosByCompteur,
         array $forfaitByCompteur,
         array $forfaitValueByCompteur,
+        array $suppressionByCompteur,
         array $forfaitCountByYear,
         array $forfaitTotalByYear
     ): array
@@ -610,6 +619,7 @@ class HistoriqueController extends AbstractController
         $segmentConsosByCompteur = [];
         $segmentForfaitByCompteur = [];
         $segmentForfaitValueByCompteur = [];
+        $segmentSuppressionByCompteur = [];
         foreach ($segmentRows as $cmpId => $_unused) {
             foreach ($segmentYears as $year) {
                 if (isset($consosByCompteur[$cmpId][$year])) {
@@ -620,6 +630,9 @@ class HistoriqueController extends AbstractController
                 }
                 if (isset($forfaitValueByCompteur[$cmpId][$year])) {
                     $segmentForfaitValueByCompteur[$cmpId][$year] = $forfaitValueByCompteur[$cmpId][$year];
+                }
+                if (isset($suppressionByCompteur[$cmpId][$year])) {
+                    $segmentSuppressionByCompteur[$cmpId][$year] = $suppressionByCompteur[$cmpId][$year];
                 }
             }
         }
@@ -646,6 +659,7 @@ class HistoriqueController extends AbstractController
             'consosByCompteur' => $segmentConsosByCompteur,
             'forfaitByCompteur' => $segmentForfaitByCompteur,
             'forfaitValueByCompteur' => $segmentForfaitValueByCompteur,
+            'suppressionByCompteur' => $segmentSuppressionByCompteur,
             'forfaitCountByYear' => $segmentForfaitCountByYear,
             'forfaitTotalByYear' => $segmentForfaitTotalByYear,
         ];
