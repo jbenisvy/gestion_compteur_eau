@@ -590,11 +590,13 @@ body.menu-open {
   }
 
   .paper-stack {
+    display: block;
     gap: 0;
     background: #fff !important;
   }
 
   .paper-sheet {
+    display: block;
     box-shadow: none;
     border: 0;
     border-radius: 0;
@@ -602,8 +604,16 @@ body.menu-open {
     min-height: 0;
     padding: 2mm;
     margin: 0 auto;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    break-after: page;
     page-break-after: always;
     background: #fff !important;
+  }
+
+  .paper-sheet + .paper-sheet {
+    break-before: page;
+    page-break-before: always;
   }
 
   .paper-sheet h2 {
@@ -714,6 +724,7 @@ body.menu-open {
   }
 
   .paper-sheet:last-child {
+    break-after: auto;
     page-break-after: auto;
   }
 }
