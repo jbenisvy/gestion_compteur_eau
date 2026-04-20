@@ -68,6 +68,8 @@
 
 .stats-detail #statsDetailTable {
   margin-top: 10px;
+  overflow: visible;
+  padding-bottom: 20px;
 }
 
 .stats-detail-notice {
@@ -112,8 +114,12 @@
 .stats-detail-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 12px;
+  margin: 12px 0 24px;
   font-size: 13px;
+}
+
+.stats-detail-table:last-child {
+  margin-bottom: 0;
 }
 
 .stats-detail-table caption {
