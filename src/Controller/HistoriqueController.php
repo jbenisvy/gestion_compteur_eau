@@ -391,7 +391,12 @@ class HistoriqueController extends AbstractController
                     }
                 }
 
-                $isForfait = ($etatCode !== null && str_contains($etatCode, 'forfait')) || $isForfaitFlag;
+                $isForfait = ($etatCode !== null && (
+                    str_contains($etatCode, 'forfait')
+                    || str_contains($etatCode, 'bloqu')
+                    || str_contains($etatCode, 'non communiqu')
+                    || str_contains($etatCode, 'index compteur non')
+                )) || $isForfaitFlag;
                 $forfaitValue = 0.0;
 
                 if (is_numeric($savedConsommation)) {
