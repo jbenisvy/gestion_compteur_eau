@@ -72,9 +72,11 @@ class AdminPrintFormsController extends AbstractController
         }
 
         $etatCodeById = [];
+        $etatLabelById = [];
         foreach ($etatRepo->findAll() as $etat) {
             if ($etat->getId() !== null) {
                 $etatCodeById[$etat->getId()] = mb_strtolower((string) $etat->getCode());
+                $etatLabelById[$etat->getId()] = trim((string) $etat->getLibelle());
             }
         }
 
@@ -113,10 +115,10 @@ class AdminPrintFormsController extends AbstractController
             }
 
             $slots = [
-                'cuisine_chaude' => ['indexN1' => null, 'description' => null],
-                'sdb_chaude' => ['indexN1' => null, 'description' => null],
-                'cuisine_froide' => ['indexN1' => null, 'description' => null],
-                'sdb_froide' => ['indexN1' => null, 'description' => null],
+                'cuisine_chaude' => ['indexN1' => null, 'etatN1' => null, 'description' => null],
+                'sdb_chaude' => ['indexN1' => null, 'etatN1' => null, 'description' => null],
+                'cuisine_froide' => ['indexN1' => null, 'etatN1' => null, 'description' => null],
+                'sdb_froide' => ['indexN1' => null, 'etatN1' => null, 'description' => null],
             ];
 
             foreach ($compteurs as $compteur) {
@@ -133,6 +135,7 @@ class AdminPrintFormsController extends AbstractController
                 $currItem = $currByCompteurId[$compteur->getId()] ?? null;
                 $slots[$slotKey] = [
                     'indexN1' => $this->resolveIndexN1($prevItem, $currItem, $etatCodeById),
+                    'etatN1' => $this->resolveEtatN1($prevItem, $etatLabelById, $etatCodeById),
                     'description' => $this->formatCompteurDescription($compteur),
                 ];
             }
@@ -258,6 +261,30 @@ class AdminPrintFormsController extends AbstractController
         }
 
         return null;
+    }
+
+    private function resolveEtatN1(?ReleveItem $prevItem, array $etatLabelById, array $etatCodeById): ?string
+    {
+        if (!$prevItem instanceof ReleveItem) {
+            return null;
+        }
+
+        $etatId = $prevItem->getEtatId();
+        if ($etatId === null) {
+            return null;
+        }
+
+        $label = trim((string) ($etatLabelById[$etatId] ?? ''));
+        if ($label !== '') {
+            return $label;
+        }
+
+        $code = trim((string) ($etatCodeById[$etatId] ?? ''));
+        if ($code === '') {
+            return null;
+        }
+
+        return ucfirst(str_replace('_', ' ', $code));
     }
 
     private function formatCompteurDescription(Compteur $compteur): string

@@ -63,11 +63,13 @@
             <div class="meter-card meter-card-hot">
               <div class="meter-title">Compteur eau chaude</div>
               <div class="meter-row"><span>Année précédente (N-1) :</span><span class="meter-box">{{ fiche.slots.cuisine_chaude.indexN1 is not null ? fiche.slots.cuisine_chaude.indexN1 : '' }}</span></div>
+              <div class="meter-row"><span>État compteur N-1 :</span><span class="meter-box">{{ fiche.slots.cuisine_chaude.etatN1 ?: '' }}</span></div>
               <div class="meter-row"><span>Année en cours :</span><span class="meter-box meter-box-fill"></span></div>
             </div>
             <div class="meter-card meter-card-cold">
               <div class="meter-title">Compteur eau froide</div>
               <div class="meter-row"><span>Année précédente (N-1) :</span><span class="meter-box">{{ fiche.slots.cuisine_froide.indexN1 is not null ? fiche.slots.cuisine_froide.indexN1 : '' }}</span></div>
+              <div class="meter-row"><span>État compteur N-1 :</span><span class="meter-box">{{ fiche.slots.cuisine_froide.etatN1 ?: '' }}</span></div>
               <div class="meter-row"><span>Année en cours :</span><span class="meter-box meter-box-fill"></span></div>
             </div>
           </section>
@@ -77,11 +79,13 @@
             <div class="meter-card meter-card-hot">
               <div class="meter-title">Compteur eau chaude</div>
               <div class="meter-row"><span>Année précédente (N-1) :</span><span class="meter-box">{{ fiche.slots.sdb_chaude.indexN1 is not null ? fiche.slots.sdb_chaude.indexN1 : '' }}</span></div>
+              <div class="meter-row"><span>État compteur N-1 :</span><span class="meter-box">{{ fiche.slots.sdb_chaude.etatN1 ?: '' }}</span></div>
               <div class="meter-row"><span>Année en cours :</span><span class="meter-box meter-box-fill"></span></div>
             </div>
             <div class="meter-card meter-card-cold">
               <div class="meter-title">Compteur eau froide</div>
               <div class="meter-row"><span>Année précédente (N-1) :</span><span class="meter-box">{{ fiche.slots.sdb_froide.indexN1 is not null ? fiche.slots.sdb_froide.indexN1 : '' }}</span></div>
+              <div class="meter-row"><span>État compteur N-1 :</span><span class="meter-box">{{ fiche.slots.sdb_froide.etatN1 ?: '' }}</span></div>
               <div class="meter-row"><span>Année en cours :</span><span class="meter-box meter-box-fill"></span></div>
             </div>
           </section>
