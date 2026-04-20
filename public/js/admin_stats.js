@@ -195,6 +195,117 @@
     }
   }
 
+  function getVisibleTableColumns() {
+    if (!table || typeof table.getColumns !== "function") return [];
+    return table.getColumns().filter(function (column) {
+      return column && typeof column.isVisible === "function" && column.isVisible() && column.getField();
+    });
+  }
+
+  function formatClipboardValue(field, value) {
+    if (field === "forfait_applique") {
+      return value ? "Oui" : "Non";
+    }
+    if (value === null || value === undefined) {
+      return "";
+    }
+    return String(value);
+  }
+
+  function buildTableClipboardPayload() {
+    var columns = getVisibleTableColumns();
+    if (!columns.length) return null;
+
+    var rows = typeof table.getData === "function" ? table.getData("active") : [];
+    if (!rows.length) return null;
+
+    var headers = columns.map(function (column) {
+      var definition = column.getDefinition ? column.getDefinition() : {};
+      return definition.title || column.getField();
+    });
+
+    var textRows = [headers];
+    var html = "";
+    html += "<table style=\"border-collapse:collapse;font-family:Calibri,Arial,sans-serif;font-size:11pt;\">";
+    html += "<thead><tr>";
+    headers.forEach(function (header) {
+      html += "<th style=\"border:1px solid #bfbfbf;background:#f3f3f3;padding:6px 8px;font-weight:700;text-align:left;\">"
+        + escapeHtml(header)
+        + "</th>";
+    });
+    html += "</tr></thead><tbody>";
+
+    rows.forEach(function (row) {
+      textRows.push(columns.map(function (column) {
+        return formatClipboardValue(column.getField(), row[column.getField()]);
+      }));
+
+      html += "<tr>";
+      columns.forEach(function (column) {
+        var value = formatClipboardValue(column.getField(), row[column.getField()]);
+        html += "<td style=\"border:1px solid #d9d9d9;padding:4px 8px;text-align:left;vertical-align:top;\">"
+          + escapeHtml(value)
+          + "</td>";
+      });
+      html += "</tr>";
+    });
+
+    html += "</tbody></table>";
+
+    return {
+      html: html,
+      text: textRows.map(function (cells) {
+        return cells.join("\t");
+      }).join("\n"),
+    };
+  }
+
+  function copyDynamicTableToClipboard() {
+    if (!table) {
+      alert("Tableau indisponible.");
+      return;
+    }
+
+    var payload = buildTableClipboardPayload();
+    if (!payload) {
+      alert("Aucune donnee a copier.");
+      return;
+    }
+
+    if (navigator.clipboard && window.ClipboardItem) {
+      navigator.clipboard.write([
+        new ClipboardItem({
+          "text/plain": new Blob([payload.text], { type: "text/plain" }),
+          "text/html": new Blob([payload.html], { type: "text/html" }),
+        }),
+      ]).then(function () {
+        alert("Le tableau a ete copie. Tu peux maintenant le coller dans Excel.");
+      }).catch(function () {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(payload.text).then(function () {
+            alert("Le tableau a ete copie en texte. Tu peux le coller dans Excel.");
+          }).catch(function () {
+            alert("Impossible de copier le tableau.");
+          });
+        } else {
+          alert("Impossible de copier le tableau.");
+        }
+      });
+      return;
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(payload.text).then(function () {
+        alert("Le tableau a ete copie en texte. Tu peux le coller dans Excel.");
+      }).catch(function () {
+        alert("Impossible de copier le tableau.");
+      });
+      return;
+    }
+
+    alert("La copie vers le presse-papiers n'est pas disponible sur ce navigateur.");
+  }
+
   function getPivotPreset() {
     var select = qs("statsPivotPreset");
     return select ? select.value : "conso_copro_annee";
@@ -812,6 +923,11 @@
       }
       table.download("xlsx", "statistiques.xlsx", { sheetName: "Statistiques" });
     });
+
+    var copyTableBtn = qs("statsCopyTableBtn");
+    if (copyTableBtn) {
+      copyTableBtn.addEventListener("click", copyDynamicTableToClipboard);
+    }
 
     var detailExportBtn = qs("statsDetailXlsxBtn");
     if (detailExportBtn) {
