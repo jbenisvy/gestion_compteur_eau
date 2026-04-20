@@ -15,6 +15,7 @@
           consosByCompteur: consosByCompteur|default({}),
           forfaitByCompteur: forfaitByCompteur|default({}),
           forfaitValueByCompteur: forfaitValueByCompteur|default({}),
+          suppressionByCompteur: suppressionByCompteur|default({}),
           forfaitCountByYear: forfaitCountByYear|default({}),
           forfaitTotalByYear: forfaitTotalByYear|default({})
         }]
@@ -122,7 +123,9 @@
                 <td>{{ data[y] ?? '–' }}</td>
               {% endfor %}
               {% for y in section.consoYears|default([]) %}
-                {% if section.forfaitByCompteur[cmpId][y] ?? false %}
+                {% if section.suppressionByCompteur[cmpId][y] ?? false %}
+                  <td><span class="badge">Suppression definitif</span></td>
+                {% elseif section.forfaitByCompteur[cmpId][y] ?? false %}
                   <td><span class="badge">Forfait +{{ section.forfaitValueByCompteur[cmpId][y] ?? 0 }}</span></td>
                 {% else %}
                   <td>{{ section.consosByCompteur[cmpId][y] ?? 0 }}</td>
