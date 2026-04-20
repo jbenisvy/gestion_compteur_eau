@@ -171,8 +171,8 @@
         layout: "fitDataStretch",
         movableColumns: true,
         pagination: "local",
-        paginationSize: parseInt(qs("statsPageSize").value, 10) || 25,
-        paginationSizeSelector: [10, 25, 50, 100],
+        paginationSize: parseInt(qs("statsPageSize").value, 10) || 150,
+        paginationSizeSelector: [10, 25, 50, 100, 150],
         columns: columns,
         rowFormatter: function (row) {
           var data = row.getData();
