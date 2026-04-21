@@ -106,8 +106,9 @@ class ParametreRepository extends ServiceEntityRepository
         if ($row instanceof Parametre) {
             return [
                 'ef' => $row->getPrixM3Ef(),
+                'energie' => $row->getPrixM3Energie(),
                 'ec' => $row->getPrixM3Ec(),
-                'total' => $row->getPrixM3Total(),
+                'prix_m3_ec' => $row->getPrixM3EauChaude(),
             ];
         }
 
@@ -115,11 +116,12 @@ class ParametreRepository extends ServiceEntityRepository
         if ($default instanceof Parametre) {
             return [
                 'ef' => $default->getPrixM3Ef(),
+                'energie' => $default->getPrixM3Energie(),
                 'ec' => $default->getPrixM3Ec(),
-                'total' => $default->getPrixM3Total(),
+                'prix_m3_ec' => $default->getPrixM3EauChaude(),
             ];
         }
 
-        return ['ef' => null, 'ec' => null, 'total' => null];
+        return ['ef' => null, 'energie' => null, 'ec' => null, 'prix_m3_ec' => null];
     }
 }

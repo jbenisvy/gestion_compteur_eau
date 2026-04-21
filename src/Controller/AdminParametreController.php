@@ -66,8 +66,8 @@ class AdminParametreController extends AbstractController
             $year = (int)$request->request->get('annee', $selectedYear);
             $forfaitEc = (float)str_replace(',', '.', (string)$request->request->get('forfait_ec', '0'));
             $forfaitEf = (float)str_replace(',', '.', (string)$request->request->get('forfait_ef', '0'));
-            $prixM3Ec = $this->parseNullableFloat($request->request->get('prix_m3_ec'));
             $prixM3Ef = $this->parseNullableFloat($request->request->get('prix_m3_ef'));
+            $prixM3Energie = $this->parseNullableFloat($request->request->get('prix_m3_energie'));
 
             if ($year < 2000 || $year > 2100) {
                 $this->addFlash('error', 'Année invalide.');
@@ -82,8 +82,8 @@ class AdminParametreController extends AbstractController
             $param
                 ->setForfaitEc(max(0, $forfaitEc))
                 ->setForfaitEf(max(0, $forfaitEf))
-                ->setPrixM3Ec($prixM3Ec)
-                ->setPrixM3Ef($prixM3Ef);
+                ->setPrixM3Ef($prixM3Ef)
+                ->setPrixM3Energie($prixM3Energie);
 
             $em->flush();
             $this->addFlash('success', sprintf('Paramètres forfait enregistrés pour %d.', $year));
@@ -97,15 +97,15 @@ class AdminParametreController extends AbstractController
             $prixM3 = $paramRepo->getPrixM3ForYear($selectedYear);
             $currentEc = (float)$forfaits['ec'];
             $currentEf = (float)$forfaits['ef'];
-            $currentPrixM3Ec = $prixM3['ec'];
             $currentPrixM3Ef = $prixM3['ef'];
-            $currentPrixM3Total = $prixM3['total'];
+            $currentPrixM3Energie = $prixM3['energie'];
+            $currentPrixM3Ec = $prixM3['prix_m3_ec'];
         } else {
             $currentEc = $current->getForfaitEc();
             $currentEf = $current->getForfaitEf();
-            $currentPrixM3Ec = $current->getPrixM3Ec();
             $currentPrixM3Ef = $current->getPrixM3Ef();
-            $currentPrixM3Total = $current->getPrixM3Total();
+            $currentPrixM3Energie = $current->getPrixM3Energie();
+            $currentPrixM3Ec = $current->getPrixM3EauChaude();
         }
 
         $params = $paramRepo->findBy([], ['annee' => 'DESC', 'id' => 'DESC']);
@@ -114,9 +114,9 @@ class AdminParametreController extends AbstractController
             'selectedYear' => $selectedYear,
             'currentEc' => $currentEc,
             'currentEf' => $currentEf,
-            'currentPrixM3Ec' => $currentPrixM3Ec,
             'currentPrixM3Ef' => $currentPrixM3Ef,
-            'currentPrixM3Total' => $currentPrixM3Total,
+            'currentPrixM3Ec' => $currentPrixM3Ec,
+            'currentPrixM3Energie' => $currentPrixM3Energie,
             'activeYear' => $activeYear,
             'params' => $params,
         ]);
