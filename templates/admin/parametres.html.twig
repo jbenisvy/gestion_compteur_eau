@@ -46,6 +46,10 @@
         <label for="prix_m3_ef">Prix du m3 EF</label>
         <input id="prix_m3_ef" type="number" step="0.001" min="0" name="prix_m3_ef" value="{{ currentPrixM3Ef ?? '' }}">
       </div>
+      <div class="form-row">
+        <label for="prix_m3_total">Prix total m3 EC + EF</label>
+        <input id="prix_m3_total" type="number" step="0.001" min="0" value="{{ currentPrixM3Total ?? '' }}" readonly>
+      </div>
       <button class="btn btn-primary" type="submit">Enregistrer</button>
     </form>
   </div>
@@ -62,6 +66,7 @@
           <th>Forfait EF</th>
           <th>Prix m3 EC</th>
           <th>Prix m3 EF</th>
+          <th>Total m3 EC + EF</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -73,6 +78,7 @@
             <td>{{ p.forfaitEf }}</td>
             <td>{{ p.prixM3Ec ?? '—' }}</td>
             <td>{{ p.prixM3Ef ?? '—' }}</td>
+            <td>{{ p.prixM3Total ?? '—' }}</td>
             <td>
               {% if p.annee is not null %}
                 <a class="btn btn-ghost" href="{{ path('admin_parametres', { annee: p.annee }) }}">Modifier</a>
@@ -82,7 +88,7 @@
             </td>
           </tr>
         {% else %}
-          <tr><td colspan="6">Aucun paramètre enregistré.</td></tr>
+          <tr><td colspan="7">Aucun paramètre enregistré.</td></tr>
         {% endfor %}
       </tbody>
     </table>

@@ -44,6 +44,14 @@ class Parametre
     public function setPrixM3Ef(?float $v): self { $this->prixM3Ef = $v; return $this; }
     public function getPrixM3Ec(): ?float { return $this->prixM3Ec; }
     public function setPrixM3Ec(?float $v): self { $this->prixM3Ec = $v; return $this; }
+    public function getPrixM3Total(): ?float
+    {
+        if ($this->prixM3Ef === null && $this->prixM3Ec === null) {
+            return null;
+        }
+
+        return (float) (($this->prixM3Ef ?? 0.0) + ($this->prixM3Ec ?? 0.0));
+    }
     public function getActiveSaisieYear(): ?int { return $this->activeSaisieYear; }
     public function setActiveSaisieYear(?int $v): self { $this->activeSaisieYear = $v; return $this; }
 }

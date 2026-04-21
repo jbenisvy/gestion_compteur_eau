@@ -104,14 +104,22 @@ class ParametreRepository extends ServiceEntityRepository
     {
         $row = $this->findOneBy(['annee' => $annee]);
         if ($row instanceof Parametre) {
-            return ['ef' => $row->getPrixM3Ef(), 'ec' => $row->getPrixM3Ec()];
+            return [
+                'ef' => $row->getPrixM3Ef(),
+                'ec' => $row->getPrixM3Ec(),
+                'total' => $row->getPrixM3Total(),
+            ];
         }
 
         $default = $this->findOneBy(['annee' => null], ['id' => 'DESC']);
         if ($default instanceof Parametre) {
-            return ['ef' => $default->getPrixM3Ef(), 'ec' => $default->getPrixM3Ec()];
+            return [
+                'ef' => $default->getPrixM3Ef(),
+                'ec' => $default->getPrixM3Ec(),
+                'total' => $default->getPrixM3Total(),
+            ];
         }
 
-        return ['ef' => null, 'ec' => null];
+        return ['ef' => null, 'ec' => null, 'total' => null];
     }
 }

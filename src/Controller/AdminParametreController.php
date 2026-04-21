@@ -99,11 +99,13 @@ class AdminParametreController extends AbstractController
             $currentEf = (float)$forfaits['ef'];
             $currentPrixM3Ec = $prixM3['ec'];
             $currentPrixM3Ef = $prixM3['ef'];
+            $currentPrixM3Total = $prixM3['total'];
         } else {
             $currentEc = $current->getForfaitEc();
             $currentEf = $current->getForfaitEf();
             $currentPrixM3Ec = $current->getPrixM3Ec();
             $currentPrixM3Ef = $current->getPrixM3Ef();
+            $currentPrixM3Total = $current->getPrixM3Total();
         }
 
         $params = $paramRepo->findBy([], ['annee' => 'DESC', 'id' => 'DESC']);
@@ -114,6 +116,7 @@ class AdminParametreController extends AbstractController
             'currentEf' => $currentEf,
             'currentPrixM3Ec' => $currentPrixM3Ec,
             'currentPrixM3Ef' => $currentPrixM3Ef,
+            'currentPrixM3Total' => $currentPrixM3Total,
             'activeYear' => $activeYear,
             'params' => $params,
         ]);
