@@ -6,7 +6,7 @@
 <section class="hero">
   <div>
     <h1>Paramètres forfaits</h1>
-    <p>Définir les valeurs de forfait par année. Les index restent inchangés; seule la consommation annuelle est ajustée.</p>
+    <p>Définir les valeurs annuelles des forfaits et des prix du m3. Les tarifs en euros peuvent rester vides tant qu'ils ne sont pas encore connus.</p>
   </div>
   <div class="card">
     <h3>Année active de saisie</h3>
@@ -38,6 +38,14 @@
         <label for="forfait_ef">Forfait EF</label>
         <input id="forfait_ef" type="number" step="0.001" min="0" name="forfait_ef" value="{{ currentEf }}" required>
       </div>
+      <div class="form-row">
+        <label for="prix_m3_ec">Prix du m3 EC</label>
+        <input id="prix_m3_ec" type="number" step="0.001" min="0" name="prix_m3_ec" value="{{ currentPrixM3Ec ?? '' }}">
+      </div>
+      <div class="form-row">
+        <label for="prix_m3_ef">Prix du m3 EF</label>
+        <input id="prix_m3_ef" type="number" step="0.001" min="0" name="prix_m3_ef" value="{{ currentPrixM3Ef ?? '' }}">
+      </div>
       <button class="btn btn-primary" type="submit">Enregistrer</button>
     </form>
   </div>
@@ -52,6 +60,8 @@
           <th>Année</th>
           <th>Forfait EC</th>
           <th>Forfait EF</th>
+          <th>Prix m3 EC</th>
+          <th>Prix m3 EF</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -61,6 +71,8 @@
             <td>{{ p.annee ?? 'Défaut' }}</td>
             <td>{{ p.forfaitEc }}</td>
             <td>{{ p.forfaitEf }}</td>
+            <td>{{ p.prixM3Ec ?? '—' }}</td>
+            <td>{{ p.prixM3Ef ?? '—' }}</td>
             <td>
               {% if p.annee is not null %}
                 <a class="btn btn-ghost" href="{{ path('admin_parametres', { annee: p.annee }) }}">Modifier</a>
@@ -70,7 +82,7 @@
             </td>
           </tr>
         {% else %}
-          <tr><td colspan="4">Aucun paramètre enregistré.</td></tr>
+          <tr><td colspan="6">Aucun paramètre enregistré.</td></tr>
         {% endfor %}
       </tbody>
     </table>

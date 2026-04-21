@@ -24,6 +24,12 @@ class Parametre
     #[ORM\Column(type: 'float')]
     private float $forfaitEc = 75.0;
 
+    #[ORM\Column(type: 'float', nullable: true)]
+    private ?float $prixM3Ef = null;
+
+    #[ORM\Column(type: 'float', nullable: true)]
+    private ?float $prixM3Ec = null;
+
     #[ORM\Column(nullable: true)]
     private ?int $activeSaisieYear = null;
 
@@ -34,6 +40,10 @@ class Parametre
     public function setForfaitEf(float $v): self { $this->forfaitEf = $v; return $this; }
     public function getForfaitEc(): float { return $this->forfaitEc; }
     public function setForfaitEc(float $v): self { $this->forfaitEc = $v; return $this; }
+    public function getPrixM3Ef(): ?float { return $this->prixM3Ef; }
+    public function setPrixM3Ef(?float $v): self { $this->prixM3Ef = $v; return $this; }
+    public function getPrixM3Ec(): ?float { return $this->prixM3Ec; }
+    public function setPrixM3Ec(?float $v): self { $this->prixM3Ec = $v; return $this; }
     public function getActiveSaisieYear(): ?int { return $this->activeSaisieYear; }
     public function setActiveSaisieYear(?int $v): self { $this->activeSaisieYear = $v; return $this; }
 }

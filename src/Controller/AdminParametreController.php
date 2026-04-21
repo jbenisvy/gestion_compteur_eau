@@ -15,6 +15,17 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class AdminParametreController extends AbstractController
 {
+    private function parseNullableFloat(mixed $value): ?float
+    {
+        $normalized = trim(str_replace(',', '.', (string) $value));
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        return max(0, (float) $normalized);
+    }
+
     #[Route('/admin/parametres', name: 'admin_parametres')]
     #[IsGranted('ROLE_ADMIN')]
     public function index(Request $request, ParametreRepository $paramRepo, EntityManagerInterface $em): Response
@@ -55,6 +66,8 @@ class AdminParametreController extends AbstractController
             $year = (int)$request->request->get('annee', $selectedYear);
             $forfaitEc = (float)str_replace(',', '.', (string)$request->request->get('forfait_ec', '0'));
             $forfaitEf = (float)str_replace(',', '.', (string)$request->request->get('forfait_ef', '0'));
+            $prixM3Ec = $this->parseNullableFloat($request->request->get('prix_m3_ec'));
+            $prixM3Ef = $this->parseNullableFloat($request->request->get('prix_m3_ef'));
 
             if ($year < 2000 || $year > 2100) {
                 $this->addFlash('error', 'Année invalide.');
@@ -68,7 +81,9 @@ class AdminParametreController extends AbstractController
             }
             $param
                 ->setForfaitEc(max(0, $forfaitEc))
-                ->setForfaitEf(max(0, $forfaitEf));
+                ->setForfaitEf(max(0, $forfaitEf))
+                ->setPrixM3Ec($prixM3Ec)
+                ->setPrixM3Ef($prixM3Ef);
 
             $em->flush();
             $this->addFlash('success', sprintf('Paramètres forfait enregistrés pour %d.', $year));
@@ -79,11 +94,16 @@ class AdminParametreController extends AbstractController
         $current = $paramRepo->findOneBy(['annee' => $selectedYear]);
         if (!$current) {
             $forfaits = $paramRepo->getForfaitsForYear($selectedYear);
+            $prixM3 = $paramRepo->getPrixM3ForYear($selectedYear);
             $currentEc = (float)$forfaits['ec'];
             $currentEf = (float)$forfaits['ef'];
+            $currentPrixM3Ec = $prixM3['ec'];
+            $currentPrixM3Ef = $prixM3['ef'];
         } else {
             $currentEc = $current->getForfaitEc();
             $currentEf = $current->getForfaitEf();
+            $currentPrixM3Ec = $current->getPrixM3Ec();
+            $currentPrixM3Ef = $current->getPrixM3Ef();
         }
 
         $params = $paramRepo->findBy([], ['annee' => 'DESC', 'id' => 'DESC']);
@@ -92,6 +112,8 @@ class AdminParametreController extends AbstractController
             'selectedYear' => $selectedYear,
             'currentEc' => $currentEc,
             'currentEf' => $currentEf,
+            'currentPrixM3Ec' => $currentPrixM3Ec,
+            'currentPrixM3Ef' => $currentPrixM3Ef,
             'activeYear' => $activeYear,
             'params' => $params,
         ]);

@@ -92,4 +92,26 @@ class ParametreRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['annee' => null], ['id' => 'DESC']);
     }
+
+    /**
+     * Retourne les prix du m3 pour une année donnée.
+     * Priorité:
+     * 1) ligne avec annee = $annee
+     * 2) ligne par défaut (annee NULL)
+     * 3) valeurs nulles si rien n'est défini
+     */
+    public function getPrixM3ForYear(int $annee): array
+    {
+        $row = $this->findOneBy(['annee' => $annee]);
+        if ($row instanceof Parametre) {
+            return ['ef' => $row->getPrixM3Ef(), 'ec' => $row->getPrixM3Ec()];
+        }
+
+        $default = $this->findOneBy(['annee' => null], ['id' => 'DESC']);
+        if ($default instanceof Parametre) {
+            return ['ef' => $default->getPrixM3Ef(), 'ec' => $default->getPrixM3Ec()];
+        }
+
+        return ['ef' => null, 'ec' => null];
+    }
 }
