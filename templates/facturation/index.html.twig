@@ -13,6 +13,11 @@
 {% block body %}
 {% import _self as fmt %}
 {% set filters = payload.filters %}
+{% set showCuisine = filters.piece is empty or filters.piece == 'cuisine' %}
+{% set showSdb = filters.piece is empty or filters.piece == 'sdb' %}
+{% set showFroide = filters.eau is empty or filters.eau == 'froide' %}
+{% set showChaude = filters.eau is empty or filters.eau == 'chaude' %}
+{% set hasScopedFilter = filters.piece is not empty or filters.eau is not empty %}
 
 <section class="hero">
   <div>
@@ -87,11 +92,19 @@
 <section class="card" style="margin-top: 20px;">
   <h3>Total ensemble</h3>
   <div class="billing-summary">
-    <div><span>Cuisine eau froide</span><strong>{{ fmt.money(payload.totals.cuisine.froide.montant) }}</strong><small>{{ fmt.m3(payload.totals.cuisine.froide.m3) }}</small></div>
-    <div><span>Cuisine eau chaude</span><strong>{{ fmt.money(payload.totals.cuisine.chaude.montant) }}</strong><small>{{ fmt.m3(payload.totals.cuisine.chaude.m3) }}</small></div>
-    <div><span>SDB/WC eau froide</span><strong>{{ fmt.money(payload.totals.sdb.froide.montant) }}</strong><small>{{ fmt.m3(payload.totals.sdb.froide.m3) }}</small></div>
-    <div><span>SDB/WC eau chaude</span><strong>{{ fmt.money(payload.totals.sdb.chaude.montant) }}</strong><small>{{ fmt.m3(payload.totals.sdb.chaude.m3) }}</small></div>
-    <div class="billing-total"><span>Total facturation</span><strong>{{ fmt.money(payload.totals.global.total) }}</strong></div>
+    {% if showCuisine and showFroide %}
+      <div><span>Cuisine eau froide</span><strong>{{ fmt.money(payload.totals.cuisine.froide.montant) }}</strong><small>{{ fmt.m3(payload.totals.cuisine.froide.m3) }}</small></div>
+    {% endif %}
+    {% if showCuisine and showChaude %}
+      <div><span>Cuisine eau chaude</span><strong>{{ fmt.money(payload.totals.cuisine.chaude.montant) }}</strong><small>{{ fmt.m3(payload.totals.cuisine.chaude.m3) }}</small></div>
+    {% endif %}
+    {% if showSdb and showFroide %}
+      <div><span>SDB/WC eau froide</span><strong>{{ fmt.money(payload.totals.sdb.froide.montant) }}</strong><small>{{ fmt.m3(payload.totals.sdb.froide.m3) }}</small></div>
+    {% endif %}
+    {% if showSdb and showChaude %}
+      <div><span>SDB/WC eau chaude</span><strong>{{ fmt.money(payload.totals.sdb.chaude.montant) }}</strong><small>{{ fmt.m3(payload.totals.sdb.chaude.m3) }}</small></div>
+    {% endif %}
+    <div class="billing-total"><span>{{ hasScopedFilter ? 'Total facturation filtrée' : 'Total facturation' }}</span><strong>{{ fmt.money(payload.totals.global.total) }}</strong></div>
   </div>
 </section>
 
@@ -126,28 +139,36 @@
           </tr>
         </thead>
         <tbody>
+          {% if showCuisine and showFroide %}
+            <tr>
+              <td>Cuisine - Eau froide</td>
+              <td>{{ fmt.m3(group.totals.cuisine.froide.m3) }}</td>
+              <td>{{ fmt.money(group.totals.cuisine.froide.montant) }}</td>
+            </tr>
+          {% endif %}
+          {% if showCuisine and showChaude %}
+            <tr>
+              <td>Cuisine - Eau chaude</td>
+              <td>{{ fmt.m3(group.totals.cuisine.chaude.m3) }}</td>
+              <td>{{ fmt.money(group.totals.cuisine.chaude.montant) }}</td>
+            </tr>
+          {% endif %}
+          {% if showSdb and showFroide %}
+            <tr>
+              <td>SDB/WC - Eau froide</td>
+              <td>{{ fmt.m3(group.totals.sdb.froide.m3) }}</td>
+              <td>{{ fmt.money(group.totals.sdb.froide.montant) }}</td>
+            </tr>
+          {% endif %}
+          {% if showSdb and showChaude %}
+            <tr>
+              <td>SDB/WC - Eau chaude</td>
+              <td>{{ fmt.m3(group.totals.sdb.chaude.m3) }}</td>
+              <td>{{ fmt.money(group.totals.sdb.chaude.montant) }}</td>
+            </tr>
+          {% endif %}
           <tr>
-            <td>Cuisine - Eau froide</td>
-            <td>{{ fmt.m3(group.totals.cuisine.froide.m3) }}</td>
-            <td>{{ fmt.money(group.totals.cuisine.froide.montant) }}</td>
-          </tr>
-          <tr>
-            <td>Cuisine - Eau chaude</td>
-            <td>{{ fmt.m3(group.totals.cuisine.chaude.m3) }}</td>
-            <td>{{ fmt.money(group.totals.cuisine.chaude.montant) }}</td>
-          </tr>
-          <tr>
-            <td>SDB/WC - Eau froide</td>
-            <td>{{ fmt.m3(group.totals.sdb.froide.m3) }}</td>
-            <td>{{ fmt.money(group.totals.sdb.froide.montant) }}</td>
-          </tr>
-          <tr>
-            <td>SDB/WC - Eau chaude</td>
-            <td>{{ fmt.m3(group.totals.sdb.chaude.m3) }}</td>
-            <td>{{ fmt.money(group.totals.sdb.chaude.montant) }}</td>
-          </tr>
-          <tr>
-            <th>Total facturation</th>
+            <th>{{ hasScopedFilter ? 'Total facturation filtrée' : 'Total facturation' }}</th>
             <th>{{ fmt.m3(group.totals.global.froide.m3 + group.totals.global.chaude.m3) }}</th>
             <th>{{ fmt.money(group.totals.global.total) }}</th>
           </tr>
@@ -172,18 +193,22 @@
           </thead>
           <tbody>
             {% for row in group.rows %}
-              <tr class="{{ row.compteur_supprime ? 'row-muted' : '' }}">
-                <td>
-                  Lot {{ row.lot_numero }} {{ row.lot_description }}
-                  <br><small>{{ row.lot_type_appartement }}</small>
-                </td>
-                <td>{{ row.compteur }}{% if row.forfait %}<br><span class="badge">Forfait</span>{% endif %}</td>
-                <td>{{ row.piece == 'sdb' ? 'SDB/WC' : 'Cuisine' }}</td>
-                <td>{{ row.eau == 'chaude' ? 'Eau chaude' : 'Eau froide' }}</td>
-                <td>{{ row.compteur_supprime ? 'Compteur supprimé' : fmt.m3(row.consommation) }}</td>
-                <td>{{ fmt.money(row.prix_m3) }}</td>
-                <td>{{ fmt.money(row.montant) }}</td>
-              </tr>
+              {% set rowMatchesPiece = filters.piece is empty or row.piece == filters.piece %}
+              {% set rowMatchesEau = filters.eau is empty or row.eau == filters.eau %}
+              {% if rowMatchesPiece and rowMatchesEau %}
+                <tr class="{{ row.compteur_supprime ? 'row-muted' : '' }}">
+                  <td>
+                    Lot {{ row.lot_numero }} {{ row.lot_description }}
+                    <br><small>{{ row.lot_type_appartement }}</small>
+                  </td>
+                  <td>{{ row.compteur }}{% if row.forfait %}<br><span class="badge">Forfait</span>{% endif %}</td>
+                  <td>{{ row.piece == 'sdb' ? 'SDB/WC' : 'Cuisine' }}</td>
+                  <td>{{ row.eau == 'chaude' ? 'Eau chaude' : 'Eau froide' }}</td>
+                  <td>{{ row.compteur_supprime ? 'Compteur supprimé' : fmt.m3(row.consommation) }}</td>
+                  <td>{{ fmt.money(row.prix_m3) }}</td>
+                  <td>{{ fmt.money(row.montant) }}</td>
+                </tr>
+              {% endif %}
             {% else %}
               <tr><td colspan="7">Aucune ligne de compteur.</td></tr>
             {% endfor %}
