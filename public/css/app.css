@@ -350,6 +350,65 @@ body.menu-open {
   gap: 14px;
 }
 
+.billing-filters {
+  display: grid;
+  gap: 10px;
+}
+
+.billing-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.billing-summary > div {
+  padding: 12px;
+  border: 1px solid #efe7da;
+  border-radius: 12px;
+  background: #fffaf3;
+}
+
+.billing-summary span,
+.billing-summary small {
+  display: block;
+  color: var(--muted);
+}
+
+.billing-summary strong {
+  display: block;
+  font-size: 1.25rem;
+  margin: 4px 0;
+}
+
+.billing-summary .billing-total {
+  background: #ecfdf5;
+  border-color: #86efac;
+}
+
+.billing-group-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.billing-group-total {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.billing-details {
+  margin-top: 12px;
+}
+
+.billing-details summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--brand);
+}
+
 .print-select-toolbar {
   display: flex;
   align-items: center;

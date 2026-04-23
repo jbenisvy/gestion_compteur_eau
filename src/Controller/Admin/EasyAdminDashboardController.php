@@ -54,6 +54,7 @@ class EasyAdminDashboardController extends AbstractDashboardController
         yield MenuItem::linkToRoute('Tableau global', 'fa fa-table', 'admin_tableau');
         yield MenuItem::linkToRoute('Référentiel compteurs', 'fa fa-hashtag', 'admin_compteurs_reference');
         yield MenuItem::linkToRoute('Historique global', 'fa fa-chart-line', 'admin_historique');
+        yield MenuItem::linkToRoute('Facturation', 'fa fa-file-invoice', 'admin_facturation');
         yield MenuItem::linkToRoute('Paramètres forfaits', 'fa fa-sliders', 'admin_parametres');
         yield MenuItem::linkToRoute('Transférer un lot', 'fa fa-exchange-alt', 'admin_lot_transfer');
         yield MenuItem::section('Aide');
