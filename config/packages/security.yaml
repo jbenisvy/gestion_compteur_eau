@@ -22,8 +22,8 @@ security:
         check_route: app_login_check
         login_path: app_login
         signature_properties: [id, email, updatedAt]
-        max_uses: 1
-        lifetime: 600
+        max_uses: 5
+        lifetime: 1800
       logout:
         path: app_logout
         target: home
