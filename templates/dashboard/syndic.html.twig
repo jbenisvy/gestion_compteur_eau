@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Espace syndic{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Espace syndic / conseil syndical</h1>
+    <p>Année active : <strong>{{ anneeActive }}</strong></p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ path('admin_facturation') }}">Facturation</a>
+      <a class="btn btn-ghost" href="{{ path('admin_stats') }}">Statistiques</a>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Accès autorisés</h3>
+    <p>Ce profil est limité à la consultation de la facturation et des statistiques. Les autres modules restent masqués.</p>
+  </div>
+</section>
+{% endblock %}

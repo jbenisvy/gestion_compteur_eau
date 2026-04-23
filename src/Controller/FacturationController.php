@@ -45,7 +45,6 @@ final class FacturationController extends AbstractController
     }
 
     #[Route('/admin/facturation', name: 'admin_facturation')]
-    #[IsGranted('ROLE_ADMIN')]
     public function admin(
         Request $request,
         CoproprietaireRepository $coproRepo,
@@ -53,12 +52,17 @@ final class FacturationController extends AbstractController
         ReleveRepository $releveRepo,
         FacturationService $facturationService
     ): Response {
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_SYNDIC')) {
+            throw $this->createAccessDeniedException();
+        }
+
         $filters = $this->extractFilters($request, true);
         $payload = $facturationService->build($filters);
 
         return $this->render('facturation/index.html.twig', [
             'title' => 'État de facturation',
             'isAdmin' => true,
+            'isReadOnlyViewer' => !$this->isGranted('ROLE_ADMIN'),
             'payload' => $payload,
             'years' => $this->availableYears($releveRepo),
             'copros' => $coproRepo->findBy([], ['nom' => 'ASC', 'prenom' => 'ASC']),

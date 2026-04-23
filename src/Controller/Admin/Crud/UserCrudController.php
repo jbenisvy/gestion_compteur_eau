@@ -42,12 +42,13 @@ class UserCrudController extends AbstractCrudController
         yield ChoiceField::new('roles')
             ->setChoices([
                 'Utilisateur copropriétaire (ROLE_USER)' => 'ROLE_USER',
+                'Syndic / Conseil syndical (ROLE_SYNDIC)' => 'ROLE_SYNDIC',
                 'Administrateur (ROLE_ADMIN)' => 'ROLE_ADMIN',
             ])
             ->allowMultipleChoices()
             ->renderExpanded(false)
             ->setRequired(true)
-            ->setHelp('Sélectionnez les rôles à attribuer. Un utilisateur peut être à la fois copropriétaire et administrateur.');
+            ->setHelp('Sélectionnez les rôles à attribuer. Pour un accès syndic / conseil syndical en lecture seule, attribuez uniquement ROLE_SYNDIC.');
         yield TextField::new('plainPassword', 'Mot de passe')
             ->onlyOnForms()
             ->setFormType(PasswordType::class)

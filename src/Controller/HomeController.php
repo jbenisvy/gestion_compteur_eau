@@ -16,6 +16,10 @@ class HomeController extends AbstractController
                 return $this->redirectToRoute('admin_dashboard');
             }
 
+            if ($this->isGranted('ROLE_SYNDIC')) {
+                return $this->redirectToRoute('syndic_dashboard');
+            }
+
             return $this->redirectToRoute('copro_dashboard');
         }
 

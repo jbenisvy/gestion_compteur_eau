@@ -84,6 +84,15 @@ class DashboardController extends AbstractController
         ]);
     }
 
+    #[Route('/syndic', name: 'syndic_dashboard')]
+    #[IsGranted('ROLE_SYNDIC')]
+    public function syndicDashboard(ParametreRepository $paramRepo): Response
+    {
+        return $this->render('dashboard/syndic.html.twig', [
+            'anneeActive' => $paramRepo->getAnneeEnCours((int)date('Y')),
+        ]);
+    }
+
     /** @param array<int,Lot> $lots */
     private function sortLots(array &$lots, string $sortBy, string $sortDir, array $activeCoproNames = []): void
     {

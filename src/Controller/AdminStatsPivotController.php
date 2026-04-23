@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ROLE_ADMIN')]
 final class AdminStatsPivotController extends AbstractController
 {
     private const ALLOWED_KEYS = [
@@ -31,6 +30,8 @@ final class AdminStatsPivotController extends AbstractController
     #[Route('/admin/stats/pivots', name: 'admin_stats_pivots_list', methods: ['GET'])]
     public function list(StatsPivotStorage $storage): JsonResponse
     {
+        $this->denyUnlessAdminOrSyndic();
+
         $user = $this->getUser();
         if (!$user instanceof \App\Entity\User) {
             return new JsonResponse(['items' => []]);
@@ -42,6 +43,8 @@ final class AdminStatsPivotController extends AbstractController
     #[Route('/admin/stats/pivots', name: 'admin_stats_pivots_save', methods: ['POST'])]
     public function save(Request $request, StatsPivotStorage $storage): JsonResponse
     {
+        $this->denyUnlessAdmin();
+
         $user = $this->getUser();
         if (!$user instanceof \App\Entity\User) {
             return new JsonResponse(['error' => 'unauthorized'], Response::HTTP_FORBIDDEN);
@@ -71,6 +74,8 @@ final class AdminStatsPivotController extends AbstractController
     #[Route('/admin/stats/pivots/{name}', name: 'admin_stats_pivots_delete', methods: ['DELETE'])]
     public function delete(string $name, StatsPivotStorage $storage): JsonResponse
     {
+        $this->denyUnlessAdmin();
+
         $user = $this->getUser();
         if (!$user instanceof \App\Entity\User) {
             return new JsonResponse(['error' => 'unauthorized'], Response::HTTP_FORBIDDEN);
@@ -83,6 +88,8 @@ final class AdminStatsPivotController extends AbstractController
     #[Route('/admin/stats/pivots/export', name: 'admin_stats_pivots_export', methods: ['GET'])]
     public function export(StatsPivotStorage $storage): Response
     {
+        $this->denyUnlessAdminOrSyndic();
+
         $user = $this->getUser();
         if (!$user instanceof \App\Entity\User) {
             return new Response('unauthorized', Response::HTTP_FORBIDDEN);
@@ -115,5 +122,19 @@ final class AdminStatsPivotController extends AbstractController
             }
         }
         return $clean;
+    }
+
+    private function denyUnlessAdmin(): void
+    {
+        if (!$this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException();
+        }
+    }
+
+    private function denyUnlessAdminOrSyndic(): void
+    {
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_SYNDIC')) {
+            throw $this->createAccessDeniedException();
+        }
     }
 }

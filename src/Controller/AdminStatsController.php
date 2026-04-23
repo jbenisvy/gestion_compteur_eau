@@ -18,9 +18,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AdminStatsController extends AbstractController
 {
     #[Route('/admin/stats', name: 'admin_stats')]
-    #[IsGranted('ROLE_ADMIN')]
     public function index(ReleveRepository $releveRepo): Response
     {
+        $this->denyUnlessAdminOrSyndic();
+
         $years = $releveRepo->findDistinctAnnees();
         if ($years === []) {
             $years = [(int)date('Y')];
@@ -29,13 +30,15 @@ class AdminStatsController extends AbstractController
         return $this->render('admin/stats.html.twig', [
             'years' => $years,
             'defaultYear' => $years[count($years) - 1] ?? (int)date('Y'),
+            'isReadOnlyViewer' => !$this->isGranted('ROLE_ADMIN'),
         ]);
     }
 
     #[Route('/admin/stats/data', name: 'admin_stats_data')]
-    #[IsGranted('ROLE_ADMIN')]
     public function data(Request $request, StatsDatasetService $statsService): JsonResponse
     {
+        $this->denyUnlessAdminOrSyndic();
+
         $filters = $this->extractFilters($request);
         $options = $this->extractOptions($request);
 
@@ -46,9 +49,10 @@ class AdminStatsController extends AbstractController
     }
 
     #[Route('/admin/stats/pdf', name: 'admin_stats_pdf')]
-    #[IsGranted('ROLE_ADMIN')]
     public function pdf(Request $request, StatsDatasetService $statsService): Response
     {
+        $this->denyUnlessAdminOrSyndic();
+
         $filters = $this->extractFilters($request);
         $options = $this->extractOptions($request);
 
@@ -142,5 +146,12 @@ class AdminStatsController extends AbstractController
         }
         $value = strtolower(trim((string)$value));
         return in_array($value, ['1', 'true', 'yes', 'on'], true);
+    }
+
+    private function denyUnlessAdminOrSyndic(): void
+    {
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_SYNDIC')) {
+            throw $this->createAccessDeniedException();
+        }
     }
 }

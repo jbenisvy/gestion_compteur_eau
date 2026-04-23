@@ -20,16 +20,16 @@
 {% endblock %}
 
 {% block body %}
-<section class="stats-page" data-default-year="{{ defaultYear }}">
+<section class="stats-page" data-default-year="{{ defaultYear }}" data-read-only="{{ isReadOnlyViewer ? '1' : '0' }}">
   <div class="stats-print-header" id="statsPrintHeader" aria-hidden="true">
     <h1>Statistiques</h1>
     <p id="statsPrintMeta"></p>
   </div>
   <header class="stats-head">
-    <div>
-      <h1>Statistiques</h1>
-      <p class="muted">Module admin – données internes, lecture seule.</p>
-    </div>
+      <div>
+        <h1>Statistiques</h1>
+      <p class="muted">{{ isReadOnlyViewer ? 'Espace syndic / conseil syndical – consultation uniquement.' : 'Module admin – données internes, lecture seule.' }}</p>
+      </div>
     <div class="stats-actions">
       <button class="btn btn-ghost" id="statsPrintBtn">Imprimer</button>
       <button class="btn btn-ghost" id="statsPdfBtn">Exporter PDF</button>
@@ -139,14 +139,18 @@
             <option value="">Aucun</option>
           </select>
         </div>
-        <div class="filter-block">
-          <label for="statsPivotName">Nom</label>
-          <input id="statsPivotName" type="text" placeholder="Mon tableau">
-        </div>
         <div class="stats-pivot-buttons">
-          <button class="btn btn-ghost" id="statsPivotSaveBtn">Enregistrer</button>
+          {% if not isReadOnlyViewer %}
+            <div class="filter-block">
+              <label for="statsPivotName">Nom</label>
+              <input id="statsPivotName" type="text" placeholder="Mon tableau">
+            </div>
+            <button class="btn btn-ghost" id="statsPivotSaveBtn">Enregistrer</button>
+          {% endif %}
           <button class="btn btn-ghost" id="statsPivotExportBtn">Exporter mes tableaux</button>
-          <button class="btn btn-ghost" id="statsPivotDeleteBtn" disabled>Supprimer</button>
+          {% if not isReadOnlyViewer %}
+            <button class="btn btn-ghost" id="statsPivotDeleteBtn" disabled>Supprimer</button>
+          {% endif %}
         </div>
       </div>
     </div>
