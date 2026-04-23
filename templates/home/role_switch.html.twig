@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Choix de l’espace{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Choix de l’espace</h1>
+    <p>Ce compte peut accéder à l’espace copropriétaire et à l’espace syndic. Choisis l’espace à ouvrir.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ path('copro_dashboard') }}">Entrer comme copropriétaire</a>
+      <a class="btn btn-ghost" href="{{ path('syndic_dashboard') }}">Entrer comme syndic</a>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Rappel</h3>
+    <p>L’espace copropriétaire donne accès à tes lots et à ta facturation. L’espace syndic reste limité à la consultation de la facturation globale et des statistiques.</p>
+  </div>
+</section>
+{% endblock %}
