@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\Export;
 
+use App\Domain\Logement\LotUsageClassifier;
 use App\Repository\ParametreRepository;
 use Doctrine\DBAL\Connection;
 
@@ -11,6 +12,7 @@ final class ExcelCompteursExportService
 {
     private Connection $conn;
     private ParametreRepository $paramRepo;
+    private LotUsageClassifier $lotUsageClassifier;
 
     /** @var array<int, array{nom:string, prenom:string}> */
     private array $coproById = [];
@@ -18,12 +20,16 @@ final class ExcelCompteursExportService
     /** @var array<int, array<int, array{coproprietaire_id:int, date_debut:string, date_fin:?string}>> */
     private array $ownerLinksByLot = [];
 
+    /** @var array<int, array{EC:int, EF:int}> */
+    private array $forfaitMultipliersByLot = [];
+
     private bool $ownerHistoryAvailable = false;
 
-    public function __construct(Connection $conn, ParametreRepository $paramRepo)
+    public function __construct(Connection $conn, ParametreRepository $paramRepo, LotUsageClassifier $lotUsageClassifier)
     {
         $this->conn = $conn;
         $this->paramRepo = $paramRepo;
+        $this->lotUsageClassifier = $lotUsageClassifier;
     }
 
     public function isEnabled(): bool
@@ -58,6 +64,7 @@ final class ExcelCompteursExportService
 
         $this->loadCoproprietaires();
         $this->loadOwnerLinksIfAny();
+        $this->loadForfaitMultipliers($rows);
 
         $years = [];
         foreach ($rows as $r) {
@@ -220,16 +227,28 @@ final class ExcelCompteursExportService
 
         $releveEtatCode = $this->normalizeCode($r['releve_etat_code'] ?? null, $r['releve_etat_libelle'] ?? null);
         $compteurEtatCode = $this->normalizeCode($r['compteur_etat_code'] ?? null, $r['compteur_etat_libelle'] ?? null);
+        $isSupprime = $this->isDeletedEtat($releveEtatCode) || $this->isDeletedEtat($compteurEtatCode);
+        $lotInoccupe = $this->lotUsageClassifier->isInoccupeText(
+            (string)($r['type_appartement'] ?? '') . ' ' . (string)($r['occupant'] ?? '') . ' ' . (string)($r['commentaire'] ?? '')
+        );
 
         $isForfait = $this->isForfait($releveEtatCode, (bool)$r['releve_forfait_flag']);
         $forfaits = $forfaitsByYear[$annee] ?? ['ef' => null, 'ec' => null];
-        $defaultForfait = $compteurType === 'EF' ? (float)($forfaits['ef'] ?? 0.0) : (float)($forfaits['ec'] ?? 0.0);
+        $compteurTypeNorm = $compteurType === 'EF' ? 'EF' : 'EC';
+        $defaultForfait = $compteurTypeNorm === 'EF' ? (float)($forfaits['ef'] ?? 0.0) : (float)($forfaits['ec'] ?? 0.0);
+        $defaultForfait *= $this->forfaitMultipliersByLot[$lotId][$compteurTypeNorm] ?? 1;
 
         $savedConsommation = $this->asFloatOrNull($r['consommation'] ?? null);
         $consommationSource = 'calculated';
         $consommation = null;
 
-        if ($savedConsommation !== null) {
+        if ($isSupprime) {
+            $consommation = 0.0;
+            $consommationSource = 'compteur_supprime';
+        } elseif ($isForfait) {
+            $consommation = max(0.0, round($defaultForfait, 3));
+            $consommationSource = 'calculated';
+        } elseif ($savedConsommation !== null) {
             $consommation = max(0.0, round($savedConsommation, 3));
             $consommationSource = 'saved';
         } else {
@@ -239,11 +258,7 @@ final class ExcelCompteursExportService
         $forfaitValeur = null;
         $forfaitMotif = null;
         if ($isForfait) {
-            if ($savedConsommation !== null && $savedConsommation > 0) {
-                $forfaitValeur = max(0.0, round($savedConsommation, 3));
-            } else {
-                $forfaitValeur = $defaultForfait > 0.0 ? $defaultForfait : null;
-            }
+            $forfaitValeur = $defaultForfait > 0.0 ? max(0.0, round($defaultForfait, 3)) : null;
             $forfaitMotif = $this->guessForfaitMotif($releveEtatCode);
         }
 
@@ -253,6 +268,8 @@ final class ExcelCompteursExportService
             'lot_numero' => (string)($r['numero_lot'] ?? ''),
             'lot_description' => (string)($r['lot_emplacement'] ?? ''),
             'lot_type_appartement' => (string)($r['type_appartement'] ?? ''),
+            'lot_inoccupe' => $lotInoccupe,
+            'lot_inoccupe_motif' => $lotInoccupe ? 'Appartement inoccupé' : null,
             'lot_tantieme' => (int)($r['tantieme'] ?? 0),
             'locataire_nom' => $this->nullIfEmpty($r['occupant'] ?? null),
             'proprietaire_id' => $owner['id'],
@@ -266,15 +283,17 @@ final class ExcelCompteursExportService
             'compteur_actif' => (bool)$r['compteur_actif'],
             'compteur_etat_code' => $compteurEtatCode,
             'compteur_etat_libelle' => $this->nullIfEmpty($r['compteur_etat_libelle'] ?? null),
-            'compteur_statut' => $this->deriveCompteurStatut($r['compteur_actif'] ?? null, $compteurEtatCode),
+            'compteur_statut' => $isSupprime ? 'supprime' : $this->deriveCompteurStatut($r['compteur_actif'] ?? null, $compteurEtatCode),
+            'compteur_supprime' => $isSupprime,
+            'index_masque' => $isSupprime,
             'releve_id' => (int)$r['releve_id'],
             'releve_item_id' => (int)$r['releve_item_id'],
             'releve_etat_code' => $releveEtatCode,
             'releve_etat_libelle' => $this->nullIfEmpty($r['releve_etat_libelle'] ?? null),
-            'index_n_1' => $this->asIntOrNull($r['index_n1'] ?? null),
-            'index_n' => $this->asIntOrNull($r['index_n'] ?? null),
-            'index_compteur_demonte' => $this->asIntOrNull($r['index_compteur_demonte'] ?? null),
-            'index_nouveau_compteur' => $this->asIntOrNull($r['index_nouveau_compteur'] ?? null),
+            'index_n_1' => $isSupprime ? null : $this->asIntOrNull($r['index_n1'] ?? null),
+            'index_n' => $isSupprime ? null : $this->asIntOrNull($r['index_n'] ?? null),
+            'index_compteur_demonte' => $isSupprime ? null : $this->asIntOrNull($r['index_compteur_demonte'] ?? null),
+            'index_nouveau_compteur' => $isSupprime ? null : $this->asIntOrNull($r['index_nouveau_compteur'] ?? null),
             'consommation' => $consommation,
             'consommation_source' => $consommationSource,
             'forfait_applique' => $isForfait,
@@ -312,6 +331,12 @@ final class ExcelCompteursExportService
             || str_contains($etatCode, 'index compteur non');
     }
 
+    private function isDeletedEtat(?string $etatCode): bool
+    {
+        $etatCode = mb_strtolower(trim((string)$etatCode));
+        return $etatCode !== '' && (str_contains($etatCode, 'supprim') || str_contains($etatCode, 'suppr'));
+    }
+
     private function guessForfaitMotif(?string $etatCode): ?string
     {
         if ($etatCode === null) {
@@ -339,6 +364,10 @@ final class ExcelCompteursExportService
         $indexDem = $this->asIntOrNull($r['index_compteur_demonte'] ?? null);
         $indexNew = $this->asIntOrNull($r['index_nouveau_compteur'] ?? null);
 
+        if ($this->isDeletedEtat($etatCode)) {
+            return 0.0;
+        }
+
         $delta = max(0, $indexN - $indexN1);
 
         if ($etatCode !== null) {
@@ -358,11 +387,87 @@ final class ExcelCompteursExportService
             }
         }
 
+        if ($isForfait) {
+            $delta = 0;
+        }
+
         if ($isForfait && $forfaitValue > 0) {
             $delta += $forfaitValue;
         }
 
         return (float)$delta;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $rows
+     */
+    private function loadForfaitMultipliers(array $rows): void
+    {
+        $lotIds = [];
+        foreach ($rows as $row) {
+            $lotIds[(int)$row['lot_id']] = true;
+        }
+        $lotIds = array_keys($lotIds);
+        if ($lotIds === []) {
+            return;
+        }
+
+        foreach ($lotIds as $lotId) {
+            $this->forfaitMultipliersByLot[(int)$lotId] = ['EC' => 1, 'EF' => 1];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($lotIds), '?'));
+        $sql = <<<SQL
+            SELECT
+                c.id,
+                c.lot_id,
+                c.type,
+                c.actif,
+                ec.code AS etat_code,
+                ec.libelle AS etat_libelle
+            FROM compteur c
+            LEFT JOIN etat_compteur ec ON ec.id = c.etat_compteur_id
+            WHERE c.lot_id IN ($placeholders)
+        SQL;
+
+        $compteursByLot = [];
+        foreach ($this->conn->fetchAllAssociative($sql, $lotIds) as $row) {
+            if (!$this->isEffectiveCompteurRow($row)) {
+                continue;
+            }
+
+            $lotId = (int)$row['lot_id'];
+            $type = (string)($row['type'] ?? '') === 'EF' ? 'EF' : 'EC';
+            $compteursByLot[$lotId][] = $type;
+        }
+
+        foreach ($compteursByLot as $lotId => $types) {
+            if (count($types) > 2) {
+                continue;
+            }
+
+            $counts = array_count_values($types);
+            if (($counts['EC'] ?? 0) === 1) {
+                $this->forfaitMultipliersByLot[$lotId]['EC'] = 2;
+            }
+            if (($counts['EF'] ?? 0) === 1) {
+                $this->forfaitMultipliersByLot[$lotId]['EF'] = 2;
+            }
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function isEffectiveCompteurRow(array $row): bool
+    {
+        if (!(bool)($row['actif'] ?? false)) {
+            return false;
+        }
+
+        $etat = mb_strtolower(trim((string)($row['etat_code'] ?? '') . ' ' . (string)($row['etat_libelle'] ?? '')));
+
+        return !str_contains($etat, 'supprim') && !str_contains($etat, 'suppr');
     }
 
     /**
@@ -427,15 +532,15 @@ final class ExcelCompteursExportService
 
     private function deriveCompteurStatut($actif, ?string $etatCode): string
     {
+        if ($etatCode === null) {
+            return (bool)$actif ? 'actif' : 'inactif';
+        }
+        if ($this->isDeletedEtat($etatCode)) {
+            return 'supprime';
+        }
         $isActif = (bool)$actif;
         if (!$isActif) {
             return 'inactif';
-        }
-        if ($etatCode === null) {
-            return 'actif';
-        }
-        if (str_contains($etatCode, 'supprime')) {
-            return 'supprime';
         }
         if (str_contains($etatCode, 'forfait')) {
             return 'forfait';

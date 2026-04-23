@@ -25,9 +25,13 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 .block .head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);}
 .block .inner{padding:10px 12px}
 .row{border:1px dashed #e2e8f0;border-radius:10px;padding:10px;margin-bottom:10px;background:#fff9;}
+.row.row-supprime{border-style:solid;border-color:#9ca3af;background:#f3f4f6;color:#4b5563;}
 .meta{font-size:12px;color:#6b7280}
 .meta .n1{font-size:14px;font-weight:600;color:#111827}
 .meta.index-meta{padding:6px 8px;border:1px solid #93c5fd;border-radius:8px;background:#dbeafe}
+.row-supprime .meta.index-meta{border-color:#9ca3af;background:#e5e7eb;color:#4b5563}
+.badge-supprime{display:inline-flex;margin-top:4px;padding:3px 7px;border-radius:999px;background:#374151;color:#fff;font-size:12px;font-weight:700;}
+.badge-inoccupe{display:inline-flex;align-items:center;gap:8px;background:#ecfdf5;border:1px solid #86efac;color:#166534;padding:8px 10px;border-radius:10px;margin:8px 0 14px 0;font-weight:700;}
 .lbl{font-weight:600}
 .small input, .small select, .small textarea{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:14px;min-width:0;}
 /* Ligne 1 (commune) */
@@ -167,6 +171,12 @@ h1{margin:10px 0 8px 0; font-size:28px;}
     {% if attribute(lot,'typeAppartement') is defined and lot.typeAppartement is not null %} • Type : <b>{{ lot.typeAppartement }}</b>{% endif %}
   </p>
 
+  {% if lotInoccupe|default(false) %}
+    <div class="badge-inoccupe">
+      Appartement inoccupé: l'absence ou le faible niveau de consommation peut être justifié par le type/commentaire du lot.
+    </div>
+  {% endif %}
+
   {# Bandeau lecture seule si l’année n’est pas éditable #}
   {% if not isEditable %}
     <div class="badge-ro" style="margin:8px 0 14px 0;">
@@ -193,9 +203,10 @@ h1{margin:10px 0 8px 0; font-size:28px;}
         {% for idx, item in items %}
           {% set piece = item.piece ?? '' %}
           {% set type  = item.typeEau ?? '' %}
+          {% set isSupprime = item.isSupprime|default(false) %}
           {% if type == 'chaude' %}
             {% set printed = printed + 1 %}
-            <div class="row small" data-kind="item">
+            <div class="row small {{ isSupprime ? 'row-supprime' : '' }}" data-kind="item" data-supprime="{{ isSupprime ? '1' : '0' }}">
               <div class="rowgrid-top">
                 <div class="lbl">
                   {{ piece|capitalize }}
@@ -209,6 +220,9 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                      title="Cliquer pour ajouter/remplacer la photo">
                     {{ cnum }}
                   </a>
+                  {% if isSupprime %}
+                    <br><span class="badge-supprime">Compteur supprimé</span>
+                  {% endif %}
                   {% set photo = item.photoUrl ?? (form.items[idx].vars.data.photoUrl ?? null) %}
                   {% if cid %}
                     <br>
@@ -233,7 +247,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                     >
                   </a>
                 </div>
-                <div class="meta index-meta">Ind. n-1 : <b class="n1">{{ item.indexPrevious ?? 0 }}</b></div>
+                <div class="meta index-meta">Ind. n-1 : <b class="n1" data-value="{{ item.indexPrevious ?? 0 }}">{{ isSupprime ? 'masqué' : (item.indexPrevious ?? 0) }}</b></div>
                 <div class="field-etat">{{ form_row(form.items[idx].etat, {'label':'État'}) }}</div>
                 <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'Ind. n'}) }}</div>
                 <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
@@ -283,9 +297,10 @@ h1{margin:10px 0 8px 0; font-size:28px;}
         {% for idx, item in items %}
           {% set piece = item.piece ?? '' %}
           {% set type  = item.typeEau ?? '' %}
+          {% set isSupprime = item.isSupprime|default(false) %}
           {% if type == 'froide' %}
             {% set printed = printed + 1 %}
-            <div class="row small" data-kind="item">
+            <div class="row small {{ isSupprime ? 'row-supprime' : '' }}" data-kind="item" data-supprime="{{ isSupprime ? '1' : '0' }}">
               <div class="rowgrid-top">
                 <div class="lbl">
                   {{ piece|capitalize }}
@@ -298,6 +313,9 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                      title="Cliquer pour ajouter/remplacer la photo">
                     {{ cnum }}
                   </a>
+                  {% if isSupprime %}
+                    <br><span class="badge-supprime">Compteur supprimé</span>
+                  {% endif %}
                   {% set photo = item.photoUrl ?? (form.items[idx].vars.data.photoUrl ?? null) %}
                   {% if cid %}
                     <br>
@@ -321,7 +339,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                     >
                   </a>
                 </div>
-                <div class="meta index-meta">Ind. n-1 : <b class="n1">{{ item.indexPrevious ?? 0 }}</b></div>
+                <div class="meta index-meta">Ind. n-1 : <b class="n1" data-value="{{ item.indexPrevious ?? 0 }}">{{ isSupprime ? 'masqué' : (item.indexPrevious ?? 0) }}</b></div>
                 <div class="field-etat">{{ form_row(form.items[idx].etat, {'label':'État'}) }}</div>
                 <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'Ind. n'}) }}</div>
                 <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
@@ -462,9 +480,16 @@ h1{margin:10px 0 8px 0; font-size:28px;}
       const piece=consEl.dataset.piece || '';
       const type =consEl.dataset.type  || '';
 
-      const prev=toInt(card.querySelector('.n1')?.textContent);
+      const n1El=card.querySelector('.n1');
+      const prev=toInt(n1El?.dataset.value ?? n1El?.textContent);
       const sel =card.querySelector('.field-etat select');
       const etat=(sel && sel.options[sel.selectedIndex]) ? sel.options[sel.selectedIndex].text.toLowerCase() : '';
+      const isSupprime = etat.includes('suppr');
+      card.classList.toggle('row-supprime', isSupprime);
+      card.dataset.supprime = isSupprime ? '1' : '0';
+      if (n1El) {
+        n1El.textContent = isSupprime ? 'masqué' : String(prev);
+      }
 
       const getInput=(suffix)=>card.querySelector(`input[id$="${suffix}"]`);
       const n  = toInt(getInput('_indexN')?.value);

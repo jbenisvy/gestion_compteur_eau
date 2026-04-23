@@ -81,6 +81,8 @@
       { title: "Annee", field: "annee", hozAlign: "left", sorter: "number", headerFilter: "input" },
       { title: "Lot", field: "lot_numero", headerFilter: "input" },
       { title: "Description lot", field: "lot_description", headerFilter: "input" },
+      { title: "Lot inoccupe", field: "lot_inoccupe", formatter: "tickCross", hozAlign: "center" },
+      { title: "Motif inoccupe", field: "lot_inoccupe_motif", headerFilter: "input" },
       { title: "Proprietaire", field: "proprietaire_nom", headerFilter: "input" },
       { title: "Locataire", field: "locataire_nom", headerFilter: "input" },
       { title: "Compteur ID", field: "compteur_id", sorter: "number", headerFilter: "input" },
@@ -88,6 +90,8 @@
       { title: "Nature", field: "compteur_nature", headerFilter: "input" },
       { title: "Emplacement", field: "compteur_emplacement", headerFilter: "input" },
       { title: "Statut", field: "compteur_statut", headerFilter: "input" },
+      { title: "Compteur supprime", field: "compteur_supprime", formatter: "tickCross", hozAlign: "center" },
+      { title: "Index masque", field: "index_masque", formatter: "tickCross", hozAlign: "center" },
       { title: "Index N-1", field: "index_n_1", sorter: "number", headerFilter: "input" },
       { title: "Index N", field: "index_n", sorter: "number", headerFilter: "input" },
       { title: "Consommation", field: "consommation", sorter: "number", headerFilter: "input" },
@@ -181,6 +185,12 @@
           var data = row.getData();
           if (data.ligne_grisee) {
             row.getElement().classList.add("row-grise");
+          }
+          if (data.compteur_supprime) {
+            row.getElement().classList.add("row-supprime");
+          }
+          if (data.lot_inoccupe) {
+            row.getElement().classList.add("row-inoccupe");
           }
         },
         persistence: {
@@ -350,6 +360,8 @@
           lot_numero: lot,
           lot_description: r.lot_description || "",
           proprietaire_nom: r.proprietaire_nom || "",
+          lot_inoccupe: !!r.lot_inoccupe,
+          lot_inoccupe_motif: r.lot_inoccupe_motif || "",
           rows: [],
           totals: {
             totalCons: 0,
@@ -384,6 +396,7 @@
       var title = "Lot " + group.lot_numero;
       if (group.lot_description) title += " - " + escapeHtml(group.lot_description);
       if (group.proprietaire_nom) title += " | " + escapeHtml(group.proprietaire_nom);
+      if (group.lot_inoccupe) title += " | APPARTEMENT INOCCUPE";
 
       html += "<section class=\"stats-detail-group\">";
       html += "<div class=\"stats-detail-group-title\">" + title + "</div>";
@@ -404,14 +417,14 @@
       html += "<tbody>";
 
       group.rows.forEach(function (r) {
-        html += "<tr>";
+        html += "<tr" + (r.compteur_supprime ? " class=\"row-supprime\"" : "") + ">";
         html += "<td>" + escapeHtml(r.compteur_id) + "</td>";
         html += "<td>" + escapeHtml(r.compteur_reference) + "</td>";
         html += "<td>" + escapeHtml(r.compteur_nature) + "</td>";
         html += "<td>" + escapeHtml(r.compteur_emplacement) + "</td>";
-        html += "<td>" + escapeHtml(r.index_n_1) + "</td>";
-        html += "<td>" + escapeHtml(r.index_n) + "</td>";
-        html += "<td>" + formatNumber(r.consommation) + "</td>";
+        html += "<td>" + (r.index_masque ? "Index masque" : escapeHtml(r.index_n_1)) + "</td>";
+        html += "<td>" + (r.index_masque ? "Index masque" : escapeHtml(r.index_n)) + "</td>";
+        html += "<td>" + (r.compteur_supprime ? "Compteur supprime" : formatNumber(r.consommation)) + "</td>";
         html += "<td>" + (r.forfait_applique ? "Oui" : "Non") + "</td>";
         html += "<td>" + (r.forfait_applique ? formatNumber(r.forfait_valeur) : "-") + "</td>";
         html += "</tr>";

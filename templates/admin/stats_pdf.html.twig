@@ -32,6 +32,12 @@
       .grise {
         color: #777;
       }
+      .supprime {
+        background: #f3f4f6;
+      }
+      .inoccupe {
+        border-left: 4px solid #22c55e;
+      }
     </style>
   </head>
   <body>
@@ -50,6 +56,7 @@
         <tr>
           <th>Annee</th>
           <th>Lot</th>
+          <th>Inoccupé</th>
           <th>Proprietaire</th>
           <th>Locataire</th>
           <th>Compteur</th>
@@ -62,20 +69,21 @@
       </thead>
       <tbody>
         {% for row in payload.rows|default([]) %}
-          <tr class="{{ row.ligne_grisee ? 'grise' : '' }}">
+          <tr class="{{ row.ligne_grisee ? 'grise' : '' }} {{ row.compteur_supprime ? 'supprime' : '' }} {{ row.lot_inoccupe ? 'inoccupe' : '' }}">
             <td>{{ row.annee }}</td>
             <td>{{ row.lot_numero }}</td>
+            <td>{{ row.lot_inoccupe ? 'oui' : 'non' }}</td>
             <td>{{ row.proprietaire_nom }}</td>
             <td>{{ row.locataire_nom }}</td>
             <td>{{ row.compteur_reference ?? row.compteur_id }}</td>
             <td>{{ row.compteur_nature }}</td>
             <td>{{ row.compteur_emplacement }}</td>
-            <td>{{ row.compteur_statut }}</td>
-            <td>{{ row.consommation }}</td>
+            <td>{{ row.compteur_supprime ? 'compteur supprimé' : row.compteur_statut }}</td>
+            <td>{{ row.compteur_supprime ? 'compteur supprimé' : row.consommation }}</td>
             <td>{{ row.forfait_applique ? (row.forfait_valeur ?? 'oui') : 'non' }}</td>
           </tr>
         {% else %}
-          <tr><td colspan="10">Aucune donnee.</td></tr>
+          <tr><td colspan="11">Aucune donnee.</td></tr>
         {% endfor %}
       </tbody>
     </table>

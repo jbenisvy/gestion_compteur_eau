@@ -17,7 +17,8 @@
           forfaitValueByCompteur: forfaitValueByCompteur|default({}),
           suppressionByCompteur: suppressionByCompteur|default({}),
           forfaitCountByYear: forfaitCountByYear|default({}),
-          forfaitTotalByYear: forfaitTotalByYear|default({})
+          forfaitTotalByYear: forfaitTotalByYear|default({}),
+          lotInoccupe: lotInoccupe|default(false)
         }]
 %}
 
@@ -33,6 +34,9 @@
     <div>
       <h1>{{ title ?? 'Historique' }}</h1>
       <p>Lot {{ lot.numeroLot }} — {{ lot.emplacement ?? '' }} ({{ lot.typeAppartement ?? '' }})</p>
+      {% if section.lotInoccupe|default(false) %}
+        <p><span class="badge">Appartement inoccupé</span> absence ou faible consommation justifiée</p>
+      {% endif %}
 
       {% if isAdmin ?? false %}
         <p><strong>Période:</strong> {{ section.periodLabel }}</p>
@@ -108,8 +112,13 @@
         </thead>
         <tbody>
           {% for cmpId, data in section.rows %}
-            <tr>
-              <td>{{ data.numero }}</td>
+            <tr class="{{ data.supprime|default(false) ? 'row-muted' : '' }}">
+              <td>
+                {{ data.numero }}
+                {% if data.supprime|default(false) %}
+                  <br><span class="badge">Compteur supprimé</span>
+                {% endif %}
+              </td>
               <td>{{ data.piece }}</td>
               <td>{{ data.type }}</td>
               <td>
@@ -120,11 +129,15 @@
                 {% endfor %}
               </td>
               {% for y in section.years %}
-                <td>{{ data[y] ?? '–' }}</td>
+                {% if section.suppressionByCompteur[cmpId][y] ?? false %}
+                  <td><span class="badge">Index masqué</span></td>
+                {% else %}
+                  <td>{{ data[y] ?? '–' }}</td>
+                {% endif %}
               {% endfor %}
               {% for y in section.consoYears|default([]) %}
                 {% if section.suppressionByCompteur[cmpId][y] ?? false %}
-                  <td><span class="badge">Suppression definitif</span></td>
+                  <td><span class="badge">Compteur supprimé</span></td>
                 {% elseif section.forfaitByCompteur[cmpId][y] ?? false %}
                   <td><span class="badge">Forfait +{{ section.forfaitValueByCompteur[cmpId][y] ?? 0 }}</span></td>
                 {% else %}

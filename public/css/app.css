@@ -314,6 +314,12 @@ body.menu-open {
   font-weight: 600;
 }
 
+.table tr.row-muted td,
+.table tr.row-muted th {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
 .table-wrap {
   width: 100%;
   overflow-x: auto;

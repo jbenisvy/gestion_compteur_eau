@@ -115,10 +115,10 @@ class AdminPrintFormsController extends AbstractController
             }
 
             $slots = [
-                'cuisine_chaude' => ['indexN1' => null, 'etatN1' => null, 'description' => null],
-                'sdb_chaude' => ['indexN1' => null, 'etatN1' => null, 'description' => null],
-                'cuisine_froide' => ['indexN1' => null, 'etatN1' => null, 'description' => null],
-                'sdb_froide' => ['indexN1' => null, 'etatN1' => null, 'description' => null],
+                'cuisine_chaude' => ['indexN1' => null, 'etatN1' => null, 'description' => null, 'supprime' => false],
+                'sdb_chaude' => ['indexN1' => null, 'etatN1' => null, 'description' => null, 'supprime' => false],
+                'cuisine_froide' => ['indexN1' => null, 'etatN1' => null, 'description' => null, 'supprime' => false],
+                'sdb_froide' => ['indexN1' => null, 'etatN1' => null, 'description' => null, 'supprime' => false],
             ];
 
             foreach ($compteurs as $compteur) {
@@ -133,10 +133,12 @@ class AdminPrintFormsController extends AbstractController
 
                 $prevItem = $prevByCompteurId[$compteur->getId()] ?? null;
                 $currItem = $currByCompteurId[$compteur->getId()] ?? null;
+                $isSupprime = $this->isSlotSupprime($prevItem, $currItem, $compteur, $etatCodeById);
                 $slots[$slotKey] = [
-                    'indexN1' => $this->resolveIndexN1($prevItem, $currItem, $etatCodeById),
+                    'indexN1' => $isSupprime ? null : $this->resolveIndexN1($prevItem, $currItem, $etatCodeById),
                     'etatN1' => $this->resolveEtatN1($prevItem, $currItem, $compteur, $etatLabelById, $etatCodeById),
                     'description' => $this->formatCompteurDescription($compteur),
+                    'supprime' => $isSupprime,
                 ];
             }
 
@@ -261,6 +263,32 @@ class AdminPrintFormsController extends AbstractController
         }
 
         return null;
+    }
+
+    private function isSlotSupprime(?ReleveItem $prevItem, ?ReleveItem $currItem, Compteur $compteur, array $etatCodeById): bool
+    {
+        foreach ([$currItem, $prevItem] as $item) {
+            if (!$item instanceof ReleveItem) {
+                continue;
+            }
+
+            $etatId = $item->getEtatId();
+            $etatCode = $etatId !== null ? (string)($etatCodeById[$etatId] ?? '') : '';
+            if ($this->isSuppressionCode($etatCode)) {
+                return true;
+            }
+        }
+
+        $etat = $compteur->getEtatCompteur();
+        $etatCode = $etat !== null ? $etat->getCode() . ' ' . $etat->getLibelle() : '';
+
+        return $this->isSuppressionCode($etatCode);
+    }
+
+    private function isSuppressionCode(string $etatCode): bool
+    {
+        $etatCode = mb_strtolower(trim($etatCode));
+        return $etatCode !== '' && (str_contains($etatCode, 'supprim') || str_contains($etatCode, 'suppr'));
     }
 
     private function resolveEtatN1(

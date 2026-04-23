@@ -96,6 +96,20 @@
   opacity: 0.6;
 }
 
+.row-supprime {
+  background: #f3f4f6 !important;
+  color: #374151;
+}
+
+.row-inoccupe {
+  box-shadow: inset 4px 0 0 #22c55e;
+}
+
+.stats-detail-table tr.row-supprime td {
+  background: #f3f4f6;
+  color: #374151;
+}
+
 .stats-pivot #statsPivot {
   margin-top: 12px;
   overflow-x: auto;

@@ -40,13 +40,15 @@ final class StatsDatasetService
 
             $statut = (string)($row['compteur_statut'] ?? 'actif');
             $releveEtat = $this->normalize((string)($row['releve_etat_code'] ?? ''));
+            $isSupprime = (bool)($row['compteur_supprime'] ?? false) || $statut === 'supprime';
 
-            $isGrise = in_array($statut, ['supprime', 'inactif'], true)
+            $isGrise = $isSupprime
+                || in_array($statut, ['inactif'], true)
                 || ($releveEtat !== '' && str_contains($releveEtat, 'supprime'));
 
             $isForfait = (bool)($row['forfait_applique'] ?? false);
 
-            if (!$includeSupprime && $statut === 'supprime') {
+            if (!$includeSupprime && $isSupprime) {
                 continue;
             }
             if (!$includeInactif && $statut === 'inactif') {
@@ -60,6 +62,8 @@ final class StatsDatasetService
             }
 
             $row['ligne_grisee'] = $isGrise;
+            $row['compteur_supprime'] = $isSupprime;
+            $row['index_masque'] = (bool)($row['index_masque'] ?? $isSupprime);
             $row['consommation_type'] = $isForfait ? 'forfait' : 'reelle';
 
             $filtered[] = $row;

@@ -23,6 +23,8 @@ final class ExportExcelCompteursXlsxController extends AbstractController
         'lot_numero',
         'lot_description',
         'lot_type_appartement',
+        'lot_inoccupe',
+        'lot_inoccupe_motif',
         'lot_tantieme',
         'locataire_nom',
         'proprietaire_id',
@@ -37,6 +39,8 @@ final class ExportExcelCompteursXlsxController extends AbstractController
         'compteur_etat_code',
         'compteur_etat_libelle',
         'compteur_statut',
+        'compteur_supprime',
+        'index_masque',
         'releve_id',
         'releve_item_id',
         'releve_etat_code',
@@ -76,7 +80,10 @@ final class ExportExcelCompteursXlsxController extends AbstractController
 
     private const BOOL_COLUMNS = [
         'compteur_actif',
+        'compteur_supprime',
+        'index_masque',
         'forfait_applique',
+        'lot_inoccupe',
     ];
 
     #[Route('/api/export/excel-compteurs.xlsx', name: 'api_export_excel_compteurs_xlsx', methods: ['GET'])]

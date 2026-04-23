@@ -40,11 +40,16 @@
         </thead>
         <tbody>
           {% for row in rows %}
-            <tr>
+            <tr class="{{ row.lotInoccupe ? 'row-muted' : '' }}">
               <td>{{ year }}</td>
               <td>{{ row.lot.numeroLot }}</td>
               <td>{{ row.lot.emplacement }}</td>
-              <td>{{ row.lot.typeAppartement }}</td>
+              <td>
+                {{ row.lot.typeAppartement }}
+                {% if row.lotInoccupe %}
+                  <br><span class="badge">Appartement inoccupé</span>
+                {% endif %}
+              </td>
               <td>{{ row.coproNom }}</td>
             </tr>
           {% else %}

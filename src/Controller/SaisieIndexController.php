@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Domain\Consommation\ForfaitConsommationResolver;
+use App\Domain\Logement\LotUsageClassifier;
 use App\Dto\SaisieIndexItem;
 use App\Entity\Compteur;
 use App\Entity\EtatCompteur;
@@ -37,6 +39,8 @@ class SaisieIndexController extends AbstractController
         EtatCompteurRepository $etatRepo,
         ReleveRepository $releveRepo,
         ParametreRepository $paramRepo,
+        ForfaitConsommationResolver $forfaitResolver,
+        LotUsageClassifier $lotUsageClassifier,
         EntityManagerInterface $em
     ): Response
     {
@@ -117,6 +121,7 @@ class SaisieIndexController extends AbstractController
             $dto->compteur = $c;
             $dto->etat = method_exists($c, 'getEtatCompteur') ? $c->getEtatCompteur() : ($etatRepo->findOneBy([]) ?: null);
             $dto->dateInstallation = method_exists($c, 'getDateInstallation') ? $c->getDateInstallation() : null;
+            $dto->isSupprime = $this->isSuppressionEtat($dto->etat);
 
             // Détection pièce/typeEau à partir d'emplacement
             $empRaw  = (string) $c->getEmplacement();
@@ -139,8 +144,8 @@ class SaisieIndexController extends AbstractController
                 $dto->typeEau = null;
             }
 
-            // Forfait par défaut selon type compteur et paramètres de l'année
-            $dto->forfait = (int)round($c->getType() === 'EF' ? (float)$forfaitsAnnee['ef'] : (float)$forfaitsAnnee['ec']);
+            // Forfait par défaut selon le type, l'année et la configuration 2/4 compteurs du lot.
+            $dto->forfait = (int)round($forfaitResolver->resolveForCompteur($c, $forfaitsAnnee, $compteurs));
 
             // Préremplissage N-1 (releve_item)
             $prevItem = $itemsPrevByCompteurId[$c->getId()] ?? null;
@@ -162,6 +167,7 @@ class SaisieIndexController extends AbstractController
                     $currCode = null;
                     if ($currItem->getEtatId() !== null && isset($etatMap[$currItem->getEtatId()])) {
                         $dto->etat = $etatMap[$currItem->getEtatId()];
+                        $dto->isSupprime = $this->isSuppressionEtat($dto->etat);
                         $currCode = mb_strtolower((string)$etatMap[$currItem->getEtatId()]->getCode());
                         $currLabel = mb_strtolower((string)$etatMap[$currItem->getEtatId()]->getLibelle());
                         if ($currCode === '') {
@@ -175,14 +181,6 @@ class SaisieIndexController extends AbstractController
                     $dto->indexNouveau = $currItem->getIndexNouveauCompteur();
                     $dto->commentaire  = $currItem->getCommentaire();
                     $dto->consommationCalculee = $currItem->getConsommation() !== null ? (int)((float)$currItem->getConsommation()) : null;
-                if ($currCode !== null && (
-                        str_contains($currCode, 'forfait')
-                        || str_contains($currCode, 'bloqu')
-                        || str_contains($currCode, 'non communiqu')
-                        || str_contains($currCode, 'index compteur non')
-                    ) && $dto->consommationCalculee !== null && $dto->consommationCalculee > 0) {
-                        $dto->forfait = $dto->consommationCalculee;
-                    }
                 }
 
             // Par défaut pour remplacé : index démonté = N-1
@@ -388,7 +386,8 @@ class SaisieIndexController extends AbstractController
                     if ($codeEtat && str_contains($codeEtat, 'suppr')) {
                         $cons = 0;
                     } elseif ($isForfaitLike) {
-                        $cons = (int)($dto->forfait ?? 0);
+                        $cons = (int)round($forfaitResolver->resolveForCompteur($dto->compteur, $forfaitsAnnee, $compteurs));
+                        $dto->forfait = $cons;
                     } elseif ($isNouveauCompteur) {
                         $ancienActif = $dto->ancienFonctionnaitEncore
                             || ((int)($indexDemonte ?? 0) > $prev);
@@ -544,7 +543,23 @@ class SaisieIndexController extends AbstractController
             'isEditable' => $isEditable,
             'maxAnnee'   => $maxAnnee,
             'anneeActive'=> $anneeActive,
+            'lotInoccupe'=> $lotUsageClassifier->isLotMarkedInoccupe($lot),
         ]);
+    }
+
+    private function isSuppressionEtat(mixed $etat): bool
+    {
+        if ($etat instanceof EtatCompteur) {
+            $text = mb_strtolower(trim($etat->getCode() . ' ' . $etat->getLibelle()));
+            return str_contains($text, 'supprim') || str_contains($text, 'suppr');
+        }
+
+        if (is_string($etat)) {
+            $text = mb_strtolower($etat);
+            return str_contains($text, 'supprim') || str_contains($text, 'suppr');
+        }
+
+        return false;
     }
 
     /**

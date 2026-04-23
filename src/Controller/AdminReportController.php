@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Logement\LotUsageClassifier;
 use App\Entity\Lot;
 use App\Repository\LotCoproprietaireRepository;
 use App\Repository\LotRepository;
@@ -22,7 +23,8 @@ class AdminReportController extends AbstractController
         Request $request,
         LotRepository $lotRepo,
         ReleveRepository $releveRepo,
-        LotCoproprietaireRepository $lotCoproRepo
+        LotCoproprietaireRepository $lotCoproRepo,
+        LotUsageClassifier $lotUsageClassifier
     ): Response {
         $years = $releveRepo->findDistinctAnnees();
         if ($years === []) {
@@ -56,6 +58,7 @@ class AdminReportController extends AbstractController
                 $rowsByYear[$year][] = [
                     'lot' => $lot,
                     'coproNom' => $copro->getNomComplet(),
+                    'lotInoccupe' => $lotUsageClassifier->isLotMarkedInoccupe($lot),
                 ];
             }
         }

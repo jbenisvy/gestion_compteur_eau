@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Domain\Consommation\ForfaitConsommationResolver;
+use App\Domain\Logement\LotUsageClassifier;
 use App\Entity\Coproprietaire;
 use App\Entity\Lot;
 use App\Entity\LotCoproprietaire;
@@ -28,7 +30,9 @@ class HistoriqueController extends AbstractController
         CompteurRepository $compteurRepo,
         EtatCompteurRepository $etatRepo,
         ReleveRepository $releveRepo,
-        ParametreRepository $paramRepo
+        ParametreRepository $paramRepo,
+        ForfaitConsommationResolver $forfaitResolver,
+        LotUsageClassifier $lotUsageClassifier
     ): Response {
         $user = $this->getUser();
         $copro = $user ? $coproRepo->findOneBy(['user' => $user]) : null;
@@ -54,7 +58,7 @@ class HistoriqueController extends AbstractController
 
         $allowedYears = $this->computeAllowedYearsForCoproOnLot($copro, $lot, $releveRepo);
 
-        return $this->renderHistorique($lot, $compteurRepo, $etatRepo, $releveRepo, $paramRepo, [
+        return $this->renderHistorique($lot, $compteurRepo, $etatRepo, $releveRepo, $paramRepo, $forfaitResolver, $lotUsageClassifier, [
             'copro' => $copro,
             'lot' => $lot,
             'title' => 'Historique de consommation',
@@ -71,7 +75,9 @@ class HistoriqueController extends AbstractController
         CompteurRepository $compteurRepo,
         EtatCompteurRepository $etatRepo,
         ReleveRepository $releveRepo,
-        ParametreRepository $paramRepo
+        ParametreRepository $paramRepo,
+        ForfaitConsommationResolver $forfaitResolver,
+        LotUsageClassifier $lotUsageClassifier
     ): Response {
         $lotId = (int)($request->query->get('lotId') ?? 0);
         $sortBy = (string)($request->query->get('sortBy') ?? 'lot');
@@ -100,7 +106,7 @@ class HistoriqueController extends AbstractController
             ]);
         }
 
-        return $this->renderHistorique($lot, $compteurRepo, $etatRepo, $releveRepo, $paramRepo, [
+        return $this->renderHistorique($lot, $compteurRepo, $etatRepo, $releveRepo, $paramRepo, $forfaitResolver, $lotUsageClassifier, [
             'lot' => $lot,
             'title' => 'Historique global',
             'isAdmin' => true,
@@ -306,6 +312,8 @@ class HistoriqueController extends AbstractController
         EtatCompteurRepository $etatRepo,
         ReleveRepository $releveRepo,
         ParametreRepository $paramRepo,
+        ForfaitConsommationResolver $forfaitResolver,
+        LotUsageClassifier $lotUsageClassifier,
         array $context
     ): Response {
         $compteurs = $compteurRepo->findBy(['lot' => $lot], ['id' => 'ASC']);
@@ -330,14 +338,24 @@ class HistoriqueController extends AbstractController
         }
 
         $rows = [];
+        $suppressionByCompteur = [];
         foreach ($compteurs as $cmp) {
+            $compteurEtatText = $cmp->getEtatCompteur() !== null
+                ? mb_strtolower($cmp->getEtatCompteur()->getCode() . ' ' . $cmp->getEtatCompteur()->getLibelle())
+                : '';
+            $compteurSupprime = $this->isSuppressionCode($compteurEtatText);
             foreach ($allYears as $y) {
                 $idx = null;
+                $yearEtatCode = null;
                 $r = $relevesByYear[$y] ?? null;
                 if ($r) {
                     foreach ($r->getItems() as $item) {
                         if ($item->getCompteur() && $item->getCompteur()->getId() === $cmp->getId()) {
                             $idx = $item->getIndexN();
+                            $etatId = $item->getEtatId();
+                            $yearEtatCode = $etatId !== null && isset($etatMap[$etatId])
+                                ? mb_strtolower($etatMap[$etatId]->getCode() . ' ' . $etatMap[$etatId]->getLibelle())
+                                : null;
                             break;
                         }
                     }
@@ -345,7 +363,9 @@ class HistoriqueController extends AbstractController
                 $rows[$cmp->getId()]['numero'] = $cmp->getNumeroSerie() ?: $cmp->getId();
                 $rows[$cmp->getId()]['piece'] = $cmp->getEmplacement();
                 $rows[$cmp->getId()]['type'] = $cmp->getType();
+                $rows[$cmp->getId()]['supprime'] = $compteurSupprime;
                 $rows[$cmp->getId()][$y] = $idx;
+                $suppressionByCompteur[$cmp->getId()][$y] = $compteurSupprime || $this->isSuppressionCode($yearEtatCode);
             }
         }
 
@@ -353,7 +373,6 @@ class HistoriqueController extends AbstractController
         $consosByCompteur = [];
         $forfaitByCompteur = [];
         $forfaitValueByCompteur = [];
-        $suppressionByCompteur = [];
         $forfaitCountByYear = [];
         $forfaitTotalByYear = [];
         foreach ($allYears as $pos => $y) {
@@ -398,11 +417,16 @@ class HistoriqueController extends AbstractController
                     || str_contains($etatCode, 'non communiqu')
                     || str_contains($etatCode, 'index compteur non')
                 )) || $isForfaitFlag;
-                $isSuppressionDefinitive = $etatCode !== null && str_contains($etatCode, 'supprime');
+                $isSuppressionDefinitive = (bool)($suppressionByCompteur[$cmp->getId()][$y] ?? false);
                 $forfaitValue = 0.0;
 
-                if (is_numeric($savedConsommation)) {
-                    // Source de vérité: la consommation calculée et enregistrée lors de la saisie.
+                if ($isSuppressionDefinitive) {
+                    $delta = 0;
+                } elseif ($isForfait) {
+                    $forfaitValue = $forfaitResolver->resolveForCompteur($cmp, $forfaitsYear, $compteurs);
+                    $delta = $forfaitValue;
+                } elseif (is_numeric($savedConsommation)) {
+                    // Hors forfait, on conserve la consommation calculée lors de la saisie.
                     $delta = max(0, (int)round((float)$savedConsommation));
                 } else {
                     $isRemplacement = $etatCode !== null && (
@@ -421,18 +445,14 @@ class HistoriqueController extends AbstractController
                         $delta = $oldPart + $newPart;
                     }
 
-                    if ($etatCode === 'supprime' || $isForfait) {
+                    if ($etatCode === 'supprime') {
                         $delta = 0;
-                    }
-                    if ($isForfait) {
-                        $forfaitValue = $cmp->getType() === 'EF' ? (float)$forfaitsYear['ef'] : (float)$forfaitsYear['ec'];
-                        $delta += $forfaitValue;
                     }
                 }
 
                 if ($isForfait) {
                     if ($forfaitValue <= 0.0) {
-                        $forfaitValue = $cmp->getType() === 'EF' ? (float)$forfaitsYear['ef'] : (float)$forfaitsYear['ec'];
+                        $forfaitValue = $forfaitResolver->resolveForCompteur($cmp, $forfaitsYear, $compteurs);
                     }
                     $forfaitCount++;
                     $forfaitTotal += $forfaitValue;
@@ -448,6 +468,7 @@ class HistoriqueController extends AbstractController
             $forfaitTotalByYear[$y] = $forfaitTotal;
         }
 
+        $lotInoccupe = $lotUsageClassifier->isLotMarkedInoccupe($lot);
         $ownerSegments = [];
         if (($context['isAdmin'] ?? false) === true) {
             $ownerSegments = $this->buildOwnerSegments(
@@ -462,6 +483,10 @@ class HistoriqueController extends AbstractController
                 $forfaitCountByYear,
                 $forfaitTotalByYear
             );
+            foreach ($ownerSegments as &$segment) {
+                $segment['lotInoccupe'] = $lotInoccupe;
+            }
+            unset($segment);
         }
 
         return $this->render('historique/copro_history.html.twig', $context + [
@@ -474,8 +499,15 @@ class HistoriqueController extends AbstractController
             'suppressionByCompteur' => $suppressionByCompteur,
             'forfaitCountByYear' => $forfaitCountByYear,
             'forfaitTotalByYear' => $forfaitTotalByYear,
+            'lotInoccupe' => $lotInoccupe,
             'ownerSegments' => $ownerSegments,
         ]);
+    }
+
+    private function isSuppressionCode(?string $etatCode): bool
+    {
+        $etatCode = mb_strtolower(trim((string)$etatCode));
+        return $etatCode !== '' && (str_contains($etatCode, 'supprim') || str_contains($etatCode, 'suppr'));
     }
 
     private function buildOwnerSegments(
@@ -602,6 +634,7 @@ class HistoriqueController extends AbstractController
                 'numero' => $data['numero'] ?? '',
                 'piece' => $data['piece'] ?? '',
                 'type' => $data['type'] ?? '',
+                'supprime' => $data['supprime'] ?? false,
             ];
             foreach ($segmentYears as $year) {
                 $entry[$year] = $data[$year] ?? null;

@@ -45,6 +45,9 @@ class SaisieIndexItem
     /** Consommation calculée (facultatif : pour affichage/synthèse) */
     public ?int $consommationCalculee = null;
 
+    /** Indique que le compteur/relevé est supprimé: les index historiques restent en base mais sont masqués à l'écran. */
+    public bool $isSupprime = false;
+
     /**
      * Forfait éventuel (si ton flux l’utilise ; laisse null sinon).
      * 🛡️ SAFE-GUARD: ne pas supprimer si déjà référencé dans le contrôleur ou le template.

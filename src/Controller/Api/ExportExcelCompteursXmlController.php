@@ -18,6 +18,8 @@ final class ExportExcelCompteursXmlController extends AbstractController
         'lot_numero',
         'lot_description',
         'lot_type_appartement',
+        'lot_inoccupe',
+        'lot_inoccupe_motif',
         'lot_tantieme',
         'locataire_nom',
         'proprietaire_id',
@@ -32,6 +34,8 @@ final class ExportExcelCompteursXmlController extends AbstractController
         'compteur_etat_code',
         'compteur_etat_libelle',
         'compteur_statut',
+        'compteur_supprime',
+        'index_masque',
         'releve_id',
         'releve_item_id',
         'releve_etat_code',
@@ -209,6 +213,8 @@ final class ExportExcelCompteursXmlController extends AbstractController
                     <xs:element name="lot_numero" type="xs:string" minOccurs="0"/>
                     <xs:element name="lot_description" type="xs:string" minOccurs="0"/>
                     <xs:element name="lot_type_appartement" type="xs:string" minOccurs="0"/>
+                    <xs:element name="lot_inoccupe" type="xs:boolean" minOccurs="0"/>
+                    <xs:element name="lot_inoccupe_motif" type="xs:string" minOccurs="0"/>
                     <xs:element name="lot_tantieme" type="xs:int" minOccurs="0"/>
                     <xs:element name="locataire_nom" type="xs:string" minOccurs="0"/>
                     <xs:element name="proprietaire_id" type="xs:int" minOccurs="0"/>
@@ -223,6 +229,8 @@ final class ExportExcelCompteursXmlController extends AbstractController
                     <xs:element name="compteur_etat_code" type="xs:string" minOccurs="0"/>
                     <xs:element name="compteur_etat_libelle" type="xs:string" minOccurs="0"/>
                     <xs:element name="compteur_statut" type="xs:string" minOccurs="0"/>
+                    <xs:element name="compteur_supprime" type="xs:boolean" minOccurs="0"/>
+                    <xs:element name="index_masque" type="xs:boolean" minOccurs="0"/>
                     <xs:element name="releve_id" type="xs:int" minOccurs="0"/>
                     <xs:element name="releve_item_id" type="xs:int" minOccurs="0"/>
                     <xs:element name="releve_etat_code" type="xs:string" minOccurs="0"/>
