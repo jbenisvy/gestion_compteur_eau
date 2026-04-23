@@ -241,6 +241,8 @@ final class ExcelCompteursExportService
         $savedConsommation = $this->asFloatOrNull($r['consommation'] ?? null);
         $consommationSource = 'calculated';
         $consommation = null;
+        $isReplacementOrReset = $this->isReplacementEtat($releveEtatCode)
+            || $this->isIndexReset($r);
 
         if ($isSupprime) {
             $consommation = 0.0;
@@ -248,6 +250,8 @@ final class ExcelCompteursExportService
         } elseif ($isForfait) {
             $consommation = max(0.0, round($defaultForfait, 3));
             $consommationSource = 'calculated';
+        } elseif ($isReplacementOrReset) {
+            $consommation = $this->computeConsommation($r, $releveEtatCode, $defaultForfait, $isForfait);
         } elseif ($savedConsommation !== null) {
             $consommation = max(0.0, round($savedConsommation, 3));
             $consommationSource = 'saved';
@@ -337,6 +341,28 @@ final class ExcelCompteursExportService
         return $etatCode !== '' && (str_contains($etatCode, 'supprim') || str_contains($etatCode, 'suppr'));
     }
 
+    private function isReplacementEtat(?string $etatCode): bool
+    {
+        $etatCode = mb_strtolower(trim((string)$etatCode));
+        return $etatCode !== '' && (
+            str_contains($etatCode, 'remplac')
+            || str_contains($etatCode, 'demonte')
+            || str_contains($etatCode, 'démont')
+            || str_contains($etatCode, 'nouveau')
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $r
+     */
+    private function isIndexReset(array $r): bool
+    {
+        $indexN1 = $this->asIntOrNull($r['index_n1'] ?? null);
+        $indexN = $this->asIntOrNull($r['index_n'] ?? null);
+
+        return $indexN1 !== null && $indexN !== null && $indexN < $indexN1;
+    }
+
     private function guessForfaitMotif(?string $etatCode): ?string
     {
         if ($etatCode === null) {
@@ -371,10 +397,7 @@ final class ExcelCompteursExportService
         $delta = max(0, $indexN - $indexN1);
 
         if ($etatCode !== null) {
-            $isRemplacement = str_contains($etatCode, 'remplac')
-                || str_contains($etatCode, 'demonte')
-                || str_contains($etatCode, 'demont')
-                || str_contains($etatCode, 'nouveau');
+            $isRemplacement = $this->isReplacementEtat($etatCode) || $this->isIndexReset($r);
 
             if ($isRemplacement) {
                 $oldPart = ($indexDem !== null) ? max(0, $indexDem - $indexN1) : 0;

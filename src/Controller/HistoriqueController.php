@@ -419,32 +419,31 @@ class HistoriqueController extends AbstractController
                 )) || $isForfaitFlag;
                 $isSuppressionDefinitive = (bool)($suppressionByCompteur[$cmp->getId()][$y] ?? false);
                 $forfaitValue = 0.0;
+                $isRemplacement = $etatCode !== null && (
+                    str_contains($etatCode, 'remplac')
+                    || str_contains($etatCode, 'demonte')
+                    || str_contains($etatCode, 'démont')
+                    || str_contains($etatCode, 'nouveau')
+                );
+                $isIndexReset = is_numeric($n) && is_numeric($n1) && (int)$n < (int)$n1;
 
                 if ($isSuppressionDefinitive) {
                     $delta = 0;
                 } elseif ($isForfait) {
                     $forfaitValue = $forfaitResolver->resolveForCompteur($cmp, $forfaitsYear, $compteurs);
                     $delta = $forfaitValue;
+                } elseif ($isRemplacement || $isIndexReset) {
+                    $oldPart = (is_numeric($indexCompteurDem) && is_numeric($n1))
+                        ? max(0, (int)$indexCompteurDem - (int)$n1)
+                        : 0;
+                    $newPart = is_numeric($indexNouveauCompteur)
+                        ? max(0, (int)$indexNouveauCompteur)
+                        : (is_numeric($n) ? max(0, (int)$n) : 0);
+                    $delta = $oldPart + $newPart;
                 } elseif (is_numeric($savedConsommation)) {
                     // Hors forfait, on conserve la consommation calculée lors de la saisie.
                     $delta = max(0, (int)round((float)$savedConsommation));
                 } else {
-                    $isRemplacement = $etatCode !== null && (
-                        str_contains($etatCode, 'remplac')
-                        || str_contains($etatCode, 'demonte')
-                        || str_contains($etatCode, 'démont')
-                        || str_contains($etatCode, 'nouveau')
-                    );
-                    if ($isRemplacement) {
-                        $oldPart = (is_numeric($indexCompteurDem) && is_numeric($n1))
-                            ? max(0, (int)$indexCompteurDem - (int)$n1)
-                            : 0;
-                        $newPart = is_numeric($indexNouveauCompteur)
-                            ? max(0, (int)$indexNouveauCompteur)
-                            : (is_numeric($n) ? max(0, (int)$n) : 0);
-                        $delta = $oldPart + $newPart;
-                    }
-
                     if ($etatCode === 'supprime') {
                         $delta = 0;
                     }

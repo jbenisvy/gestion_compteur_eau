@@ -382,6 +382,7 @@ class SaisieIndexController extends AbstractController
 
                     $isNouveauCompteur = (bool)($codeEtat && str_contains($codeEtat, 'nouveau'));
                     $isRemplacement = (bool)($codeEtat && (str_contains($codeEtat, 'remplac') || str_contains($codeEtat, 'démont') || str_contains($codeEtat, 'demonte')));
+                    $nouveauIndex = $indexNouveau !== null ? (int)$indexNouveau : (int)($indexN ?? 0);
 
                     if ($codeEtat && str_contains($codeEtat, 'suppr')) {
                         $cons = 0;
@@ -393,14 +394,15 @@ class SaisieIndexController extends AbstractController
                             || ((int)($indexDemonte ?? 0) > $prev);
                         if ($ancienActif) {
                             $cons = max(0, (int)($indexDemonte ?? 0) - $prev)
-                                + max(0, (int)($indexNouveau ?? 0));
+                                + max(0, $nouveauIndex);
                         } else {
-                            $cons = max(0, (int)($indexNouveau ?? 0));
+                            $cons = max(0, $nouveauIndex);
                         }
                     } elseif ($isRemplacement) {
-                        $cons = max(0, (int)($indexDemonte ?? 0) - $prev) + max(0, (int)($indexNouveau ?? 0));
+                        $cons = max(0, (int)($indexDemonte ?? 0) - $prev) + max(0, $nouveauIndex);
                     } else {
-                        $cons = max(0, (int)($indexN ?? 0) - $prev);
+                        $curr = (int)($indexN ?? 0);
+                        $cons = $curr < $prev ? max(0, $curr) : max(0, $curr - $prev);
                     }
                     $dto->consommationCalculee = $cons;
 
