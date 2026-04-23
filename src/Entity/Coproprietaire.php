@@ -67,4 +67,9 @@ class Coproprietaire
 
         return $full !== '' ? $full : 'Nom inconnu';
     }
+
+    public function __toString(): string
+    {
+        return sprintf('%s <%s>', $this->getNomComplet(), $this->email);
+    }
 }

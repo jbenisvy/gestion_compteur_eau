@@ -43,6 +43,17 @@
         </div>
       {% endif %}
       <div class="form-row">
+        <label for="lot_id">Lot</label>
+        <select id="lot_id" name="lot_id">
+          <option value="">Tous</option>
+          {% for lot in lots %}
+            <option value="{{ lot.id }}" {{ filters.lot_id == lot.id ? 'selected' : '' }}>
+              Lot {{ lot.numeroLot }} - {{ lot.typeAppartement }} - {{ lot.emplacement }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
         <label for="eau">Eau</label>
         <select id="eau" name="eau">
           <option value="">Eau chaude + froide</option>
@@ -58,6 +69,15 @@
           <option value="sdb" {{ filters.piece == 'sdb' ? 'selected' : '' }}>SDB/WC</option>
         </select>
       </div>
+      {% if isAdmin %}
+        <div class="form-row">
+          <label for="sort">Trier par</label>
+          <select id="sort" name="sort">
+            <option value="copro" {{ filters.sort == 'copro' ? 'selected' : '' }}>Copropriétaire</option>
+            <option value="lot" {{ filters.sort == 'lot' ? 'selected' : '' }}>Lot</option>
+          </select>
+        </div>
+      {% endif %}
       <button class="btn btn-primary" type="submit">Filtrer</button>
       <a class="btn btn-ghost" href="{{ isAdmin ? path('admin_facturation') : path('copro_facturation') }}">Réinitialiser</a>
     </form>
@@ -80,6 +100,15 @@
     <div class="billing-group-head">
       <div>
         <h3>{{ group.annee }} - {{ group.coproprietaire_nom }}</h3>
+        {% if group.lots is not empty %}
+          <div class="billing-lot-meta">
+            {% for lotInfo in group.lots %}
+              <span class="badge">
+                Lot {{ lotInfo.numero }} - {{ lotInfo.type ?: 'Type non renseigné' }} - {{ lotInfo.localisation ?: 'Localisation non renseignée' }}
+              </span>
+            {% endfor %}
+          </div>
+        {% endif %}
         {% if isAdmin and group.coproprietaire_id %}
           <span class="badge">Copro #{{ group.coproprietaire_id }}</span>
         {% endif %}
@@ -144,7 +173,10 @@
           <tbody>
             {% for row in group.rows %}
               <tr class="{{ row.compteur_supprime ? 'row-muted' : '' }}">
-                <td>Lot {{ row.lot_numero }} {{ row.lot_description }}</td>
+                <td>
+                  Lot {{ row.lot_numero }} {{ row.lot_description }}
+                  <br><small>{{ row.lot_type_appartement }}</small>
+                </td>
                 <td>{{ row.compteur }}{% if row.forfait %}<br><span class="badge">Forfait</span>{% endif %}</td>
                 <td>{{ row.piece == 'sdb' ? 'SDB/WC' : 'Cuisine' }}</td>
                 <td>{{ row.eau == 'chaude' ? 'Eau chaude' : 'Eau froide' }}</td>

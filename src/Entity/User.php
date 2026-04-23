@@ -31,6 +31,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: "datetime_immutable")]
     private \DateTimeImmutable $updatedAt;
 
+    private ?string $plainPassword = null;
+
     public function __construct()
     {
         $this->updatedAt = new \DateTimeImmutable();
@@ -57,6 +59,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getPassword(): string { return $this->password; }
     public function setPassword(string $password): self { $this->password = $password; return $this; }
 
+    public function getPlainPassword(): ?string { return $this->plainPassword; }
+    public function setPlainPassword(?string $plainPassword): self { $this->plainPassword = $plainPassword; return $this; }
+
     public function isVerified(): bool { return $this->isVerified; }
     public function setIsVerified(bool $isVerified): self { $this->isVerified = $isVerified; return $this; }
 
@@ -65,7 +70,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void
     {
-        // Si tu stockes des données temporaires sensibles, nettoie-les ici
+        $this->plainPassword = null;
+    }
+
+    public function __toString(): string
+    {
+        return $this->email !== '' ? $this->email : 'Utilisateur sans email';
     }
 
     #[ORM\PrePersist]

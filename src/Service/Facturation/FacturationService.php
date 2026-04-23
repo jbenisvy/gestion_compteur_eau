@@ -15,7 +15,7 @@ final class FacturationService
     }
 
     /**
-     * @param array{annee?:int, coproprietaire_id?:int, eau?:string, piece?:string} $filters
+     * @param array{annee?:int, coproprietaire_id?:int, lot_id?:int, eau?:string, piece?:string, sort?:string} $filters
      * @return array{filters:array<string,mixed>, years:int[], groups:array<int,array<string,mixed>>, totals:array<string,mixed>}
      */
     public function build(array $filters = [], ?int $restrictedCoproprietaireId = null): array
@@ -24,14 +24,19 @@ final class FacturationService
         if (isset($filters['annee'])) {
             $exportFilters['annee'] = (int)$filters['annee'];
         }
+        if (isset($filters['lot_id'])) {
+            $exportFilters['lot_id'] = (int)$filters['lot_id'];
+        }
 
         $payload = $this->exportService->export($exportFilters);
         $rows = is_array($payload['rows'] ?? null) ? $payload['rows'] : [];
 
         $targetCoproId = $restrictedCoproprietaireId ?? ($filters['coproprietaire_id'] ?? null);
         $targetCoproId = $targetCoproId !== null ? (int)$targetCoproId : null;
+        $targetLotId = isset($filters['lot_id']) ? (int)$filters['lot_id'] : null;
         $eauFilter = $this->normalizeEau($filters['eau'] ?? null);
         $pieceFilter = $this->normalizePiece($filters['piece'] ?? null);
+        $sort = in_array(($filters['sort'] ?? 'copro'), ['copro', 'lot'], true) ? (string)$filters['sort'] : 'copro';
 
         $pricesByYear = [];
         $groups = [];
@@ -51,6 +56,10 @@ final class FacturationService
             $coproId = $row['proprietaire_id'] ?? null;
             $coproId = $coproId !== null ? (int)$coproId : null;
             if ($targetCoproId !== null && $coproId !== $targetCoproId) {
+                continue;
+            }
+            $lotId = (int)($row['lot_id'] ?? 0);
+            if ($targetLotId !== null && $lotId !== $targetLotId) {
                 continue;
             }
 
@@ -75,15 +84,30 @@ final class FacturationService
                     'annee' => $annee,
                     'coproprietaire_id' => $coproId,
                     'coproprietaire_nom' => (string)($row['proprietaire_nom'] ?? 'Non rattaché'),
+                    'lot_sort' => (string)($row['lot_numero'] ?? ''),
+                    'lots' => [],
                     'totals' => $this->emptyTotals(),
                     'rows' => [],
                 ];
             }
 
+            $lotKey = (string)$lotId;
+            $groups[$groupKey]['lots'][$lotKey] = [
+                'id' => $lotId,
+                'numero' => (string)($row['lot_numero'] ?? ''),
+                'type' => (string)($row['lot_type_appartement'] ?? ''),
+                'localisation' => (string)($row['lot_description'] ?? ''),
+            ];
+            if (($groups[$groupKey]['lot_sort'] ?? '') === '') {
+                $groups[$groupKey]['lot_sort'] = (string)($row['lot_numero'] ?? '');
+            }
+
             $detail = [
                 'annee' => $annee,
+                'lot_id' => $lotId,
                 'lot_numero' => (string)($row['lot_numero'] ?? ''),
                 'lot_description' => (string)($row['lot_description'] ?? ''),
+                'lot_type_appartement' => (string)($row['lot_type_appartement'] ?? ''),
                 'piece' => $piece,
                 'eau' => $eau,
                 'compteur' => (string)($row['compteur_reference'] ?? ('#' . (string)($row['compteur_id'] ?? ''))),
@@ -101,9 +125,25 @@ final class FacturationService
         }
 
         $groups = array_values($groups);
-        usort($groups, static function (array $a, array $b): int {
-            return ((int)$b['annee'] <=> (int)$a['annee'])
-                ?: strnatcasecmp((string)$a['coproprietaire_nom'], (string)$b['coproprietaire_nom']);
+        foreach ($groups as &$group) {
+            $group['lots'] = array_values((array)$group['lots']);
+            usort($group['lots'], static fn (array $a, array $b): int => strnatcasecmp((string)$a['numero'], (string)$b['numero']));
+        }
+        unset($group);
+
+        usort($groups, static function (array $a, array $b) use ($sort): int {
+            $yearCmp = (int)$b['annee'] <=> (int)$a['annee'];
+            if ($yearCmp !== 0) {
+                return $yearCmp;
+            }
+
+            if ($sort === 'lot') {
+                return strnatcasecmp((string)$a['lot_sort'], (string)$b['lot_sort'])
+                    ?: strnatcasecmp((string)$a['coproprietaire_nom'], (string)$b['coproprietaire_nom']);
+            }
+
+            return strnatcasecmp((string)$a['coproprietaire_nom'], (string)$b['coproprietaire_nom'])
+                ?: strnatcasecmp((string)$a['lot_sort'], (string)$b['lot_sort']);
         });
 
         $years = array_keys($years);
@@ -113,8 +153,10 @@ final class FacturationService
             'filters' => [
                 'annee' => $filters['annee'] ?? null,
                 'coproprietaire_id' => $targetCoproId,
+                'lot_id' => $targetLotId,
                 'eau' => $eauFilter,
                 'piece' => $pieceFilter,
+                'sort' => $sort,
             ],
             'years' => $years,
             'groups' => $groups,

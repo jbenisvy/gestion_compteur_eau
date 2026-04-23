@@ -399,6 +399,13 @@ body.menu-open {
   font-weight: 800;
 }
 
+.billing-lot-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}
+
 .billing-details {
   margin-top: 12px;
 }

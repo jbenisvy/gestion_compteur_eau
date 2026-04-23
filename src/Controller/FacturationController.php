@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Repository\CoproprietaireRepository;
+use App\Repository\LotCoproprietaireRepository;
+use App\Repository\LotRepository;
 use App\Repository\ReleveRepository;
 use App\Service\Facturation\FacturationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,6 +21,7 @@ final class FacturationController extends AbstractController
     public function copro(
         Request $request,
         CoproprietaireRepository $coproRepo,
+        LotCoproprietaireRepository $lotCoproRepo,
         ReleveRepository $releveRepo,
         FacturationService $facturationService
     ): Response {
@@ -37,6 +40,7 @@ final class FacturationController extends AbstractController
             'payload' => $payload,
             'years' => $this->availableYears($releveRepo),
             'copros' => [],
+            'lots' => $this->extractLotsFromEntries($lotCoproRepo->findActiveLotsForCopro($copro, new \DateTimeImmutable('today'))),
         ]);
     }
 
@@ -45,6 +49,7 @@ final class FacturationController extends AbstractController
     public function admin(
         Request $request,
         CoproprietaireRepository $coproRepo,
+        LotRepository $lotRepo,
         ReleveRepository $releveRepo,
         FacturationService $facturationService
     ): Response {
@@ -57,11 +62,12 @@ final class FacturationController extends AbstractController
             'payload' => $payload,
             'years' => $this->availableYears($releveRepo),
             'copros' => $coproRepo->findBy([], ['nom' => 'ASC', 'prenom' => 'ASC']),
+            'lots' => $this->sortedLots($lotRepo->findAllForAdminDashboard()),
         ]);
     }
 
     /**
-     * @return array{annee?:int, coproprietaire_id?:int, eau?:string, piece?:string}
+     * @return array{annee?:int, coproprietaire_id?:int, lot_id?:int, eau?:string, piece?:string, sort?:string}
      */
     private function extractFilters(Request $request, bool $includeCopro = false): array
     {
@@ -82,6 +88,16 @@ final class FacturationController extends AbstractController
             $filters['piece'] = $piece;
         }
 
+        $lotId = $request->query->get('lot_id');
+        if (is_numeric($lotId)) {
+            $filters['lot_id'] = (int)$lotId;
+        }
+
+        $sort = trim((string)$request->query->get('sort', ''));
+        if (in_array($sort, ['copro', 'lot'], true)) {
+            $filters['sort'] = $sort;
+        }
+
         if ($includeCopro) {
             $coproId = $request->query->get('coproprietaire_id');
             if (is_numeric($coproId)) {
@@ -90,6 +106,36 @@ final class FacturationController extends AbstractController
         }
 
         return $filters;
+    }
+
+    /**
+     * @param array<int,mixed> $entries
+     * @return array<int,\App\Entity\Lot>
+     */
+    private function extractLotsFromEntries(array $entries): array
+    {
+        $lots = [];
+        foreach ($entries as $entry) {
+            if ($entry instanceof \App\Entity\Lot) {
+                $lots[$entry->getId()] = $entry;
+            } elseif (method_exists($entry, 'getLot') && $entry->getLot() instanceof \App\Entity\Lot) {
+                $lot = $entry->getLot();
+                $lots[$lot->getId()] = $lot;
+            }
+        }
+
+        return $this->sortedLots(array_values($lots));
+    }
+
+    /**
+     * @param array<int,\App\Entity\Lot> $lots
+     * @return array<int,\App\Entity\Lot>
+     */
+    private function sortedLots(array $lots): array
+    {
+        usort($lots, static fn ($a, $b): int => strnatcasecmp($a->getNumeroLot(), $b->getNumeroLot()));
+
+        return $lots;
     }
 
     /**
