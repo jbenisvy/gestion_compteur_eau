@@ -7,7 +7,7 @@
 {% endmacro %}
 
 {% macro m3(value) %}
-  {{ value|number_format(3, ',', ' ') }} m³
+  {{ value|round(0, 'common')|number_format(0, ',', ' ') }} m³
 {% endmacro %}
 
 {% block body %}
