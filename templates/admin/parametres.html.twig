@@ -22,6 +22,19 @@
     </form>
   </div>
   <div class="card">
+    <h3>Saisie copropriétaire</h3>
+    <p>Ce verrou bloque uniquement la saisie pour le profil copropriétaire. L'administrateur conserve toujours la modification.</p>
+    <form method="post">
+      <input type="hidden" name="_token" value="{{ csrf_token('admin_parametres') }}">
+      <input type="hidden" name="action" value="copro_lock">
+      <div class="form-row">
+        <label for="copro_saisie_bloquee">Bloquer la saisie copropriétaire</label>
+        <input id="copro_saisie_bloquee" type="checkbox" name="copro_saisie_bloquee" value="1" {{ coproSaisieBloquee ? 'checked' : '' }}>
+      </div>
+      <button class="btn btn-primary" type="submit">{{ coproSaisieBloquee ? 'Autoriser de nouveau la saisie' : 'Bloquer la saisie copropriétaire' }}</button>
+    </form>
+  </div>
+  <div class="card">
     <h3>Édition</h3>
     <form method="post">
       <input type="hidden" name="_token" value="{{ csrf_token('admin_parametres') }}">

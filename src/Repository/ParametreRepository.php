@@ -93,6 +93,28 @@ class ParametreRepository extends ServiceEntityRepository
         return $this->findOneBy(['annee' => null], ['id' => 'DESC']);
     }
 
+    public function isCoproSaisieBloquee(): bool
+    {
+        $row = $this->createQueryBuilder('p')
+            ->andWhere('p.annee IS NULL')
+            ->orderBy('p.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if ($row instanceof Parametre) {
+            return $row->isCoproSaisieBloquee();
+        }
+
+        $row = $this->createQueryBuilder('p')
+            ->orderBy('p.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $row instanceof Parametre ? $row->isCoproSaisieBloquee() : false;
+    }
+
     /**
      * Retourne les prix du m3 pour une année donnée.
      * Priorité:

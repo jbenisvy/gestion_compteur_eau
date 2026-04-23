@@ -181,7 +181,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
   {% if not isEditable %}
     <div class="badge-ro" style="margin:8px 0 14px 0;">
       <span class="dot"></span>
-      Année {{ annee }} en lecture seule (édition désactivée).{% if anneeActive is defined %} Année active : <b>{{ anneeActive }}</b>.{% endif %}
+      Année {{ annee }} en lecture seule (édition désactivée).{% if coproSaisieBloquee|default(false) %} La saisie est verrouillée pour les copropriétaires.{% endif %}{% if anneeActive is defined %} Année active : <b>{{ anneeActive }}</b>.{% endif %}
     </div>
   {% endif %}
 

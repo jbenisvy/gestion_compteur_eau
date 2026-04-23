@@ -33,6 +33,9 @@ class Parametre
     #[ORM\Column(nullable: true)]
     private ?int $activeSaisieYear = null;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $coproSaisieBloquee = false;
+
     public function getId(): ?int { return $this->id; }
     public function getAnnee(): ?int { return $this->annee; }
     public function setAnnee(?int $annee): self { $this->annee = $annee; return $this; }
@@ -57,4 +60,6 @@ class Parametre
     public function getPrixM3EauChaude(): ?float { return $this->getPrixM3Total(); }
     public function getActiveSaisieYear(): ?int { return $this->activeSaisieYear; }
     public function setActiveSaisieYear(?int $v): self { $this->activeSaisieYear = $v; return $this; }
+    public function isCoproSaisieBloquee(): bool { return $this->coproSaisieBloquee; }
+    public function setCoproSaisieBloquee(bool $v): self { $this->coproSaisieBloquee = $v; return $this; }
 }

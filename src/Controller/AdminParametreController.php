@@ -63,6 +63,30 @@ class AdminParametreController extends AbstractController
                 return $this->redirectToRoute('admin_parametres', ['annee' => $selectedYear]);
             }
 
+            if ($action === 'copro_lock') {
+                $default = $paramRepo->getLatestDefault();
+                if (!$default) {
+                    $default = (new Parametre())
+                        ->setAnnee(null)
+                        ->setForfaitEc(75.0)
+                        ->setForfaitEf(150.0);
+                    $em->persist($default);
+                }
+
+                $isLocked = $request->request->getBoolean('copro_saisie_bloquee');
+                $default->setCoproSaisieBloquee($isLocked);
+                $em->flush();
+
+                $this->addFlash(
+                    'success',
+                    $isLocked
+                        ? 'La saisie copropriétaire est maintenant bloquée en lecture seule.'
+                        : 'La saisie copropriétaire est de nouveau autorisée.'
+                );
+
+                return $this->redirectToRoute('admin_parametres', ['annee' => $selectedYear]);
+            }
+
             $year = (int)$request->request->get('annee', $selectedYear);
             $forfaitEc = (float)str_replace(',', '.', (string)$request->request->get('forfait_ec', '0'));
             $forfaitEf = (float)str_replace(',', '.', (string)$request->request->get('forfait_ef', '0'));
@@ -118,6 +142,7 @@ class AdminParametreController extends AbstractController
             'currentPrixM3Ec' => $currentPrixM3Ec,
             'currentPrixM3Energie' => $currentPrixM3Energie,
             'activeYear' => $activeYear,
+            'coproSaisieBloquee' => $paramRepo->isCoproSaisieBloquee(),
             'params' => $params,
         ]);
     }

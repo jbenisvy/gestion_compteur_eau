@@ -74,6 +74,7 @@ class SaisieIndexController extends AbstractController
         $maxAnnee = $maxAnnee !== null ? (int)$maxAnnee : null;
 
         $anneeActive = $paramRepo->getAnneeEnCours((int)date('Y'));
+        $coproSaisieBloquee = !$this->isGranted('ROLE_ADMIN') && $paramRepo->isCoproSaisieBloquee();
         if ($anneeActive !== null && $annee > $anneeActive) {
             return $this->redirectToRoute('saisie_index_form', [
                 'lotId' => $lotId,
@@ -82,6 +83,9 @@ class SaisieIndexController extends AbstractController
             ]);
         }
         $isEditable = ($anneeActive !== null) ? ($annee === $anneeActive) : false;
+        if ($coproSaisieBloquee) {
+            $isEditable = false;
+        }
         $forfaitsAnnee = $paramRepo->getForfaitsForYear($annee);
 
         // 1) Précharger les états par id (pour remonter les codes)
@@ -545,6 +549,7 @@ class SaisieIndexController extends AbstractController
             'isEditable' => $isEditable,
             'maxAnnee'   => $maxAnnee,
             'anneeActive'=> $anneeActive,
+            'coproSaisieBloquee' => $coproSaisieBloquee,
             'lotInoccupe'=> $lotUsageClassifier->isLotMarkedInoccupe($lot),
         ]);
     }
