@@ -35,44 +35,51 @@ final class DashboardSummaryService
                 $summaries[$year] = $this->createYearBucket($year);
             }
 
-            $rowText = $this->normalizeText(implode(' ', [
+            $releveEtatText = $this->normalizeText(implode(' ', [
                 (string) ($row['releve_etat_code'] ?? ''),
                 (string) ($row['releve_etat_libelle'] ?? ''),
-                (string) ($row['compteur_etat_code'] ?? ''),
-                (string) ($row['compteur_etat_libelle'] ?? ''),
                 (string) ($row['forfait_motif'] ?? ''),
                 (string) ($row['commentaire'] ?? ''),
+            ]));
+            $compteurEtatText = $this->normalizeText(implode(' ', [
+                (string) ($row['compteur_etat_code'] ?? ''),
+                (string) ($row['compteur_etat_libelle'] ?? ''),
             ]));
 
             $lotLabel = $this->buildLotLabel($row);
             $compteurLabel = $this->buildCompteurLabel($row);
             $compteurKey = 'compteur:' . (string) ($row['compteur_id'] ?? $compteurLabel);
             $lotKey = 'lot:' . (string) ($row['lot_id'] ?? $lotLabel);
-            $statut = $this->normalizeText((string) ($row['compteur_statut'] ?? ''));
+            $isBlockedYear = str_contains($releveEtatText, 'bloqu');
+            $isNotReportedYear = str_contains($releveEtatText, 'non communiqu');
+            $isReplacementYear = str_contains($releveEtatText, 'remplac')
+                || str_contains($releveEtatText, 'nouveau')
+                || str_contains($releveEtatText, 'demont')
+                || str_contains($releveEtatText, 'demonte');
+            $isVacantYear = str_contains($releveEtatText, 'inoccupe');
+            $isDeletedYear = str_contains($releveEtatText, 'supprim');
 
-            if (str_contains($rowText, 'bloqu')) {
+            // "Bloque" and "non communique" are annual reporting issues: keep them visible every year they occur.
+            if ($isBlockedYear) {
                 $this->registerItem($summaries[$year]['categories']['blocked'], $compteurKey, $compteurLabel);
             }
 
-            if (
-                $statut === 'remplace'
-                || str_contains($rowText, 'remplac')
-                || str_contains($rowText, 'nouveau')
-                || str_contains($rowText, 'demont')
-                || str_contains($rowText, 'demonte')
-            ) {
+            // Replacement should only be shown on the year of the replacement event.
+            if ($isReplacementYear) {
                 $this->registerItem($summaries[$year]['categories']['replaced'], $compteurKey, $compteurLabel);
             }
 
-            if ((bool) ($row['lot_inoccupe'] ?? false) || str_contains($rowText, 'inoccupe')) {
+            // Inoccupancy should follow the yearly releve state instead of a persistent lot classifier.
+            if ($isVacantYear) {
                 $this->registerItem($summaries[$year]['categories']['vacant'], $lotKey, $lotLabel);
             }
 
-            if ((bool) ($row['compteur_supprime'] ?? false) || $statut === 'supprime' || str_contains($rowText, 'supprim')) {
+            // Suppression should only be attached to the year where the deletion is recorded on the releve.
+            if ($isDeletedYear || ($releveEtatText === '' && str_contains($compteurEtatText, 'supprim'))) {
                 $this->registerItem($summaries[$year]['categories']['deleted_lot'], $lotKey, $lotLabel);
             }
 
-            if (str_contains($rowText, 'non communiqu')) {
+            if ($isNotReportedYear) {
                 $this->registerItem($summaries[$year]['categories']['not_reported'], $compteurKey, $compteurLabel);
             }
         }
