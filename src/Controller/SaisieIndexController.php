@@ -346,6 +346,12 @@ class SaisieIndexController extends AbstractController
                     $indexDemonte = $dto->indexDemonte;
                     $indexNouveau = $dto->indexNouveau;
                     $commentaire = $dto->commentaire;
+                    $commentaireSubmitted = false;
+
+                    if ($itemForms && $itemForms->offsetExists($idx) && $itemForms->get($idx)->has('commentaire')) {
+                        $commentaire = $itemForms->get($idx)->get('commentaire')->getData();
+                        $commentaireSubmitted = true;
+                    }
 
                     if ($isExistingItem) {
                         if ($indexN1 === null) {
@@ -360,7 +366,7 @@ class SaisieIndexController extends AbstractController
                         if ($indexNouveau === null) {
                             $indexNouveau = $item->getIndexNouveauCompteur();
                         }
-                        if ($commentaire === null || trim((string) $commentaire) === '') {
+                        if (!$commentaireSubmitted && ($commentaire === null || trim((string) $commentaire) === '')) {
                             $commentaire = $item->getCommentaire();
                         }
                     }
@@ -431,7 +437,8 @@ class SaisieIndexController extends AbstractController
                     $item->setIndexN($indexN !== null ? (int)$indexN : null);
                     $item->setIndexCompteurDemonté($indexDemonte !== null ? (int)$indexDemonte : null);
                     $item->setIndexNouveauCompteur($indexNouveau !== null ? (int)$indexNouveau : null);
-                    $item->setCommentaire($commentaire !== null ? (string)$commentaire : null);
+                    $commentaire = $commentaire !== null ? trim((string) $commentaire) : null;
+                    $item->setCommentaire($commentaire !== '' ? $commentaire : null);
 
                     $numeroSaisi = trim((string)($dto->compteurNumero ?? ''));
                     $numeroSnapshot = $numeroSaisi !== '' ? $numeroSaisi : trim((string)($dto->compteur->getNumeroSerie() ?? ''));
