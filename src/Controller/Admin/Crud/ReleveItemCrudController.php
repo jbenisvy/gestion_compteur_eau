@@ -3,8 +3,12 @@
 namespace App\Controller\Admin\Crud;
 
 use App\Entity\Compteur;
+use App\Entity\EtatCompteur;
 use App\Entity\Releve;
 use App\Entity\ReleveItem;
+use App\Domain\Consommation\ForfaitConsommationResolver;
+use App\Repository\ParametreRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -18,6 +22,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\NumericFilter;
 
 class ReleveItemCrudController extends AbstractCrudController
 {
+    public function __construct(
+        private readonly ParametreRepository $parametreRepository,
+        private readonly ForfaitConsommationResolver $forfaitResolver,
+    ) {
+    }
+
     public static function getEntityFqcn(): string
     {
         return ReleveItem::class;
@@ -104,5 +114,98 @@ class ReleveItemCrudController extends AbstractCrudController
             )
             ->add(NumericFilter::new('indexN'))
             ->add(NumericFilter::new('indexN1'));
+    }
+
+    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        if ($entityInstance instanceof ReleveItem) {
+            $this->refreshComputedFields($entityManager, $entityInstance);
+        }
+
+        parent::persistEntity($entityManager, $entityInstance);
+    }
+
+    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        if ($entityInstance instanceof ReleveItem) {
+            $this->refreshComputedFields($entityManager, $entityInstance);
+        }
+
+        parent::updateEntity($entityManager, $entityInstance);
+    }
+
+    private function refreshComputedFields(EntityManagerInterface $entityManager, ReleveItem $item): void
+    {
+        $item->setForfait(false);
+
+        $etatCode = $this->resolveEtatCode($entityManager, $item->getEtatId());
+        $compteur = $item->getCompteur();
+        if (!$compteur instanceof Compteur) {
+            $item->setConsommation(null);
+            $item->setUpdatedAt(new \DateTimeImmutable());
+
+            return;
+        }
+
+        $annee = $item->getReleve()?->getAnnee();
+        $forfaits = is_int($annee) ? $this->parametreRepository->getForfaitsForYear($annee) : ['ef' => 0.0, 'ec' => 0.0];
+        $lotCompteurs = [];
+        if ($compteur->getLot() !== null) {
+            $lotCompteurs = $entityManager->getRepository(Compteur::class)->findBy(['lot' => $compteur->getLot()]);
+        }
+
+        $prev = (int)($item->getIndexN1() ?? 0);
+        $indexN = $item->getIndexN();
+        $indexDemonte = $item->getIndexCompteurDemonté();
+        $indexNouveau = $item->getIndexNouveauCompteur();
+
+        $isForfaitLike = $etatCode !== null && (
+            str_contains($etatCode, 'forfait')
+            || str_contains($etatCode, 'bloqu')
+            || str_contains($etatCode, 'non communiqu')
+            || str_contains($etatCode, 'index compteur non')
+        );
+        $isNouveauCompteur = $etatCode !== null && str_contains($etatCode, 'nouveau');
+        $isRemplacement = $etatCode !== null && (
+            str_contains($etatCode, 'remplac')
+            || str_contains($etatCode, 'démont')
+            || str_contains($etatCode, 'demonte')
+        );
+
+        if ($etatCode !== null && str_contains($etatCode, 'suppr')) {
+            $cons = 0;
+        } elseif ($isForfaitLike) {
+            $cons = (int) round($this->forfaitResolver->resolveForCompteur($compteur, $forfaits, $lotCompteurs));
+            $item->setForfait(true);
+        } elseif ($isNouveauCompteur) {
+            $ancienActif = (int)($indexDemonte ?? 0) > $prev;
+            $cons = $ancienActif
+                ? max(0, (int)($indexDemonte ?? 0) - $prev) + max(0, (int)($indexNouveau ?? $indexN ?? 0))
+                : max(0, (int)($indexNouveau ?? $indexN ?? 0));
+        } elseif ($isRemplacement) {
+            $cons = max(0, (int)($indexDemonte ?? 0) - $prev) + max(0, (int)($indexNouveau ?? $indexN ?? 0));
+        } else {
+            $curr = (int)($indexN ?? 0);
+            $cons = $curr < $prev ? max(0, $curr) : max(0, $curr - $prev);
+        }
+
+        $item->setConsommation(number_format($cons, 3, '.', ''));
+        $item->setUpdatedAt(new \DateTimeImmutable());
+    }
+
+    private function resolveEtatCode(EntityManagerInterface $entityManager, ?int $etatId): ?string
+    {
+        if ($etatId === null) {
+            return null;
+        }
+
+        $etat = $entityManager->getRepository(EtatCompteur::class)->find($etatId);
+        if (!$etat instanceof EtatCompteur) {
+            return null;
+        }
+
+        $merged = trim($etat->getCode() . ' ' . $etat->getLibelle());
+
+        return $merged !== '' ? mb_strtolower($merged) : null;
     }
 }
