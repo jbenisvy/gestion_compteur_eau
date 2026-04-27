@@ -1,4 +1,13 @@
+{% macro money(value) %}
+  {{ value|number_format(2, ',', ' ') }} €
+{% endmacro %}
+
+{% macro m3(value) %}
+  {{ value|round(0, 'common')|number_format(0, ',', ' ') }} m³
+{% endmacro %}
+
 {% if dashboardSummary is not empty %}
+  {% import _self as fmt %}
   <section class="card dashboard-summary">
     <div class="stats-section-head">
       <div>
@@ -12,6 +21,29 @@
         <div class="dashboard-year-head">
           <h3>{{ yearSummary.year }}</h3>
         </div>
+        <article class="card dashboard-kpi-card" style="margin-bottom: 16px;">
+          <div class="dashboard-kpi-top">
+            <strong>Forfaits de l'année</strong>
+            <span class="badge">{{ fmt.m3(yearSummary.forfaits.total.m3) }}</span>
+          </div>
+          <div class="billing-summary">
+            <div>
+              <span>Forfaits EF</span>
+              <strong>{{ fmt.money(yearSummary.forfaits.ef.amount) }}</strong>
+              <small>{{ fmt.m3(yearSummary.forfaits.ef.m3) }}</small>
+            </div>
+            <div>
+              <span>Forfaits EC</span>
+              <strong>{{ fmt.money(yearSummary.forfaits.ec.amount) }}</strong>
+              <small>{{ fmt.m3(yearSummary.forfaits.ec.m3) }}</small>
+            </div>
+            <div class="billing-total">
+              <span>Valorisation totale des forfaits</span>
+              <strong>{{ fmt.money(yearSummary.forfaits.total.amount) }}</strong>
+              <small>{{ fmt.m3(yearSummary.forfaits.total.m3) }}</small>
+            </div>
+          </div>
+        </article>
         <div class="grid">
           {% for category in yearSummary.categories %}
             <article class="card dashboard-kpi-card">

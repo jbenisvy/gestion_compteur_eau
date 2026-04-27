@@ -3,17 +3,19 @@ declare(strict_types=1);
 
 namespace App\Service\Dashboard;
 
+use App\Repository\ParametreRepository;
 use App\Service\Export\ExcelCompteursExportService;
 
 final class DashboardSummaryService
 {
     public function __construct(
         private readonly ExcelCompteursExportService $exportService,
+        private readonly ParametreRepository $parametreRepository,
     ) {
     }
 
     /**
-     * @return array<int, array{year:int, categories:array<int, array{key:string,label:string,count:int,items:array<int,string>}>}>
+     * @return array<int, array{year:int, forfaits:array<string,mixed>, categories:array<int, array{key:string,label:string,count:int,items:array<int,string>}>}>
      */
     public function buildYearlySummary(): array
     {
@@ -33,6 +35,10 @@ final class DashboardSummaryService
 
             if (!isset($summaries[$year])) {
                 $summaries[$year] = $this->createYearBucket($year);
+            }
+
+            if ((bool) ($row['forfait_applique'] ?? false)) {
+                $this->addForfaitRow($summaries[$year]['forfaits'], $row, $year);
             }
 
             $releveEtatText = $this->normalizeText(implode(' ', [
@@ -99,12 +105,13 @@ final class DashboardSummaryService
     }
 
     /**
-     * @return array{year:int, categories:array<string, array{key:string,label:string,count:int,items:array<int,string>,_seen:array<string,bool>}>}
+     * @return array{year:int, forfaits:array<string,mixed>, categories:array<string, array{key:string,label:string,count:int,items:array<int,string>,_seen:array<string,bool>}>}
      */
     private function createYearBucket(int $year): array
     {
         return [
             'year' => $year,
+            'forfaits' => $this->createForfaitBucket($year),
             'categories' => [
                 'blocked' => $this->createCategory('blocked', 'Compteurs bloqués'),
                 'replaced' => $this->createCategory('replaced', 'Compteurs remplacés'),
@@ -112,6 +119,22 @@ final class DashboardSummaryService
                 'deleted_lot' => $this->createCategory('deleted_lot', 'Lots avec compteurs supprimés'),
                 'not_reported' => $this->createCategory('not_reported', 'Relevés non communiqués'),
             ],
+        ];
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private function createForfaitBucket(int $year): array
+    {
+        $prices = $this->parametreRepository->getPrixM3ForYear($year);
+        $efPrice = (float) ($prices['ef'] ?? 0.0);
+        $ecPrice = (float) ($prices['prix_m3_ec'] ?? $prices['ec'] ?? 0.0);
+
+        return [
+            'ef' => ['m3' => 0.0, 'amount' => 0.0, 'price' => $efPrice],
+            'ec' => ['m3' => 0.0, 'amount' => 0.0, 'price' => $ecPrice],
+            'total' => ['m3' => 0.0, 'amount' => 0.0],
         ];
     }
 
@@ -141,6 +164,35 @@ final class DashboardSummaryService
         $category['_seen'][$uniqueKey] = true;
         $category['count']++;
         $category['items'][] = $label;
+    }
+
+    /**
+     * @param array<string,mixed> $forfaits
+     * @param array<string,mixed> $row
+     */
+    private function addForfaitRow(array &$forfaits, array $row, int $year): void
+    {
+        $nature = $this->normalizeText((string) ($row['compteur_nature'] ?? ''));
+        $key = $nature === 'ec' ? 'ec' : ($nature === 'ef' ? 'ef' : null);
+        if ($key === null) {
+            return;
+        }
+
+        $m3 = isset($row['forfait_valeur']) && is_numeric($row['forfait_valeur'])
+            ? max(0.0, (float) $row['forfait_valeur'])
+            : (is_numeric($row['consommation'] ?? null) ? max(0.0, (float) $row['consommation']) : 0.0);
+
+        if ($m3 <= 0.0) {
+            return;
+        }
+
+        $price = (float) ($forfaits[$key]['price'] ?? 0.0);
+        $amount = round($m3 * $price, 2);
+
+        $forfaits[$key]['m3'] = round((float) $forfaits[$key]['m3'] + $m3, 3);
+        $forfaits[$key]['amount'] = round((float) $forfaits[$key]['amount'] + $amount, 2);
+        $forfaits['total']['m3'] = round((float) $forfaits['total']['m3'] + $m3, 3);
+        $forfaits['total']['amount'] = round((float) $forfaits['total']['amount'] + $amount, 2);
     }
 
     /**
