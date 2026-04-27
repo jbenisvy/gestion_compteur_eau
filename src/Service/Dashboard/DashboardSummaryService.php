@@ -132,9 +132,9 @@ final class DashboardSummaryService
         $ecPrice = (float) ($prices['prix_m3_ec'] ?? $prices['ec'] ?? 0.0);
 
         return [
-            'ef' => ['m3' => 0.0, 'amount' => 0.0, 'price' => $efPrice],
-            'ec' => ['m3' => 0.0, 'amount' => 0.0, 'price' => $ecPrice],
-            'total' => ['m3' => 0.0, 'amount' => 0.0],
+            'ef' => ['m3' => 0.0, 'amount' => 0.0, 'price' => $efPrice, 'items' => []],
+            'ec' => ['m3' => 0.0, 'amount' => 0.0, 'price' => $ecPrice, 'items' => []],
+            'total' => ['m3' => 0.0, 'amount' => 0.0, 'count' => 0],
         ];
     }
 
@@ -188,11 +188,19 @@ final class DashboardSummaryService
 
         $price = (float) ($forfaits[$key]['price'] ?? 0.0);
         $amount = round($m3 * $price, 2);
+        $motif = trim((string) ($row['forfait_motif'] ?? ''));
+        $forfaits[$key]['items'][] = [
+            'label' => $this->buildCompteurLabel($row),
+            'm3' => $m3,
+            'amount' => $amount,
+            'motif' => $motif !== '' ? $motif : null,
+        ];
 
         $forfaits[$key]['m3'] = round((float) $forfaits[$key]['m3'] + $m3, 3);
         $forfaits[$key]['amount'] = round((float) $forfaits[$key]['amount'] + $amount, 2);
         $forfaits['total']['m3'] = round((float) $forfaits['total']['m3'] + $m3, 3);
         $forfaits['total']['amount'] = round((float) $forfaits['total']['amount'] + $amount, 2);
+        $forfaits['total']['count'] = (int) ($forfaits['total']['count'] ?? 0) + 1;
     }
 
     /**

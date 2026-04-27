@@ -43,6 +43,46 @@
               <small>{{ fmt.m3(yearSummary.forfaits.total.m3) }}</small>
             </div>
           </div>
+          <details class="billing-details">
+            <summary>Voir le détail des forfaits</summary>
+            {% if yearSummary.forfaits.total.count > 0 %}
+              <div class="table-wrap" style="margin-top: 12px;">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Compteur</th>
+                      <th>m³</th>
+                      <th>Valorisation</th>
+                      <th>Motif</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in yearSummary.forfaits.ef.items %}
+                      <tr>
+                        <td>EF</td>
+                        <td>{{ item.label }}</td>
+                        <td>{{ fmt.m3(item.m3) }}</td>
+                        <td>{{ fmt.money(item.amount) }}</td>
+                        <td>{{ item.motif ?: 'Forfait' }}</td>
+                      </tr>
+                    {% endfor %}
+                    {% for item in yearSummary.forfaits.ec.items %}
+                      <tr>
+                        <td>EC</td>
+                        <td>{{ item.label }}</td>
+                        <td>{{ fmt.m3(item.m3) }}</td>
+                        <td>{{ fmt.money(item.amount) }}</td>
+                        <td>{{ item.motif ?: 'Forfait' }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <p class="muted">Aucune ligne de forfait pour cette année.</p>
+            {% endif %}
+          </details>
         </article>
         <div class="grid">
           {% for category in yearSummary.categories %}
