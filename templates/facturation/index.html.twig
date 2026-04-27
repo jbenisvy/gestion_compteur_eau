@@ -104,7 +104,11 @@
     {% if showSdb and showChaude %}
       <div><span>SDB/WC eau chaude</span><strong>{{ fmt.money(payload.totals.sdb.chaude.montant) }}</strong><small>{{ fmt.m3(payload.totals.sdb.chaude.m3) }}</small></div>
     {% endif %}
-    <div class="billing-total"><span>{{ hasScopedFilter ? 'Total facturation filtrée' : 'Total facturation' }}</span><strong>{{ fmt.money(payload.totals.global.total) }}</strong></div>
+    <div class="billing-total">
+      <span>{{ hasScopedFilter ? 'Total facturation filtrée' : 'Total facturation' }}</span>
+      <strong>{{ fmt.money(payload.totals.global.total) }}</strong>
+      <small>{{ fmt.m3(payload.totals.global.froide.m3 + payload.totals.global.chaude.m3) }}</small>
+    </div>
   </div>
 </section>
 
