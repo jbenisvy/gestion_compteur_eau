@@ -1,0 +1,114 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Didacticiel Syndic{% endblock %}
+
+{% block body %}
+<div class="container-fluid px-0">
+  <section class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-4 align-items-start">
+        <div class="col-lg-8">
+          <h1 class="h2 mb-2">Didacticiel Syndic</h1>
+          <p class="text-muted mb-0">Guide du profil syndic / conseil syndical: consultation, facturation, statistiques et evenements annuels.</p>
+        </div>
+        <div class="col-lg-4">
+          <div class="alert alert-info mb-0" role="alert">
+            <strong>Profil</strong>
+            <ul class="mb-0 mt-2">
+              <li>Compte avec role <code>ROLE_SYNDIC</code></li>
+              <li>Acces en lecture aux ecrans syndic</li>
+              <li>Modules admin avances masques</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="row g-3">
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 1: Connexion</h3>
+          <p class="mb-1">Route: <code>/login</code></p>
+          <ol class="mb-0">
+            <li>Connectez-vous avec votre lien de connexion habituel.</li>
+            <li>Si votre compte a aussi un autre role, choisissez l'entree <code>Syndic</code> depuis l'ecran de selection.</li>
+            <li>Vous arrivez sur l'espace syndic.</li>
+          </ol>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 2: Dashboard syndic</h3>
+          <p class="mb-1">Route: <code>/syndic</code></p>
+          <ol class="mb-0">
+            <li>Verifiez l'annee active.</li>
+            <li>Utilisez les boutons rapides vers <code>Facturation</code>, <code>Evenements de l'annee</code> et <code>Statistiques</code>.</li>
+            <li>Ce profil reste volontairement limite a la consultation.</li>
+          </ol>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 3: Facturation</h3>
+          <p class="mb-1">Route: <code>/facturation</code></p>
+          <ol class="mb-0">
+            <li>Consultez les montants et consommations par lot et par annee.</li>
+            <li>Les lignes au forfait sont identifiees explicitement.</li>
+            <li>Les commentaires remontent les cas particuliers: compteur remplace, appartement inoccupe, releve non communique, compteur supprime.</li>
+          </ol>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 4: Evenements de l'annee</h3>
+          <p class="mb-1">Route: <code>/admin/evenements</code></p>
+          <ol class="mb-0">
+            <li>Suivez l'evolution annuelle du parc plutot qu'un simple etat global.</li>
+            <li>Les listes affichent le lot, sa description et le coproprietaire correspondant a l'annee.</li>
+            <li>Vous voyez les compteurs bloques, remplaces, releves non communiques, appartements inoccupes et suppressions de compteurs.</li>
+          </ol>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 5: Statistiques</h3>
+          <p class="mb-1">Route: <code>/admin/stats</code></p>
+          <ol class="mb-0">
+            <li>Choisissez l'annee et les filtres utiles.</li>
+            <li>La page recharge automatiquement ses donnees a l'ouverture.</li>
+            <li>Vous pouvez imprimer ou exporter en PDF / Excel.</li>
+          </ol>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 6: Menus disponibles</h3>
+          <p class="mb-1">Navigation web</p>
+          <ol class="mb-0">
+            <li>Le menu principal et le menu hamburger masquent les options reservees a l'admin.</li>
+            <li>Les acces disponibles restent <code>Syndic</code>, <code>Facturation</code>, <code>Statistiques</code>, <code>Didacticiels</code> et les pages personnelles.</li>
+            <li>Les ecrans admin avances restent inaccessibles meme par URL directe.</li>
+          </ol>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>
+{% endblock %}
