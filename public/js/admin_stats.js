@@ -9,6 +9,8 @@
   var pivotStorageKey = "admin_stats_pivot_presets_v1";
   var savedPivotCache = {};
   var hasRemoteStorage = false;
+  var isInitialized = false;
+  var pendingInitTimer = null;
 
   function qs(id) {
     return document.getElementById(id);
@@ -830,12 +832,12 @@
       });
     }
 
-    qs("statsXlsxBtn").addEventListener("click", function () {
-      if (!table || typeof table.download !== "function") {
-        alert("Export Excel indisponible.");
-        return;
-      }
-      table.download("xlsx", "statistiques.xlsx", { sheetName: "Statistiques" });
+      qs("statsXlsxBtn").addEventListener("click", function () {
+        if (!table || typeof table.download !== "function") {
+          alert("Export Excel indisponible.");
+          return;
+        }
+        table.download("xlsx", "statistiques.xlsx", { sheetName: "Statistiques" });
     });
 
     var copyTableBtn = qs("statsCopyTableBtn");
@@ -859,8 +861,53 @@
     });
   }
 
+  function cleanup() {
+    if (pendingInitTimer) {
+      window.clearTimeout(pendingInitTimer);
+      pendingInitTimer = null;
+    }
+    if (table && typeof table.destroy === "function") {
+      table.destroy();
+    }
+    table = null;
+    lastData = [];
+    currentGlobalFilter = null;
+    pivotState = null;
+    activeSavedPivot = "";
+    isInitialized = false;
+    var pivot = qs("statsPivot");
+    if (pivot) {
+      pivot.innerHTML = "";
+    }
+    var detail = qs("statsDetailTable");
+    if (detail) {
+      detail.innerHTML = "";
+    }
+    var statsTable = qs("statsTable");
+    if (statsTable) {
+      statsTable.innerHTML = "";
+    }
+  }
+
+  function dependenciesReady() {
+    return typeof window.Tabulator !== "undefined"
+      && typeof window.fetch === "function"
+      && typeof window.$ !== "undefined"
+      && typeof $.pivotUtilities !== "undefined";
+  }
+
   function init() {
     if (!qs("statsTable")) return;
+    if (isInitialized) return;
+    if (!dependenciesReady()) {
+      if (pendingInitTimer) {
+        window.clearTimeout(pendingInitTimer);
+      }
+      pendingInitTimer = window.setTimeout(init, 50);
+      return;
+    }
+    pendingInitTimer = null;
+    isInitialized = true;
     fetchSavedPivots();
     bindEvents();
     refreshAll();
@@ -868,4 +915,5 @@
 
   document.addEventListener("DOMContentLoaded", init);
   document.addEventListener("turbo:load", init);
+  document.addEventListener("turbo:before-cache", cleanup);
 })();
