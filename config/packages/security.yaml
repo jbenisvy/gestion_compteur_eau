@@ -32,6 +32,7 @@ security:
     - { path: ^/login, roles: PUBLIC_ACCESS }
     - { path: ^/verify/email, roles: PUBLIC_ACCESS }
     - { path: ^/admin/login, roles: PUBLIC_ACCESS }
+    - { path: ^/admin/evenements, allow_if: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SYNDIC')" }
     - { path: ^/admin/facturation, allow_if: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SYNDIC')" }
     - { path: ^/admin/stats, allow_if: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SYNDIC')" }
     - { path: ^/admin, roles: ROLE_ADMIN }
