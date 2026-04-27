@@ -9,7 +9,7 @@
       <div class="row g-4 align-items-start">
         <div class="col-lg-8">
           <h1 class="h2 mb-2">Didacticiel Admin</h1>
-          <p class="text-muted mb-0">Guide d'administration: transfert de lot, historique, referentiel et saisie.</p>
+          <p class="text-muted mb-0">Guide d'administration: dashboard, evenements, statistiques, facturation, transfert, referentiel et saisie.</p>
         </div>
         <div class="col-lg-4">
           <div class="alert alert-info mb-0" role="alert">
@@ -48,6 +48,7 @@
             <li>Verifiez l'annee active.</li>
             <li>Liste des lots au format: <strong>Lot XX Coproprietaire actif Description</strong>.</li>
             <li>Accedez aux modules Historique, Tableau, Parametres, Transfert, EasyAdmin.</li>
+            <li>Utilisez le bouton <code>Evenements de l'annee</code> pour ouvrir la synthese annuelle.</li>
           </ol>
         </div>
       </article>
@@ -98,7 +99,28 @@
     <div class="col-xl-6">
       <article class="card h-100 border-0 shadow-sm">
         <div class="card-body">
-          <h3 class="h5">Page 6: Tableau global</h3>
+          <h3 class="h5">Page 6: Evenements de l'annee</h3>
+          <p class="mb-1">Route: <code>/admin/evenements</code></p>
+          <ol class="mb-2">
+            <li>Page visible pour les profils <code>admin</code> et <code>syndic</code>.</li>
+            <li>Consultez, annee par annee, les changements significatifs du parc.</li>
+            <li>Les listes affichent le lot, sa description et le coproprietaire correspondant a l'annee.</li>
+          </ol>
+          <ul class="mb-0">
+            <li>Compteurs bloques: affiches chaque annee ou ils restent bloques.</li>
+            <li>Compteurs remplaces: affiches uniquement l'annee du remplacement.</li>
+            <li>Appartements inoccupes: affiches l'annee du releve marque inoccupe.</li>
+            <li>Lots avec compteurs supprimes: affiches l'annee de la suppression.</li>
+            <li>Releves non communiques: affiches chaque annee concernee.</li>
+          </ul>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 7: Tableau global</h3>
           <p class="mb-1">Route: <code>/admin/tableau</code></p>
           <ol class="mb-0">
             <li>Filtrez par annee ou affichez toutes les annees.</li>
@@ -111,11 +133,12 @@
     <div class="col-xl-6">
       <article class="card h-100 border-0 shadow-sm">
         <div class="card-body">
-          <h3 class="h5">Page 7: EasyAdmin</h3>
-          <p class="mb-1">Route: <code>/admin/easy</code></p>
+          <h3 class="h5">Page 8: Statistiques</h3>
+          <p class="mb-1">Route: <code>/admin/stats</code></p>
           <ol class="mb-0">
-            <li>Gerez Utilisateurs, Coproprietaires, Lots, Compteurs, Etats, Releves.</li>
-            <li>Controlez les details de releve et numeros historises.</li>
+            <li>Choisissez l'annee et vos filtres pour charger le tableau consolide.</li>
+            <li>La page recharge automatiquement ses donnees a l'ouverture.</li>
+            <li>Vous pouvez imprimer ou exporter en PDF / Excel.</li>
           </ol>
         </div>
       </article>
@@ -124,12 +147,45 @@
     <div class="col-xl-6">
       <article class="card h-100 border-0 shadow-sm">
         <div class="card-body">
-          <h3 class="h5">Page 8: Saisie par lot (admin)</h3>
+          <h3 class="h5">Page 9: Facturation</h3>
+          <p class="mb-1">Route: <code>/facturation</code></p>
+          <ol class="mb-0">
+            <li>La consommation indique clairement les lignes au forfait.</li>
+            <li>La colonne commentaire remonte les remarques de releve et les cas particuliers.</li>
+            <li>Les lignes 2018 sans index 2017 sont exclues et signalees a part.</li>
+          </ol>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 10: EasyAdmin</h3>
+          <p class="mb-1">Route: <code>/admin/easy</code></p>
+          <ol class="mb-2">
+            <li>Gerez Utilisateurs, Coproprietaires, Lots, Compteurs, Etats, Releves.</li>
+            <li>Controlez les details de releve et numeros historises.</li>
+          </ol>
+          <ul class="mb-0">
+            <li>Sur <code>ReleveItem</code>, toute modification des index recalcule automatiquement la consommation.</li>
+            <li>Le role <code>ROLE_ADMIN</code> peut etre attribue aux utilisateurs depuis l'ecran Utilisateurs.</li>
+          </ul>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-xl-6">
+      <article class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">Page 11: Saisie par lot (admin)</h3>
           <p class="mb-1">Route: <code>/saisie/{lotId}/{annee}</code></p>
           <ol class="mb-2">
             <li>Meme ecran que le coproprietaire.</li>
             <li>Barre filtre: tri <code>Lot</code>/<code>Nom coproprietaire</code> + annee + Aller.</li>
             <li>Libelles: <code>Ind. n-1</code> et <code>Ind. n</code>.</li>
+            <li>Le commentaire est modifiable et enregistre sur l'annee en cours.</li>
+            <li>La consommation se recalcule automatiquement a l'enregistrement.</li>
           </ol>
           <span class="badge text-bg-warning">Lecture seule si annee non active</span>
         </div>
@@ -139,7 +195,7 @@
     <div class="col-12">
       <article class="card border-0 shadow-sm">
         <div class="card-body">
-          <h3 class="h5">Page 9: Referentiel compteurs</h3>
+          <h3 class="h5">Page 12: Referentiel compteurs</h3>
           <p class="mb-1">Route: <code>/admin/compteurs-reference</code></p>
           <div class="row g-3">
             <div class="col-lg-6">

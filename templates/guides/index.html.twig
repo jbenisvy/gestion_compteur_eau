@@ -14,11 +14,8 @@
       <li><a href="{{ path('guide_utilisateur') }}">Guide Utilisateur <span class="badge">Copropriétaire</span></a></li>
       {% if is_granted('ROLE_ADMIN') %}
         <li><a href="{{ path('guide_admin') }}">Guide Admin <span class="badge">Administration</span></a></li>
-      {% else %}
-        <li><a href="{{ path('app_login_admin') }}">Guide Admin (connexion requise) <span class="badge">Admin</span></a></li>
       {% endif %}
     </ul>
   </div>
 </section>
 {% endblock %}
-

@@ -8,7 +8,9 @@
     <h1>Événements de l’année</h1>
     <p>{{ isReadOnlyViewer ? 'Consultation syndic / conseil syndical.' : 'Vue admin des évolutions annuelles des relevés et statuts.' }}</p>
     <div class="hero-actions">
-      <a class="btn btn-primary" href="{{ path('admin_dashboard') }}">Retour admin</a>
+      <a class="btn btn-primary" href="{{ isReadOnlyViewer ? path('syndic_dashboard') : path('admin_dashboard') }}">
+        {{ isReadOnlyViewer ? 'Retour syndic' : 'Retour admin' }}
+      </a>
       <a class="btn btn-ghost" href="{{ path('admin_stats') }}">Statistiques</a>
       <a class="btn btn-ghost" href="{{ path('admin_facturation') }}">Facturation</a>
     </div>
