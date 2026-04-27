@@ -9,6 +9,7 @@
     <p>Année active : <strong>{{ anneeActive }}</strong></p>
     <div class="hero-actions">
       <a class="btn btn-primary" href="{{ path('admin_facturation') }}">Facturation</a>
+      <a class="btn btn-ghost" href="{{ path('admin_dashboard_events') }}">Événements de l’année</a>
       <a class="btn btn-ghost" href="{{ path('admin_stats') }}">Statistiques</a>
     </div>
   </div>
@@ -17,6 +18,4 @@
     <p>Ce profil est limité à la consultation de la facturation et des statistiques. Les autres modules restent masqués.</p>
   </div>
 </section>
-
-{% include 'dashboard/_yearly_summary.html.twig' with { dashboardSummary: dashboardSummary|default([]) } %}
 {% endblock %}

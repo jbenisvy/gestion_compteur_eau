@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Événements de l’année{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Événements de l’année</h1>
+    <p>{{ isReadOnlyViewer ? 'Consultation syndic / conseil syndical.' : 'Vue admin des évolutions annuelles des relevés et statuts.' }}</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ path('admin_dashboard') }}">Retour admin</a>
+      <a class="btn btn-ghost" href="{{ path('admin_stats') }}">Statistiques</a>
+      <a class="btn btn-ghost" href="{{ path('admin_facturation') }}">Facturation</a>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Principe</h3>
+    <p>Cette vue met en avant ce qui se produit sur une année donnée : blocage, remplacement, inoccupation, suppression ou relevé non communiqué.</p>
+  </div>
+</section>
+
+{% include 'dashboard/_yearly_summary.html.twig' with { dashboardSummary: dashboardSummary|default([]) } %}
+{% endblock %}

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Repository\ReleveRepository;
+use App\Service\Dashboard\DashboardSummaryService;
 use App\Service\Stats\StatsDatasetService;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -17,6 +18,17 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class AdminStatsController extends AbstractController
 {
+    #[Route('/admin/evenements', name: 'admin_dashboard_events')]
+    public function events(DashboardSummaryService $dashboardSummaryService): Response
+    {
+        $this->denyUnlessAdminOrSyndic();
+
+        return $this->render('admin/dashboard_events.html.twig', [
+            'dashboardSummary' => $dashboardSummaryService->buildYearlySummary(),
+            'isReadOnlyViewer' => !$this->isGranted('ROLE_ADMIN'),
+        ]);
+    }
+
     #[Route('/admin/stats', name: 'admin_stats')]
     public function index(ReleveRepository $releveRepo): Response
     {
