@@ -150,8 +150,11 @@ final class DashboardSummaryService
     {
         $lot = trim((string) ($row['lot_numero'] ?? '?'));
         $desc = trim((string) ($row['lot_description'] ?? ''));
+        $owner = trim((string) ($row['proprietaire_nom'] ?? ''));
 
-        return $desc !== '' ? sprintf('Lot %s - %s', $lot, $desc) : sprintf('Lot %s', $lot);
+        $label = $desc !== '' ? sprintf('Lot %s - %s', $lot, $desc) : sprintf('Lot %s', $lot);
+
+        return $owner !== '' ? sprintf('%s - %s', $label, $owner) : $label;
     }
 
     /**
