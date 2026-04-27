@@ -16,7 +16,7 @@ final class FacturationService
 
     /**
      * @param array{annee?:int, coproprietaire_id?:int, lot_id?:int, eau?:string, piece?:string, sort?:string} $filters
-     * @return array{filters:array<string,mixed>, years:int[], groups:array<int,array<string,mixed>>, totals:array<string,mixed>}
+     * @return array{filters:array<string,mixed>, years:int[], groups:array<int,array<string,mixed>>, totals:array<string,mixed>, skipped:array<string,mixed>}
      */
     public function build(array $filters = [], ?int $restrictedCoproprietaireId = null): array
     {
@@ -42,6 +42,10 @@ final class FacturationService
         $groups = [];
         $years = [];
         $globalTotals = $this->emptyTotals();
+        $skipped = [
+            'count' => 0,
+            'items' => [],
+        ];
 
         foreach ($rows as $row) {
             if (!is_array($row)) {
@@ -73,9 +77,24 @@ final class FacturationService
                 continue;
             }
 
+            if (!is_numeric($row['consommation'] ?? null)) {
+                if ($annee === 2018 && !is_numeric($row['index_n_1'] ?? null)) {
+                    $skipped['count']++;
+                    $skipped['items'][] = [
+                        'annee' => $annee,
+                        'lot_numero' => (string)($row['lot_numero'] ?? ''),
+                        'compteur' => (string)($row['compteur_reference'] ?? ('#' . (string)($row['compteur_id'] ?? ''))),
+                        'piece' => $piece,
+                        'eau' => $eau,
+                        'motif' => 'Facturation 2018 masquee: index 2017 absent',
+                    ];
+                }
+                continue;
+            }
+
             $pricesByYear[$annee] ??= $this->pricesForYear($annee);
             $prixM3 = $eau === 'chaude' ? $pricesByYear[$annee]['chaude'] : $pricesByYear[$annee]['froide'];
-            $consommation = max(0.0, (float)($row['consommation'] ?? 0.0));
+            $consommation = max(0.0, (float)$row['consommation']);
             $montant = round($consommation * $prixM3, 2);
 
             $groupKey = $annee . ':' . ($coproId ?? 0);
@@ -88,6 +107,7 @@ final class FacturationService
                     'lots' => [],
                     'totals' => $this->emptyTotals(),
                     'rows' => [],
+                    'skipped_rows' => 0,
                 ];
             }
 
@@ -131,6 +151,22 @@ final class FacturationService
             $years[$annee] = true;
         }
 
+        foreach ($skipped['items'] as $item) {
+            $groupKey = ((int)$item['annee']) . ':' . 0;
+            foreach ($groups as $existingKey => $group) {
+                if ((int)$group['annee'] === (int)$item['annee']) {
+                    if ((string)($group['lot_sort'] ?? '') === (string)$item['lot_numero']) {
+                        $groups[$existingKey]['skipped_rows']++;
+                        continue 2;
+                    }
+                    if (array_filter((array)($group['lots'] ?? []), static fn (array $lot): bool => (string)($lot['numero'] ?? '') === (string)$item['lot_numero'])) {
+                        $groups[$existingKey]['skipped_rows']++;
+                        continue 2;
+                    }
+                }
+            }
+        }
+
         $groups = array_values($groups);
         foreach ($groups as &$group) {
             $group['lots'] = array_values((array)$group['lots']);
@@ -168,6 +204,10 @@ final class FacturationService
             'years' => $years,
             'groups' => $groups,
             'totals' => $globalTotals,
+            'skipped' => [
+                'count' => $skipped['count'],
+                'items' => array_slice($skipped['items'], 0, 20),
+            ],
         ];
     }
 

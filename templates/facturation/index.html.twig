@@ -108,6 +108,20 @@
   </div>
 </section>
 
+{% if payload.skipped.count > 0 %}
+  <section class="card" style="margin-top: 20px; border-left: 4px solid #d97706;">
+    <h3>Lignes non facturées</h3>
+    <p>{{ payload.skipped.count }} ligne(s) masquée(s) uniquement pour le cas 2018 sans index 2017.</p>
+    <div class="billing-lot-meta">
+      {% for item in payload.skipped.items %}
+        <span class="badge">
+          {{ item.annee }} - Lot {{ item.lot_numero }} - {{ item.compteur }} - {{ item.piece == 'sdb' ? 'SDB/WC' : 'Cuisine' }} - {{ item.eau == 'chaude' ? 'Eau chaude' : 'Eau froide' }} : {{ item.motif }}
+        </span>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
+
 {% for group in payload.groups %}
   <section class="card" style="margin-top: 20px;">
     <div class="billing-group-head">
@@ -124,6 +138,9 @@
         {% endif %}
         {% if isAdmin and group.coproprietaire_id %}
           <span class="badge">Copro #{{ group.coproprietaire_id }}</span>
+        {% endif %}
+        {% if group.skipped_rows > 0 %}
+          <span class="badge">Lignes non facturées: {{ group.skipped_rows }}</span>
         {% endif %}
       </div>
       <div class="billing-group-total">{{ fmt.money(group.totals.global.total) }}</div>

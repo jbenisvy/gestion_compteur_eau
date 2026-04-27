@@ -252,11 +252,17 @@ final class ExcelCompteursExportService
             $consommationSource = 'calculated';
         } elseif ($isReplacementOrReset) {
             $consommation = $this->computeConsommation($r, $releveEtatCode, $defaultForfait, $isForfait);
+            if ($consommation === null) {
+                $consommationSource = 'missing_indexes';
+            }
         } elseif ($savedConsommation !== null) {
             $consommation = max(0.0, round($savedConsommation, 3));
             $consommationSource = 'saved';
         } else {
             $consommation = $this->computeConsommation($r, $releveEtatCode, $defaultForfait, $isForfait);
+            if ($consommation === null) {
+                $consommationSource = 'missing_indexes';
+            }
         }
 
         $forfaitValeur = null;
@@ -383,10 +389,10 @@ final class ExcelCompteursExportService
         return $etatCode;
     }
 
-    private function computeConsommation(array $r, ?string $etatCode, float $forfaitValue, bool $isForfait): float
+    private function computeConsommation(array $r, ?string $etatCode, float $forfaitValue, bool $isForfait): ?float
     {
-        $indexN1 = $this->asIntOrNull($r['index_n1'] ?? null) ?? 0;
-        $indexN = $this->asIntOrNull($r['index_n'] ?? null) ?? 0;
+        $indexN1 = $this->asIntOrNull($r['index_n1'] ?? null);
+        $indexN = $this->asIntOrNull($r['index_n'] ?? null);
         $indexDem = $this->asIntOrNull($r['index_compteur_demonte'] ?? null);
         $indexNew = $this->asIntOrNull($r['index_nouveau_compteur'] ?? null);
 
@@ -394,28 +400,34 @@ final class ExcelCompteursExportService
             return 0.0;
         }
 
-        $delta = max(0, $indexN - $indexN1);
+        if ($isForfait) {
+            return $forfaitValue > 0 ? (float)$forfaitValue : 0.0;
+        }
+
+        if ($indexN1 === null || $indexN === null) {
+            $isRemplacement = $etatCode !== null && $this->isReplacementEtat($etatCode);
+            if (!$isRemplacement || $indexN1 === null) {
+                return null;
+            }
+        }
+
+        $delta = max(0, ($indexN ?? 0) - ($indexN1 ?? 0));
 
         if ($etatCode !== null) {
             $isRemplacement = $this->isReplacementEtat($etatCode) || $this->isIndexReset($r);
 
             if ($isRemplacement) {
+                if ($indexN1 === null) {
+                    return null;
+                }
                 $oldPart = ($indexDem !== null) ? max(0, $indexDem - $indexN1) : 0;
-                $newPart = ($indexNew !== null) ? max(0, $indexNew) : max(0, $indexN);
+                $newPart = ($indexNew !== null) ? max(0, $indexNew) : max(0, $indexN ?? 0);
                 $delta = $oldPart + $newPart;
             }
 
             if (str_contains($etatCode, 'supprime')) {
                 $delta = 0;
             }
-        }
-
-        if ($isForfait) {
-            $delta = 0;
-        }
-
-        if ($isForfait && $forfaitValue > 0) {
-            $delta += $forfaitValue;
         }
 
         return (float)$delta;
