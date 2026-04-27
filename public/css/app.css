@@ -294,6 +294,47 @@ body.menu-open {
   font-size: 0.75rem;
 }
 
+.dashboard-summary {
+  margin-top: 24px;
+}
+
+.dashboard-year-block + .dashboard-year-block {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #efe7da;
+}
+
+.dashboard-year-head {
+  margin-bottom: 14px;
+}
+
+.dashboard-year-head h3 {
+  margin: 0;
+}
+
+.dashboard-kpi-card {
+  min-height: 100%;
+}
+
+.dashboard-kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.dashboard-mini-list li {
+  padding: 0;
+}
+
+.dashboard-mini-list span {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f6f1e8;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;

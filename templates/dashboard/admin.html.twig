@@ -67,6 +67,8 @@
   </div>
 </section>
 
+{% include 'dashboard/_yearly_summary.html.twig' with { dashboardSummary: dashboardSummary|default([]) } %}
+
 <section class="grid">
   <article class="card">
     <h3>Correctifs exceptionnels</h3>

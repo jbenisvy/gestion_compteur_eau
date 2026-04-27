@@ -10,7 +10,7 @@
   {{ parent() }}
   <link rel="stylesheet" href="{{ asset('vendor/tabulator/tabulator.min.css') }}">
   <link rel="stylesheet" href="{{ asset('vendor/pivottable/pivot.min.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/admin_stats.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/admin_stats.css') }}?v=20260427-1705">
 {% endblock %}
 
 {% block javascripts %}
@@ -20,7 +20,7 @@
   <script src="{{ asset('vendor/pivottable/pivot.min.js') }}" defer></script>
   <script src="{{ asset('vendor/tabulator/tabulator.min.js') }}" defer></script>
   <script src="{{ asset('vendor/xlsx/xlsx.full.min.js') }}" defer></script>
-  <script src="{{ asset('js/admin_stats.js') }}" defer></script>
+  <script src="{{ asset('js/admin_stats.js') }}?v=20260427-1705" defer></script>
 {% endblock %}
 
 {% block body %}

@@ -1,0 +1,37 @@
+{% if dashboardSummary is not empty %}
+  <section class="card dashboard-summary">
+    <div class="stats-section-head">
+      <div>
+        <h2>Suivi annuel des situations à surveiller</h2>
+        <p class="muted">Synthèse par année des compteurs bloqués, remplacés, lots inoccupés, suppressions et relevés non communiqués.</p>
+      </div>
+    </div>
+
+    {% for yearSummary in dashboardSummary %}
+      <section class="dashboard-year-block">
+        <div class="dashboard-year-head">
+          <h3>{{ yearSummary.year }}</h3>
+        </div>
+        <div class="grid">
+          {% for category in yearSummary.categories %}
+            <article class="card dashboard-kpi-card">
+              <div class="dashboard-kpi-top">
+                <strong>{{ category.label }}</strong>
+                <span class="badge">{{ category.count }}</span>
+              </div>
+              {% if category.items is not empty %}
+                <ul class="list dashboard-mini-list">
+                  {% for item in category.items %}
+                    <li><span>{{ item }}</span></li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="muted">Aucun cas relevé.</p>
+              {% endif %}
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+  </section>
+{% endif %}

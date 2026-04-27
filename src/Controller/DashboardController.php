@@ -9,6 +9,7 @@ use App\Repository\CoproprietaireRepository;
 use App\Repository\LotCoproprietaireRepository;
 use App\Repository\LotRepository;
 use App\Repository\ParametreRepository;
+use App\Service\Dashboard\DashboardSummaryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -55,7 +56,8 @@ class DashboardController extends AbstractController
     public function adminDashboard(
         Request $request,
         LotRepository $lotRepo,
-        ParametreRepository $paramRepo
+        ParametreRepository $paramRepo,
+        DashboardSummaryService $dashboardSummaryService
     ): Response {
         $anneeActive = $paramRepo->getAnneeEnCours((int)date('Y'));
         $lots = $lotRepo->findAllForAdminDashboard();
@@ -79,6 +81,7 @@ class DashboardController extends AbstractController
             'lots' => $lots,
             'activeCoproNames' => $activeCoproNames,
             'anneeActive' => $anneeActive,
+            'dashboardSummary' => $dashboardSummaryService->buildYearlySummary(),
             'sortBy' => $sortBy,
             'sortDir' => $sortDir,
         ]);
@@ -86,10 +89,14 @@ class DashboardController extends AbstractController
 
     #[Route('/syndic', name: 'syndic_dashboard')]
     #[IsGranted('ROLE_SYNDIC')]
-    public function syndicDashboard(ParametreRepository $paramRepo): Response
+    public function syndicDashboard(
+        ParametreRepository $paramRepo,
+        DashboardSummaryService $dashboardSummaryService
+    ): Response
     {
         return $this->render('dashboard/syndic.html.twig', [
             'anneeActive' => $paramRepo->getAnneeEnCours((int)date('Y')),
+            'dashboardSummary' => $dashboardSummaryService->buildYearlySummary(),
         ]);
     }
 
