@@ -189,6 +189,7 @@
               <th>Conso</th>
               <th>Prix m³</th>
               <th>Montant</th>
+              <th>Commentaire</th>
             </tr>
           </thead>
           <tbody>
@@ -201,16 +202,36 @@
                     Lot {{ row.lot_numero }} {{ row.lot_description }}
                     <br><small>{{ row.lot_type_appartement }}</small>
                   </td>
-                  <td>{{ row.compteur }}{% if row.forfait %}<br><span class="badge">Forfait</span>{% endif %}</td>
+                  <td>
+                    {{ row.compteur }}
+                    {% if row.forfait %}
+                      <br><span class="badge">Forfait</span>
+                    {% endif %}
+                  </td>
                   <td>{{ row.piece == 'sdb' ? 'SDB/WC' : 'Cuisine' }}</td>
                   <td>{{ row.eau == 'chaude' ? 'Eau chaude' : 'Eau froide' }}</td>
-                  <td>{{ row.compteur_supprime ? 'Compteur supprimé' : fmt.m3(row.consommation) }}</td>
+                  <td>
+                    {% if row.compteur_supprime %}
+                      Compteur supprimé
+                    {% elseif row.forfait %}
+                      {{ fmt.m3(row.consommation) }}<br><small>Forfait{% if row.forfait_motif %} - {{ row.forfait_motif }}{% endif %}</small>
+                    {% else %}
+                      {{ fmt.m3(row.consommation) }}
+                    {% endif %}
+                  </td>
                   <td>{{ fmt.money(row.prix_m3) }}</td>
                   <td>{{ fmt.money(row.montant) }}</td>
+                  <td>
+                    {% if row.notes is not empty %}
+                      {{ row.notes|join(' | ') }}
+                    {% else %}
+                      <span class="row-muted">Aucun commentaire</span>
+                    {% endif %}
+                  </td>
                 </tr>
               {% endif %}
             {% else %}
-              <tr><td colspan="7">Aucune ligne de compteur.</td></tr>
+              <tr><td colspan="8">Aucune ligne de compteur.</td></tr>
             {% endfor %}
           </tbody>
         </table>

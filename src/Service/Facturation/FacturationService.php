@@ -115,7 +115,14 @@ final class FacturationService
                 'prix_m3' => $prixM3,
                 'montant' => $montant,
                 'forfait' => (bool)($row['forfait_applique'] ?? false),
+                'forfait_valeur' => isset($row['forfait_valeur']) ? (float)$row['forfait_valeur'] : null,
+                'forfait_motif' => $this->nullIfEmpty($row['forfait_motif'] ?? null),
                 'compteur_supprime' => (bool)($row['compteur_supprime'] ?? false),
+                'compteur_statut' => $this->nullIfEmpty($row['compteur_statut'] ?? null),
+                'lot_inoccupe' => (bool)($row['lot_inoccupe'] ?? false),
+                'lot_inoccupe_motif' => $this->nullIfEmpty($row['lot_inoccupe_motif'] ?? null),
+                'commentaire' => $this->nullIfEmpty($row['commentaire'] ?? null),
+                'notes' => $this->buildDetailNotes($row),
             ];
 
             $groups[$groupKey]['rows'][] = $detail;
@@ -245,5 +252,53 @@ final class FacturationService
         }
 
         return null;
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     * @return string[]
+     */
+    private function buildDetailNotes(array $row): array
+    {
+        $notes = [];
+
+        if ((bool)($row['forfait_applique'] ?? false)) {
+            $motif = $this->nullIfEmpty($row['forfait_motif'] ?? null);
+            $notes[] = $motif !== null ? 'Forfait: ' . $motif : 'Forfait applique';
+        }
+
+        $compteurStatut = mb_strtolower(trim((string)($row['compteur_statut'] ?? '')));
+        $releveEtat = mb_strtolower(trim((string)($row['releve_etat_code'] ?? '')));
+        $compteurEmplacement = mb_strtolower(trim((string)($row['compteur_emplacement_norm'] ?? $row['compteur_emplacement'] ?? '')));
+
+        if ($compteurStatut === 'remplace' || str_contains($releveEtat, 'remplac') || str_contains($releveEtat, 'démont') || str_contains($releveEtat, 'demonte')) {
+            $notes[] = 'Compteur remplace';
+        }
+
+        if ((bool)($row['lot_inoccupe'] ?? false)) {
+            $notes[] = (string)($row['lot_inoccupe_motif'] ?? 'Appartement inoccupe');
+        }
+
+        if (str_contains($releveEtat, 'non communiqu')) {
+            $notes[] = 'Releve non communique';
+        }
+
+        if ((bool)($row['compteur_supprime'] ?? false)) {
+            $notes[] = str_contains($compteurEmplacement, 'cuis') ? 'Compteur cuisine supprime' : 'Compteur supprime';
+        }
+
+        $commentaire = $this->nullIfEmpty($row['commentaire'] ?? null);
+        if ($commentaire !== null) {
+            $notes[] = 'Commentaire: ' . $commentaire;
+        }
+
+        return array_values(array_unique($notes));
+    }
+
+    private function nullIfEmpty(mixed $value): ?string
+    {
+        $value = trim((string)$value);
+
+        return $value === '' ? null : $value;
     }
 }
