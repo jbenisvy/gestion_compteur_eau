@@ -699,6 +699,20 @@
       .replace(/'/g, "&#039;");
   }
 
+  function isTabPaneActive(id) {
+    var pane = qs(id);
+    return !!(pane && pane.classList.contains("active") && pane.classList.contains("show"));
+  }
+
+  function renderVisibleStandardSection() {
+    if (isTabPaneActive("stats-table-pane")) {
+      renderTable(lastData);
+      return;
+    }
+
+    renderDetailTable(lastData);
+  }
+
   function refreshAll() {
     var currentPivotConfig = getCurrentPivotState() || buildPivotConfig(getPivotPreset());
     var pivot = qs("statsPivot");
@@ -717,8 +731,7 @@
     fetchData()
       .then(function (payload) {
         lastData = payload.rows || [];
-        renderTable(lastData);
-        renderDetailTable(lastData);
+        renderVisibleStandardSection();
       })
       .catch(function () {
         alert("Impossible de charger les statistiques.");
@@ -1014,6 +1027,24 @@
       if (!table) return;
       table.setPageSize(parseInt(this.value, 10) || 25);
     });
+
+    var tableTab = qs("stats-table-tab");
+    if (tableTab) {
+      tableTab.addEventListener("shown.bs.tab", function () {
+        if (lastData.length) {
+          renderTable(lastData);
+        }
+      });
+    }
+
+    var detailTab = qs("stats-detail-tab");
+    if (detailTab) {
+      detailTab.addEventListener("shown.bs.tab", function () {
+        if (lastData.length) {
+          renderDetailTable(lastData);
+        }
+      });
+    }
 
     var pivotPreset = qs("statsPivotPreset");
     if (pivotPreset) {
