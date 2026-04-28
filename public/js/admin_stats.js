@@ -369,12 +369,32 @@
     return clean;
   }
 
+  function normalizePivotConfigForExternalYearFilter(config) {
+    var normalized = extendPivotConfig({}, config || {});
+
+    if (normalized.inclusions && normalized.inclusions.annee) {
+      delete normalized.inclusions.annee;
+      if (Object.keys(normalized.inclusions).length === 0) {
+        delete normalized.inclusions;
+      }
+    }
+
+    if (normalized.exclusions && normalized.exclusions.annee) {
+      delete normalized.exclusions.annee;
+      if (Object.keys(normalized.exclusions).length === 0) {
+        delete normalized.exclusions;
+      }
+    }
+
+    return normalized;
+  }
+
   function renderPivot(rows, overrideConfig) {
     var target = document.getElementById("statsPivot");
     if (!target || !window.$ || !$.pivotUtilities) return;
 
     var preset = getPivotPreset();
-    var config = overrideConfig || buildPivotConfig(preset);
+    var config = normalizePivotConfigForExternalYearFilter(overrideConfig || buildPivotConfig(preset));
     var filteredRows = overrideConfig ? rows : filterRowsForPreset(rows, preset);
 
     if (filteredRows.length > MAX_ROWS_FOR_PIVOT) {
@@ -386,7 +406,7 @@
 
     var finalConfig = extendPivotConfig(config, {
       onRefresh: function (state) {
-        pivotState = sanitizePivotState(state);
+        pivotState = normalizePivotConfigForExternalYearFilter(sanitizePivotState(state));
         syncPivotSaveControls();
       },
     });
@@ -405,7 +425,11 @@
       detailYearBadge.textContent = year ? "Annee: " + year : "Annees: toutes";
     }
 
-    var filtered = rows.slice();
+    var filtered = year
+      ? rows.filter(function (r) {
+          return String(r.annee) === String(year);
+        })
+      : rows.slice();
 
     if (!filtered.length) {
       if (notice) notice.hidden = false;
@@ -690,20 +714,27 @@
       pivot.innerHTML = "<div class=\"muted\">Chargement de l'analyse croisee…</div>";
     }
 
-    Promise.all([fetchData(), fetchPivotData()])
-      .then(function (results) {
-        var payload = results[0] || {};
-        var pivotPayload = results[1] || {};
+    fetchData()
+      .then(function (payload) {
         lastData = payload.rows || [];
-        lastPivotData = pivotPayload.rows || [];
         renderTable(lastData);
         renderDetailTable(lastData);
+      })
+      .catch(function () {
+        alert("Impossible de charger les statistiques.");
+      });
+
+    fetchPivotData()
+      .then(function (pivotPayload) {
+        lastPivotData = (pivotPayload && pivotPayload.rows) || [];
         window.setTimeout(function () {
           renderPivot(lastPivotData, currentPivotConfig);
         }, 0);
       })
       .catch(function () {
-        alert("Impossible de charger les statistiques.");
+        if (pivot) {
+          pivot.innerHTML = "<div class=\"muted\">Impossible de charger l'analyse croisee.</div>";
+        }
       });
   }
 
