@@ -704,9 +704,16 @@
     return !!(pane && pane.classList.contains("active") && pane.classList.contains("show"));
   }
 
+  function ensureTableRendered() {
+    if (!lastData.length) {
+      return;
+    }
+    renderTable(lastData);
+  }
+
   function renderVisibleStandardSection() {
     if (isTabPaneActive("stats-table-pane")) {
-      renderTable(lastData);
+      ensureTableRendered();
       return;
     }
 
@@ -1030,10 +1037,11 @@
 
     var tableTab = qs("stats-table-tab");
     if (tableTab) {
+      tableTab.addEventListener("click", function () {
+        window.setTimeout(ensureTableRendered, 0);
+      });
       tableTab.addEventListener("shown.bs.tab", function () {
-        if (lastData.length) {
-          renderTable(lastData);
-        }
+        ensureTableRendered();
       });
     }
 
