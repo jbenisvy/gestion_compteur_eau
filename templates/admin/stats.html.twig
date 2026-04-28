@@ -10,7 +10,7 @@
   {{ parent() }}
   <link rel="stylesheet" href="{{ asset('vendor/tabulator/tabulator.min.css') }}">
   <link rel="stylesheet" href="{{ asset('vendor/pivottable/pivot.min.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/admin_stats.css') }}?v=20260429-0205">
+  <link rel="stylesheet" href="{{ asset('css/admin_stats.css') }}?v=20260429-0535">
 {% endblock %}
 
 {% block javascripts %}
@@ -20,7 +20,7 @@
   <script src="{{ asset('vendor/pivottable/pivot.min.js') }}" defer></script>
   <script src="{{ asset('vendor/tabulator/tabulator.min.js') }}" defer></script>
   <script src="{{ asset('vendor/xlsx/xlsx.full.min.js') }}" defer></script>
-  <script src="{{ asset('js/admin_stats.js') }}?v=20260429-0515" defer></script>
+  <script src="{{ asset('js/admin_stats.js') }}?v=20260429-0535" defer></script>
 {% endblock %}
 
 {% block body %}
@@ -99,17 +99,20 @@
       </div>
     </div>
 
-    <ul class="nav nav-pills stats-nav" id="statsWorkspaceTabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="stats-detail-tab" data-bs-toggle="pill" data-bs-target="#stats-detail-pane" type="button" role="tab" aria-controls="stats-detail-pane" aria-selected="true">1. Rapport détaillé</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="stats-table-tab" data-bs-toggle="pill" data-bs-target="#stats-table-pane" type="button" role="tab" aria-controls="stats-table-pane" aria-selected="false">2. Tableau exportable</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="stats-pivot-tab" data-bs-toggle="pill" data-bs-target="#stats-pivot-pane" type="button" role="tab" aria-controls="stats-pivot-pane" aria-selected="false">3. Analyse croisée</button>
-      </li>
-    </ul>
+    <div class="stats-tabs-bar">
+      <ul class="nav nav-pills stats-nav" id="statsWorkspaceTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="stats-detail-tab" data-bs-toggle="pill" data-bs-target="#stats-detail-pane" type="button" role="tab" aria-controls="stats-detail-pane" aria-selected="true">1. Rapport détaillé</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="stats-table-tab" data-bs-toggle="pill" data-bs-target="#stats-table-pane" type="button" role="tab" aria-controls="stats-table-pane" aria-selected="false">2. Tableau exportable</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="stats-pivot-tab" data-bs-toggle="pill" data-bs-target="#stats-pivot-pane" type="button" role="tab" aria-controls="stats-pivot-pane" aria-selected="false">3. Analyse croisée</button>
+        </li>
+      </ul>
+      <button class="btn btn-primary stats-tabs-refresh" id="statsRefreshInlineBtn" type="button">Actualiser</button>
+    </div>
 
     <div class="tab-content stats-tab-content" id="statsWorkspaceTabContent">
       <section class="tab-pane fade show active stats-detail" id="stats-detail-pane" role="tabpanel" aria-labelledby="stats-detail-tab" tabindex="0">

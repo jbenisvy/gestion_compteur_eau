@@ -12,6 +12,18 @@
   margin: 14px 0 18px;
 }
 
+.stats-tabs-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stats-tabs-refresh {
+  white-space: nowrap;
+}
+
 .stats-nav .nav-link {
   border-radius: 999px;
   border: 1px solid #d9d2c4;
@@ -255,13 +267,22 @@
 }
 
 @media (max-width: 991.98px) {
+  .stats-tabs-bar {
+    align-items: stretch;
+  }
+
   .stats-nav {
     flex-direction: column;
+    width: 100%;
   }
 
   .stats-nav .nav-link {
     width: 100%;
     text-align: left;
+  }
+
+  .stats-tabs-refresh {
+    width: 100%;
   }
 
   .stats-pivot-controls,

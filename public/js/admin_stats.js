@@ -1016,6 +1016,12 @@
     qs("statsRefreshBtn").addEventListener("click", function () {
       refreshAll();
     });
+    var inlineRefreshBtn = qs("statsRefreshInlineBtn");
+    if (inlineRefreshBtn) {
+      inlineRefreshBtn.addEventListener("click", function () {
+        refreshAll();
+      });
+    }
     qs("statsYear").addEventListener("change", function () {
       refreshStandardOnly();
     });
