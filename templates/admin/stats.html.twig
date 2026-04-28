@@ -20,7 +20,7 @@
   <script src="{{ asset('vendor/pivottable/pivot.min.js') }}" defer></script>
   <script src="{{ asset('vendor/tabulator/tabulator.min.js') }}" defer></script>
   <script src="{{ asset('vendor/xlsx/xlsx.full.min.js') }}" defer></script>
-  <script src="{{ asset('js/admin_stats.js') }}?v=20260429-0035" defer></script>
+  <script src="{{ asset('js/admin_stats.js') }}?v=20260429-0115" defer></script>
 {% endblock %}
 
 {% block body %}
@@ -44,24 +44,13 @@
   <section class="card stats-filters">
     <div class="filters-row">
       <div class="filter-block">
-        <label for="statsYears">Années</label>
-        <select id="statsYears" multiple size="5">
+        <label for="statsYear">Année</label>
+        <select id="statsYear">
+          <option value="">Toutes</option>
           {% for y in years %}
             <option value="{{ y }}" {{ y == defaultYear ? 'selected' : '' }}>{{ y }}</option>
           {% endfor %}
         </select>
-        <div class="stats-pivot-buttons">
-          <button class="btn btn-ghost" id="statsYearsAllBtn" type="button">Toutes</button>
-          <button class="btn btn-ghost" id="statsYearsClearBtn" type="button">Aucune</button>
-        </div>
-      </div>
-      <div class="filter-block">
-        <label for="statsYearFrom">De</label>
-        <input id="statsYearFrom" type="number" placeholder="2018">
-      </div>
-      <div class="filter-block">
-        <label for="statsYearTo">À</label>
-        <input id="statsYearTo" type="number" placeholder="2025">
       </div>
       <div class="filter-block">
         <label for="statsSearch">Recherche</label>
@@ -146,6 +135,18 @@
           <select id="statsPivotSaved">
             <option value="">Aucun</option>
           </select>
+        </div>
+        <div class="filter-block">
+          <label for="statsPivotYears">Années pivot</label>
+          <select id="statsPivotYears" multiple size="5">
+            {% for y in years %}
+              <option value="{{ y }}" {{ y == defaultYear ? 'selected' : '' }}>{{ y }}</option>
+            {% endfor %}
+          </select>
+          <div class="stats-pivot-buttons">
+            <button class="btn btn-ghost" id="statsPivotYearsAllBtn" type="button">Toutes</button>
+            <button class="btn btn-ghost" id="statsPivotYearsClearBtn" type="button">Aucune</button>
+          </div>
         </div>
         <div class="stats-pivot-buttons">
           {% if canManagePivotPresets %}

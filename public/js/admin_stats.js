@@ -3,6 +3,7 @@
 
   var table = null;
   var lastData = [];
+  var lastPivotData = [];
   var currentGlobalFilter = null;
   var pivotState = null;
   var activeSavedPivot = "";
@@ -18,19 +19,28 @@
     return document.getElementById(id);
   }
 
-  function getFilters() {
-    var years = getSelectedYears();
-    var from = qs("statsYearFrom").value;
-    var to = qs("statsYearTo").value;
+  function getStandardFilters() {
+    var year = qs("statsYear").value;
+    var params = {};
+    if (year) {
+      params.annee = year;
+    }
 
+    params.include_supprime = qs("includeSupprime").checked ? "1" : "0";
+    params.include_inactif = qs("includeInactif").checked ? "1" : "0";
+    params.include_forfait = qs("includeForfait").checked ? "1" : "0";
+    params.include_grise = qs("includeGrise").checked ? "1" : "0";
+
+    return params;
+  }
+
+  function getPivotFilters() {
+    var years = getSelectedPivotYears();
     var params = {};
     if (years.length === 1) {
       params.annee = years[0];
     } else if (years.length > 1) {
       params.annees = years.join(",");
-    } else {
-      if (from) params.from = from;
-      if (to) params.to = to;
     }
 
     params.include_supprime = qs("includeSupprime").checked ? "1" : "0";
@@ -56,9 +66,7 @@
     } else if (params.annee) {
       parts.push("Annee: " + params.annee);
     } else {
-      if (params.from) parts.push("De: " + params.from);
-      if (params.to) parts.push("A: " + params.to);
-      if (!params.from && !params.to) parts.push("Annees: toutes");
+      parts.push("Annees: toutes");
     }
     parts.push("Supprimes: " + (params.include_supprime === "1" ? "oui" : "non"));
     parts.push("Inactifs: " + (params.include_inactif === "1" ? "oui" : "non"));
@@ -75,12 +83,22 @@
   }
 
   function fetchData() {
-    var params = getFilters();
+    var params = getStandardFilters();
     setPrintMeta(params);
     var url = buildUrl("/admin/stats/data", params);
     return fetch(url, { headers: { "Accept": "application/json" } })
       .then(function (r) {
         if (!r.ok) throw new Error("Erreur chargement stats");
+        return r.json();
+      });
+  }
+
+  function fetchPivotData() {
+    var params = getPivotFilters();
+    var url = buildUrl("/admin/stats/data", params);
+    return fetch(url, { headers: { "Accept": "application/json" } })
+      .then(function (r) {
+        if (!r.ok) throw new Error("Erreur chargement pivot");
         return r.json();
       });
   }
@@ -364,8 +382,7 @@
     var notice = qs("statsDetailNotice");
     if (!container) return;
 
-    var selectedYears = getSelectedYears();
-    var year = selectedYears.length === 1 ? String(selectedYears[0]) : "";
+    var year = qs("statsYear") ? qs("statsYear").value : "";
     if (!year) {
       if (notice) notice.hidden = false;
       container.innerHTML = "";
@@ -527,8 +544,7 @@
       return;
     }
 
-    var selectedYears = getSelectedYears();
-    var year = selectedYears.length === 1 ? String(selectedYears[0]) : "";
+    var year = qs("statsYear") ? qs("statsYear").value : "";
     if (!year) {
       alert("Choisis d'abord une seule annee pour exporter le rapport detaille.");
       return;
@@ -659,13 +675,16 @@
       pivot.innerHTML = "<div class=\"muted\">Chargement de l'analyse croisee…</div>";
     }
 
-    fetchData()
-      .then(function (payload) {
+    Promise.all([fetchData(), fetchPivotData()])
+      .then(function (results) {
+        var payload = results[0] || {};
+        var pivotPayload = results[1] || {};
         lastData = payload.rows || [];
+        lastPivotData = pivotPayload.rows || [];
         renderTable(lastData);
         renderDetailTable(lastData);
         window.setTimeout(function () {
-          renderPivot(lastData);
+          renderPivot(lastPivotData);
         }, 0);
       })
       .catch(function () {
@@ -673,8 +692,8 @@
       });
   }
 
-  function getSelectedYears() {
-    var select = qs("statsYears");
+  function getSelectedPivotYears() {
+    var select = qs("statsPivotYears");
     if (!select) return [];
     return Array.prototype.slice.call(select.options)
       .filter(function (option) { return option.selected; })
@@ -682,8 +701,8 @@
       .filter(function (value) { return value !== ""; });
   }
 
-  function setSelectedYears(values) {
-    var select = qs("statsYears");
+  function setSelectedPivotYears(values) {
+    var select = qs("statsPivotYears");
     if (!select) return;
     var wanted = {};
     (values || []).forEach(function (value) {
@@ -869,7 +888,7 @@
     var entry = saved[name];
     if (!entry || !entry.config) return;
     activeSavedPivot = name;
-    renderPivot(lastData, entry.config);
+    renderPivot(lastPivotData, entry.config);
   }
 
   function deleteSavedPivot(name) {
@@ -920,35 +939,21 @@
     qs("statsRefreshBtn").addEventListener("click", function () {
       refreshAll();
     });
-    qs("statsYears").addEventListener("change", function () {
-      if (getSelectedYears().length > 0) {
-        qs("statsYearFrom").value = "";
-        qs("statsYearTo").value = "";
-      }
-    });
-
-    var yearsAllBtn = qs("statsYearsAllBtn");
+    var yearsAllBtn = qs("statsPivotYearsAllBtn");
     if (yearsAllBtn) {
       yearsAllBtn.addEventListener("click", function () {
-        var select = qs("statsYears");
+        var select = qs("statsPivotYears");
         if (!select) return;
-        setSelectedYears(Array.prototype.slice.call(select.options).map(function (option) { return option.value; }));
+        setSelectedPivotYears(Array.prototype.slice.call(select.options).map(function (option) { return option.value; }));
       });
     }
 
-    var yearsClearBtn = qs("statsYearsClearBtn");
+    var yearsClearBtn = qs("statsPivotYearsClearBtn");
     if (yearsClearBtn) {
       yearsClearBtn.addEventListener("click", function () {
-        setSelectedYears([]);
+        setSelectedPivotYears([]);
       });
     }
-
-    qs("statsYearFrom").addEventListener("change", function () {
-      setSelectedYears([]);
-    });
-    qs("statsYearTo").addEventListener("change", function () {
-      setSelectedYears([]);
-    });
 
     qs("statsSearch").addEventListener("input", function (e) {
       applyGlobalSearch(e.target.value);
@@ -965,8 +970,17 @@
         activeSavedPivot = "";
         var savedSelect = qs("statsPivotSaved");
         if (savedSelect) savedSelect.value = "";
-        renderPivot(lastData);
+        renderPivot(lastPivotData);
         syncPivotSaveControls();
+      });
+    }
+
+    var pivotYears = qs("statsPivotYears");
+    if (pivotYears) {
+      pivotYears.addEventListener("change", function () {
+        activeSavedPivot = "";
+        var savedSelect = qs("statsPivotSaved");
+        if (savedSelect) savedSelect.value = "";
       });
     }
 
@@ -1037,7 +1051,7 @@
     }
 
     qs("statsPdfBtn").addEventListener("click", function () {
-      var params = getFilters();
+      var params = getStandardFilters();
       var url = buildUrl("/admin/stats/pdf", params);
       window.open(url, "_blank");
     });
@@ -1057,6 +1071,7 @@
     }
     table = null;
     lastData = [];
+    lastPivotData = [];
     currentGlobalFilter = null;
     pivotState = null;
     activeSavedPivot = "";
