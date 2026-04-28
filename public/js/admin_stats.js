@@ -572,6 +572,29 @@
     XLSX.writeFile(workbook, "statistiques-detail-" + year + ".xlsx");
   }
 
+  function exportCurrentPivotToExcel() {
+    if (typeof XLSX === "undefined" || !XLSX.utils) {
+      alert("Export Excel indisponible.");
+      return;
+    }
+
+    var pivotRoot = qs("statsPivot");
+    if (!pivotRoot) {
+      alert("Tableau croise indisponible.");
+      return;
+    }
+
+    var pivotTable = pivotRoot.querySelector("table.pvtTable");
+    if (!pivotTable) {
+      alert("Aucun tableau croise affichable a exporter.");
+      return;
+    }
+
+    var preset = getPivotPreset() || "pivot";
+    var workbook = XLSX.utils.table_to_book(pivotTable, { sheet: sanitizeSheetName("Pivot " + preset) });
+    XLSX.writeFile(workbook, "statistiques-pivot-" + preset + ".xlsx");
+  }
+
   function getNatureKey(row) {
     var value = (row.compteur_nature || row.consommation_type || "").toString().toLowerCase();
     if (value === "ec" || value.indexOf("chaud") !== -1 || value.indexOf("eau chaude") !== -1) {
@@ -943,6 +966,11 @@
       exportBtn.addEventListener("click", function () {
         window.open("/admin/stats/pivots/export", "_blank");
       });
+    }
+
+    var pivotExcelBtn = qs("statsPivotExcelBtn");
+    if (pivotExcelBtn) {
+      pivotExcelBtn.addEventListener("click", exportCurrentPivotToExcel);
     }
 
       qs("statsXlsxBtn").addEventListener("click", function () {
