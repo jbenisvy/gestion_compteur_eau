@@ -43,6 +43,7 @@ class AdminStatsController extends AbstractController
             'years' => $years,
             'defaultYear' => $years[count($years) - 1] ?? (int)date('Y'),
             'isReadOnlyViewer' => !$this->isGranted('ROLE_ADMIN'),
+            'canManagePivotPresets' => $this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_SYNDIC'),
         ]);
     }
 

@@ -20,7 +20,7 @@
   <script src="{{ asset('vendor/pivottable/pivot.min.js') }}" defer></script>
   <script src="{{ asset('vendor/tabulator/tabulator.min.js') }}" defer></script>
   <script src="{{ asset('vendor/xlsx/xlsx.full.min.js') }}" defer></script>
-  <script src="{{ asset('js/admin_stats.js') }}?v=20260428-2205" defer></script>
+  <script src="{{ asset('js/admin_stats.js') }}?v=20260428-2310" defer></script>
 {% endblock %}
 
 {% block body %}
@@ -145,7 +145,7 @@
           </select>
         </div>
         <div class="stats-pivot-buttons">
-          {% if not isReadOnlyViewer %}
+          {% if canManagePivotPresets %}
             <div class="filter-block">
               <label for="statsPivotName">Nom</label>
               <input id="statsPivotName" type="text" placeholder="Mon tableau">
@@ -153,7 +153,7 @@
             <button class="btn btn-ghost" id="statsPivotSaveBtn">Enregistrer</button>
           {% endif %}
           <button class="btn btn-ghost" id="statsPivotExportBtn">Exporter mes tableaux</button>
-          {% if not isReadOnlyViewer %}
+          {% if canManagePivotPresets %}
             <button class="btn btn-ghost" id="statsPivotDeleteBtn" disabled>Supprimer</button>
           {% endif %}
         </div>

@@ -650,18 +650,37 @@
     }
   }
 
+  function loadLocalSavedPivots() {
+    if (!canUseStorage()) {
+      return {};
+    }
+    var raw = window.localStorage.getItem(pivotStorageKey);
+    if (!raw) {
+      return {};
+    }
+    try {
+      var parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
   function readSavedPivots() {
     return savedPivotCache || {};
   }
 
   function writeSavedPivots(map) {
     savedPivotCache = map || {};
-    if (hasRemoteStorage) return;
     if (!canUseStorage()) return;
     window.localStorage.setItem(pivotStorageKey, JSON.stringify(savedPivotCache));
   }
 
   function fetchSavedPivots() {
+    savedPivotCache = loadLocalSavedPivots();
+    refreshSavedPivotSelect();
+    syncPivotSaveControls();
+
     return fetch("/admin/stats/pivots", { headers: { "Accept": "application/json" } })
       .then(function (r) {
         if (!r.ok) throw new Error("load_failed");
@@ -669,31 +688,28 @@
       })
       .then(function (payload) {
         hasRemoteStorage = true;
-        savedPivotCache = payload.items || {};
+        savedPivotCache = extendPivotConfig(savedPivotCache, payload.items || {});
+        writeSavedPivots(savedPivotCache);
         refreshSavedPivotSelect();
         syncPivotSaveControls();
       })
       .catch(function () {
         hasRemoteStorage = false;
-        // fallback localStorage
-        if (!canUseStorage()) {
-          savedPivotCache = {};
-          return;
-        }
-        var raw = window.localStorage.getItem(pivotStorageKey);
-        if (!raw) {
-          savedPivotCache = {};
-          return;
-        }
-        try {
-          var parsed = JSON.parse(raw);
-          savedPivotCache = parsed && typeof parsed === "object" ? parsed : {};
-        } catch (e) {
-          savedPivotCache = {};
-        }
+        savedPivotCache = loadLocalSavedPivots();
         refreshSavedPivotSelect();
         syncPivotSaveControls();
       });
+  }
+
+  function parseJsonSafely(response) {
+    return response.text().then(function (text) {
+      if (!text) return {};
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        return { message: text };
+      }
+    });
   }
 
   function refreshSavedPivotSelect() {
@@ -752,21 +768,35 @@
     if (hasRemoteStorage) {
       fetch("/admin/stats/pivots", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({ name: name, config: state })
       })
         .then(function (r) {
-          if (!r.ok) throw new Error("save_failed");
-          return r.json();
+          return parseJsonSafely(r).then(function (payload) {
+            if (!r.ok) {
+              var message = payload && payload.message ? payload.message : "save_failed";
+              throw new Error(message);
+            }
+            return payload;
+          });
         })
         .then(function (payload) {
-          savedPivotCache = payload.items || {};
+          savedPivotCache = extendPivotConfig(loadLocalSavedPivots(), payload.items || {});
+          writeSavedPivots(savedPivotCache);
           activeSavedPivot = name;
           refreshSavedPivotSelect();
           syncPivotSaveControls();
         })
-        .catch(function () {
-          alert("Impossible d'enregistrer le tableau memorise.");
+        .catch(function (e) {
+          saved[name] = {
+            config: state,
+            savedAt: new Date().toISOString(),
+          };
+          writeSavedPivots(saved);
+          activeSavedPivot = name;
+          refreshSavedPivotSelect();
+          syncPivotSaveControls();
+          alert("Enregistrement serveur indisponible. Le tableau a ete memorise sur ce navigateur. Detail: " + (e && e.message ? e.message : "Erreur inconnue."));
         });
       return;
     }
@@ -799,17 +829,30 @@
     if (hasRemoteStorage) {
       fetch("/admin/stats/pivots/" + encodeURIComponent(name), { method: "DELETE" })
         .then(function (r) {
-          if (!r.ok) throw new Error("delete_failed");
-          return r.json();
+          return parseJsonSafely(r).then(function (payload) {
+            if (!r.ok) {
+              var message = payload && payload.message ? payload.message : "delete_failed";
+              throw new Error(message);
+            }
+            return payload;
+          });
         })
         .then(function (payload) {
-          savedPivotCache = payload.items || {};
+          var localSaved = loadLocalSavedPivots();
+          delete localSaved[name];
+          savedPivotCache = extendPivotConfig(localSaved, payload.items || {});
+          writeSavedPivots(savedPivotCache);
           activeSavedPivot = "";
           refreshSavedPivotSelect();
           syncPivotSaveControls();
         })
-        .catch(function () {
-          alert("Impossible de supprimer le tableau memorise.");
+        .catch(function (e) {
+          delete saved[name];
+          writeSavedPivots(saved);
+          activeSavedPivot = "";
+          refreshSavedPivotSelect();
+          syncPivotSaveControls();
+          alert("Suppression serveur indisponible. Le tableau a ete retire de ce navigateur. Detail: " + (e && e.message ? e.message : "Erreur inconnue."));
         });
       return;
     }

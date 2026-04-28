@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\Stats\StatsPivotStorage;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,9 +42,9 @@ final class AdminStatsPivotController extends AbstractController
     }
 
     #[Route('/admin/stats/pivots', name: 'admin_stats_pivots_save', methods: ['POST'])]
-    public function save(Request $request, StatsPivotStorage $storage): JsonResponse
+    public function save(Request $request, StatsPivotStorage $storage, LoggerInterface $logger): JsonResponse
     {
-        $this->denyUnlessAdmin();
+        $this->denyUnlessAdminOrSyndic();
 
         $user = $this->getUser();
         if (!$user instanceof \App\Entity\User) {
@@ -66,22 +67,47 @@ final class AdminStatsPivotController extends AbstractController
             $items = $storage->saveForUser($user, $name, $sanitized);
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse(['error' => 'invalid_name'], Response::HTTP_BAD_REQUEST);
+        } catch (\Throwable $e) {
+            $logger->error('Echec sauvegarde preset pivot.', [
+                'user_id' => $user->getId(),
+                'name' => $name,
+                'exception' => $e,
+            ]);
+
+            return new JsonResponse([
+                'error' => 'save_failed',
+                'message' => 'Erreur lors de la sauvegarde du tableau.',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return new JsonResponse(['items' => $items]);
     }
 
     #[Route('/admin/stats/pivots/{name}', name: 'admin_stats_pivots_delete', methods: ['DELETE'])]
-    public function delete(string $name, StatsPivotStorage $storage): JsonResponse
+    public function delete(string $name, StatsPivotStorage $storage, LoggerInterface $logger): JsonResponse
     {
-        $this->denyUnlessAdmin();
+        $this->denyUnlessAdminOrSyndic();
 
         $user = $this->getUser();
         if (!$user instanceof \App\Entity\User) {
             return new JsonResponse(['error' => 'unauthorized'], Response::HTTP_FORBIDDEN);
         }
 
-        $items = $storage->deleteForUser($user, $name);
+        try {
+            $items = $storage->deleteForUser($user, $name);
+        } catch (\Throwable $e) {
+            $logger->error('Echec suppression preset pivot.', [
+                'user_id' => $user->getId(),
+                'name' => $name,
+                'exception' => $e,
+            ]);
+
+            return new JsonResponse([
+                'error' => 'delete_failed',
+                'message' => 'Erreur lors de la suppression du tableau.',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
         return new JsonResponse(['items' => $items]);
     }
 
@@ -122,13 +148,6 @@ final class AdminStatsPivotController extends AbstractController
             }
         }
         return $clean;
-    }
-
-    private function denyUnlessAdmin(): void
-    {
-        if (!$this->isGranted('ROLE_ADMIN')) {
-            throw $this->createAccessDeniedException();
-        }
     }
 
     private function denyUnlessAdminOrSyndic(): void
