@@ -20,7 +20,7 @@
   <script src="{{ asset('vendor/pivottable/pivot.min.js') }}" defer></script>
   <script src="{{ asset('vendor/tabulator/tabulator.min.js') }}" defer></script>
   <script src="{{ asset('vendor/xlsx/xlsx.full.min.js') }}" defer></script>
-  <script src="{{ asset('js/admin_stats.js') }}?v=20260428-2345" defer></script>
+  <script src="{{ asset('js/admin_stats.js') }}?v=20260429-0005" defer></script>
 {% endblock %}
 
 {% block body %}
@@ -44,13 +44,16 @@
   <section class="card stats-filters">
     <div class="filters-row">
       <div class="filter-block">
-        <label for="statsYear">Année</label>
-        <select id="statsYear">
-          <option value="">Toutes</option>
+        <label for="statsYears">Années</label>
+        <select id="statsYears" multiple size="5">
           {% for y in years %}
             <option value="{{ y }}" {{ y == defaultYear ? 'selected' : '' }}>{{ y }}</option>
           {% endfor %}
         </select>
+        <div class="stats-pivot-buttons">
+          <button class="btn btn-ghost" id="statsYearsAllBtn" type="button">Toutes</button>
+          <button class="btn btn-ghost" id="statsYearsClearBtn" type="button">Aucune</button>
+        </div>
       </div>
       <div class="filter-block">
         <label for="statsYearFrom">De</label>

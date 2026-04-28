@@ -19,13 +19,15 @@
   }
 
   function getFilters() {
-    var year = qs("statsYear").value;
+    var years = getSelectedYears();
     var from = qs("statsYearFrom").value;
     var to = qs("statsYearTo").value;
 
     var params = {};
-    if (year) {
-      params.annee = year;
+    if (years.length === 1) {
+      params.annee = years[0];
+    } else if (years.length > 1) {
+      params.annees = years.join(",");
     } else {
       if (from) params.from = from;
       if (to) params.to = to;
@@ -49,11 +51,14 @@
 
   function formatFiltersText(params) {
     var parts = [];
-    if (params.annee) {
+    if (params.annees) {
+      parts.push("Annees: " + params.annees);
+    } else if (params.annee) {
       parts.push("Annee: " + params.annee);
     } else {
       if (params.from) parts.push("De: " + params.from);
       if (params.to) parts.push("A: " + params.to);
+      if (!params.from && !params.to) parts.push("Annees: toutes");
     }
     parts.push("Supprimes: " + (params.include_supprime === "1" ? "oui" : "non"));
     parts.push("Inactifs: " + (params.include_inactif === "1" ? "oui" : "non"));
@@ -358,7 +363,8 @@
     var notice = qs("statsDetailNotice");
     if (!container) return;
 
-    var year = qs("statsYear") ? qs("statsYear").value : "";
+    var selectedYears = getSelectedYears();
+    var year = selectedYears.length === 1 ? String(selectedYears[0]) : "";
     if (!year) {
       if (notice) notice.hidden = false;
       container.innerHTML = "";
@@ -520,9 +526,10 @@
       return;
     }
 
-    var year = qs("statsYear") ? qs("statsYear").value : "";
+    var selectedYears = getSelectedYears();
+    var year = selectedYears.length === 1 ? String(selectedYears[0]) : "";
     if (!year) {
-      alert("Choisis d'abord une annee pour exporter le rapport detaille.");
+      alert("Choisis d'abord une seule annee pour exporter le rapport detaille.");
       return;
     }
 
@@ -663,6 +670,27 @@
       .catch(function () {
         alert("Impossible de charger les statistiques.");
       });
+  }
+
+  function getSelectedYears() {
+    var select = qs("statsYears");
+    if (!select) return [];
+    return Array.prototype.slice.call(select.options)
+      .filter(function (option) { return option.selected; })
+      .map(function (option) { return option.value; })
+      .filter(function (value) { return value !== ""; });
+  }
+
+  function setSelectedYears(values) {
+    var select = qs("statsYears");
+    if (!select) return;
+    var wanted = {};
+    (values || []).forEach(function (value) {
+      wanted[String(value)] = true;
+    });
+    Array.prototype.slice.call(select.options).forEach(function (option) {
+      option.selected = !!wanted[String(option.value)];
+    });
   }
 
   function canUseStorage() {
@@ -891,18 +919,34 @@
     qs("statsRefreshBtn").addEventListener("click", function () {
       refreshAll();
     });
-    qs("statsYear").addEventListener("change", function () {
-      if (this.value) {
+    qs("statsYears").addEventListener("change", function () {
+      if (getSelectedYears().length > 0) {
         qs("statsYearFrom").value = "";
         qs("statsYearTo").value = "";
       }
     });
 
+    var yearsAllBtn = qs("statsYearsAllBtn");
+    if (yearsAllBtn) {
+      yearsAllBtn.addEventListener("click", function () {
+        var select = qs("statsYears");
+        if (!select) return;
+        setSelectedYears(Array.prototype.slice.call(select.options).map(function (option) { return option.value; }));
+      });
+    }
+
+    var yearsClearBtn = qs("statsYearsClearBtn");
+    if (yearsClearBtn) {
+      yearsClearBtn.addEventListener("click", function () {
+        setSelectedYears([]);
+      });
+    }
+
     qs("statsYearFrom").addEventListener("change", function () {
-      qs("statsYear").value = "";
+      setSelectedYears([]);
     });
     qs("statsYearTo").addEventListener("change", function () {
-      qs("statsYear").value = "";
+      setSelectedYears([]);
     });
 
     qs("statsSearch").addEventListener("input", function (e) {

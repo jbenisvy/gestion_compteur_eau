@@ -105,11 +105,17 @@ class AdminStatsController extends AbstractController
     }
 
     /**
-     * @return array{annee?:int, from?:int, to?:int}
+     * @return array{annee?:int, annees?:int[], from?:int, to?:int}
      */
     private function extractFilters(Request $request): array
     {
         $filters = [];
+
+        $annees = $this->asIntList($request->query->get('annees'));
+        if ($annees !== []) {
+            $filters['annees'] = $annees;
+            return $filters;
+        }
 
         $annee = $this->asInt($request->query->get('annee'));
         if ($annee !== null) {
@@ -150,6 +156,33 @@ class AdminStatsController extends AbstractController
             return (int)$value;
         }
         return null;
+    }
+
+    /**
+     * @return int[]
+     */
+    private function asIntList(mixed $value): array
+    {
+        if (is_string($value)) {
+            $value = array_filter(array_map('trim', explode(',', $value)), static fn (string $v): bool => $v !== '');
+        }
+
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $years = [];
+        foreach ($value as $item) {
+            if (!is_numeric($item)) {
+                continue;
+            }
+            $years[] = (int) $item;
+        }
+
+        $years = array_values(array_unique($years));
+        sort($years);
+
+        return $years;
     }
 
     private function asBool(mixed $value): bool

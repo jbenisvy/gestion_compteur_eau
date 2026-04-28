@@ -88,7 +88,7 @@ final class ExcelCompteursExportService
     }
 
     /**
-     * @param array{annee?:int, from?:int, to?:int, lot_id?:int, compteur_id?:int} $filters
+     * @param array{annee?:int, annees?:int[], from?:int, to?:int, lot_id?:int, compteur_id?:int} $filters
      * @return array<int, array<string, mixed>>
      */
     private function fetchRows(array $filters): array
@@ -96,7 +96,15 @@ final class ExcelCompteursExportService
         $where = [];
         $params = [];
 
-        if (isset($filters['annee'])) {
+        if (isset($filters['annees']) && is_array($filters['annees']) && $filters['annees'] !== []) {
+            $yearPlaceholders = [];
+            foreach (array_values($filters['annees']) as $index => $year) {
+                $placeholder = 'annee_' . $index;
+                $yearPlaceholders[] = ':' . $placeholder;
+                $params[$placeholder] = (int) $year;
+            }
+            $where[] = 'r.annee IN (' . implode(', ', $yearPlaceholders) . ')';
+        } elseif (isset($filters['annee'])) {
             $where[] = 'r.annee = :annee';
             $params['annee'] = (int)$filters['annee'];
         }
