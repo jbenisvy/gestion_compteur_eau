@@ -232,7 +232,7 @@
     var utils = $.pivotUtilities;
     var sum = utils.aggregatorTemplates.sum;
     var count = utils.aggregatorTemplates.count;
-    var numberFormat = utils.numberFormat({ digitsAfterDecimal: 2 });
+    var numberFormat = utils.numberFormat({ digitsAfterDecimal: 0 });
 
     if (preset === "conso_lot_annee") {
       return {
@@ -618,7 +618,7 @@
   function formatNumber(value) {
     var num = parseFloat(value);
     if (isNaN(num)) return "-";
-    return num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    return num.toLocaleString(undefined, { maximumFractionDigits: 0 });
   }
 
   function formatMoney(value) {
