@@ -97,6 +97,8 @@
       { title: "Index N-1", field: "index_n_1", sorter: "number", headerFilter: "input" },
       { title: "Index N", field: "index_n", sorter: "number", headerFilter: "input" },
       { title: "Consommation", field: "consommation", sorter: "number", headerFilter: "input" },
+      { title: "Prix m3 applicable", field: "prix_m3_applicable", sorter: "number", headerFilter: "input" },
+      { title: "Valorisation EUR", field: "valorisation_eur", sorter: "number", headerFilter: "input" },
       { title: "Type conso", field: "consommation_type", headerFilter: "input" },
       { title: "Forfait", field: "forfait_applique", formatter: "tickCross", hozAlign: "center" },
       { title: "Valeur forfait", field: "forfait_valeur", sorter: "number", headerFilter: "input" },
@@ -250,6 +252,16 @@
         rendererName: "Table",
       };
     }
+    if (preset === "valorisation_copro_annee") {
+      return {
+        rows: ["proprietaire_nom"],
+        cols: ["annee"],
+        vals: ["valorisation_eur"],
+        aggregatorName: "Sum",
+        aggregator: sum(numberFormat)(["valorisation_eur"]),
+        rendererName: "Table",
+      };
+    }
     if (preset === "forfaits_annee") {
       return {
         rows: ["annee"],
@@ -371,17 +383,25 @@
             totalEF: 0,
             totalCuisine: 0,
             totalSdb: 0,
+            totalValorisation: 0,
+            totalValorisationEC: 0,
+            totalValorisationEF: 0,
           },
         };
       }
       var cons = parseFloat(r.consommation);
       cons = isNaN(cons) ? 0 : cons;
+      var valorisation = parseFloat(r.valorisation_eur);
+      valorisation = isNaN(valorisation) ? 0 : valorisation;
       grouped[key].rows.push(r);
       grouped[key].totals.totalCons += cons;
+      grouped[key].totals.totalValorisation += valorisation;
 
       var natureKey = getNatureKey(r);
       if (natureKey === "ec") grouped[key].totals.totalEC += cons;
       if (natureKey === "ef") grouped[key].totals.totalEF += cons;
+      if (natureKey === "ec") grouped[key].totals.totalValorisationEC += valorisation;
+      if (natureKey === "ef") grouped[key].totals.totalValorisationEF += valorisation;
 
       var emplKey = getEmplacementKey(r);
       if (emplKey === "cuisine") grouped[key].totals.totalCuisine += cons;
@@ -414,6 +434,7 @@
       html += "<th>Consommation</th>";
       html += "<th>Forfait</th>";
       html += "<th>Montant forfait</th>";
+      html += "<th>Valorisation EUR</th>";
       html += "</tr>";
       html += "</thead>";
       html += "<tbody>";
@@ -429,6 +450,7 @@
         html += "<td>" + (r.compteur_supprime ? "Compteur supprime" : formatNumber(r.consommation)) + "</td>";
         html += "<td>" + (r.forfait_applique ? "Oui" : "Non") + "</td>";
         html += "<td>" + (r.forfait_applique ? formatNumber(r.forfait_valeur) : "-") + "</td>";
+        html += "<td>" + formatMoney(r.valorisation_eur) + "</td>";
         html += "</tr>";
       });
 
@@ -438,6 +460,7 @@
       html += "<td colspan=\"6\" class=\"label\">Totaux lot</td>";
       html += "<td>" + formatNumber(group.totals.totalCons) + "</td>";
       html += "<td colspan=\"2\"></td>";
+      html += "<td>" + formatMoney(group.totals.totalValorisation) + "</td>";
       html += "</tr>";
       html += "<tr>";
       html += "<td colspan=\"3\" class=\"label\">Total EC (eau chaude)</td>";
@@ -445,6 +468,7 @@
       html += "<td colspan=\"2\" class=\"label\">Total EF (eau froide)</td>";
       html += "<td>" + formatNumber(group.totals.totalEF) + "</td>";
       html += "<td colspan=\"2\"></td>";
+      html += "<td>" + formatMoney(group.totals.totalValorisationEC + group.totals.totalValorisationEF) + "</td>";
       html += "</tr>";
       html += "<tr>";
       html += "<td colspan=\"3\" class=\"label\">Total cuisine</td>";
@@ -452,6 +476,14 @@
       html += "<td colspan=\"2\" class=\"label\">Total SDB</td>";
       html += "<td>" + formatNumber(group.totals.totalSdb) + "</td>";
       html += "<td colspan=\"2\"></td>";
+      html += "<td></td>";
+      html += "</tr>";
+      html += "<tr>";
+      html += "<td colspan=\"3\" class=\"label\">Valorisation EC</td>";
+      html += "<td>" + formatMoney(group.totals.totalValorisationEC) + "</td>";
+      html += "<td colspan=\"2\" class=\"label\">Valorisation EF</td>";
+      html += "<td>" + formatMoney(group.totals.totalValorisationEF) + "</td>";
+      html += "<td colspan=\"3\"></td>";
       html += "</tr>";
       html += "</tfoot>";
       html += "</table>";
@@ -517,6 +549,7 @@
       { wch: 14 },
       { wch: 10 },
       { wch: 16 },
+      { wch: 16 },
     ];
 
     var workbook = XLSX.utils.book_new();
@@ -548,6 +581,12 @@
     var num = parseFloat(value);
     if (isNaN(num)) return "-";
     return num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  }
+
+  function formatMoney(value) {
+    var num = parseFloat(value);
+    if (isNaN(num)) return "-";
+    return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " EUR";
   }
 
   function escapeHtml(value) {

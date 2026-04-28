@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace App\Service\Stats;
 
+use App\Repository\ParametreRepository;
 use App\Service\Export\ExcelCompteursExportService;
 
 final class StatsDatasetService
 {
-    private ExcelCompteursExportService $exportService;
+    /** @var array<int, array{ef:?float, ec:?float}> */
+    private array $pricesByYear = [];
 
-    public function __construct(ExcelCompteursExportService $exportService)
-    {
-        $this->exportService = $exportService;
+    public function __construct(
+        private readonly ExcelCompteursExportService $exportService,
+        private readonly ParametreRepository $parametreRepository,
+    ) {
     }
 
     /**
@@ -65,6 +68,8 @@ final class StatsDatasetService
             $row['compteur_supprime'] = $isSupprime;
             $row['index_masque'] = (bool)($row['index_masque'] ?? $isSupprime);
             $row['consommation_type'] = $isForfait ? 'forfait' : 'reelle';
+            $row['prix_m3_applicable'] = $this->resolveApplicablePrice($row);
+            $row['valorisation_eur'] = $this->computeValorisation($row);
 
             $filtered[] = $row;
         }
@@ -90,5 +95,56 @@ final class StatsDatasetService
     {
         $value = trim(mb_strtolower($value));
         return $value;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function resolveApplicablePrice(array $row): ?float
+    {
+        $year = $this->asInt($row['annee'] ?? null);
+        if ($year === null) {
+            return null;
+        }
+
+        if (!array_key_exists($year, $this->pricesByYear)) {
+            $prices = $this->parametreRepository->getPrixM3ForYear($year);
+            $this->pricesByYear[$year] = [
+                'ef' => isset($prices['ef']) && is_numeric($prices['ef']) ? (float) $prices['ef'] : null,
+                'ec' => isset($prices['prix_m3_ec']) && is_numeric($prices['prix_m3_ec'])
+                    ? (float) $prices['prix_m3_ec']
+                    : (isset($prices['ec']) && is_numeric($prices['ec']) ? (float) $prices['ec'] : null),
+            ];
+        }
+
+        $nature = strtoupper(trim((string) ($row['compteur_nature'] ?? '')));
+
+        return $nature === 'EF'
+            ? $this->pricesByYear[$year]['ef']
+            : $this->pricesByYear[$year]['ec'];
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function computeValorisation(array $row): ?float
+    {
+        $consommation = $row['consommation'] ?? null;
+        $prixM3 = $row['prix_m3_applicable'] ?? null;
+
+        if (!is_numeric($consommation) || !is_numeric($prixM3)) {
+            return null;
+        }
+
+        return round(max(0.0, (float) $consommation) * (float) $prixM3, 2);
+    }
+
+    private function asInt(mixed $value): ?int
+    {
+        if ($value === null || $value === '' || !is_numeric($value)) {
+            return null;
+        }
+
+        return (int) $value;
     }
 }
