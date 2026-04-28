@@ -10,7 +10,7 @@
   {{ parent() }}
   <link rel="stylesheet" href="{{ asset('vendor/tabulator/tabulator.min.css') }}">
   <link rel="stylesheet" href="{{ asset('vendor/pivottable/pivot.min.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/admin_stats.css') }}?v=20260428-2205">
+  <link rel="stylesheet" href="{{ asset('css/admin_stats.css') }}?v=20260429-0205">
 {% endblock %}
 
 {% block javascripts %}
@@ -20,7 +20,7 @@
   <script src="{{ asset('vendor/pivottable/pivot.min.js') }}" defer></script>
   <script src="{{ asset('vendor/tabulator/tabulator.min.js') }}" defer></script>
   <script src="{{ asset('vendor/xlsx/xlsx.full.min.js') }}" defer></script>
-  <script src="{{ asset('js/admin_stats.js') }}?v=20260429-0115" defer></script>
+  <script src="{{ asset('js/admin_stats.js') }}?v=20260429-0205" defer></script>
 {% endblock %}
 
 {% block body %}
@@ -91,80 +91,109 @@
     </div>
   </section>
 
-  <section class="card stats-table">
+  <section class="card stats-workspace">
     <div class="stats-section-head">
       <div>
-        <h2>Tableau dynamique</h2>
+        <h2>Espaces statistiques</h2>
+        <p class="muted">1. Rapport détaillé avec année visible. 2. Tableau exportable. 3. Tableaux croisés personnalisés.</p>
       </div>
-      <button class="btn btn-ghost" id="statsCopyTableBtn" type="button">Copier pour Excel</button>
     </div>
-    <div id="statsTable"></div>
-  </section>
 
-  <section class="card stats-detail">
-    <div class="stats-section-head">
-      <div>
-        <h2>Rapport détaillé par copropriétaire</h2>
-        <p class="muted">Sélectionne une année pour afficher le détail par compteur, avec totaux EC/EF et Cuisine/SDB/WC/Autre.</p>
-      </div>
-      <button class="btn btn-ghost" id="statsDetailXlsxBtn" type="button">Exporter ces tableaux Excel</button>
-    </div>
-    <div id="statsDetailNotice" class="stats-detail-notice" hidden>Choisis une année pour générer le rapport détaillé.</div>
-    <div id="statsDetailTable"></div>
-  </section>
+    <ul class="nav nav-pills stats-nav" id="statsWorkspaceTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="stats-detail-tab" data-bs-toggle="pill" data-bs-target="#stats-detail-pane" type="button" role="tab" aria-controls="stats-detail-pane" aria-selected="true">1. Rapport détaillé</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="stats-table-tab" data-bs-toggle="pill" data-bs-target="#stats-table-pane" type="button" role="tab" aria-controls="stats-table-pane" aria-selected="false">2. Tableau exportable</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="stats-pivot-tab" data-bs-toggle="pill" data-bs-target="#stats-pivot-pane" type="button" role="tab" aria-controls="stats-pivot-pane" aria-selected="false">3. Analyse croisée</button>
+      </li>
+    </ul>
 
-  <section class="card stats-pivot">
-    <div class="stats-pivot-head">
-      <div>
-        <h2>Analyse croisée</h2>
-        <p class="muted">Glisse-dépose les champs pour regrouper et agréger.</p>
-      </div>
-      <div class="stats-pivot-controls">
-        <div class="filter-block">
-          <label for="statsPivotPreset">Vue par défaut</label>
-          <select id="statsPivotPreset">
-            <option value="conso_copro_annee" selected>Conso par copro et année</option>
-            <option value="conso_lot_annee">Conso par lot et année</option>
-            <option value="conso_nature_annee">Conso par nature et année</option>
-            <option value="valorisation_copro_annee">Valorisation € par copro et année</option>
-            <option value="forfaits_annee">Forfaits par année</option>
-          </select>
-        </div>
-        <div class="filter-block">
-          <label for="statsPivotSaved">Tableaux mémorisés</label>
-          <select id="statsPivotSaved">
-            <option value="">Aucun</option>
-          </select>
-        </div>
-        <div class="filter-block">
-          <label for="statsPivotYears">Années pivot</label>
-          <select id="statsPivotYears" multiple size="5">
-            {% for y in years %}
-              <option value="{{ y }}" {{ y == defaultYear ? 'selected' : '' }}>{{ y }}</option>
-            {% endfor %}
-          </select>
-          <div class="stats-pivot-buttons">
-            <button class="btn btn-ghost" id="statsPivotYearsAllBtn" type="button">Toutes</button>
-            <button class="btn btn-ghost" id="statsPivotYearsClearBtn" type="button">Aucune</button>
+    <div class="tab-content stats-tab-content" id="statsWorkspaceTabContent">
+      <section class="tab-pane fade show active stats-detail" id="stats-detail-pane" role="tabpanel" aria-labelledby="stats-detail-tab" tabindex="0">
+        <div class="stats-section-head">
+          <div>
+            <h2>Rapport détaillé par copropriétaire</h2>
+            <p class="muted">Le filtre Année du haut pilote ce rapport. L’année de chaque ligne est affichée dans le tableau.</p>
+          </div>
+          <div class="stats-actions-inline">
+            <span class="badge text-bg-light border" id="statsDetailYearBadge">Année: {{ defaultYear }}</span>
+            <button class="btn btn-ghost" id="statsDetailXlsxBtn" type="button">Exporter ces tableaux Excel</button>
           </div>
         </div>
-        <div class="stats-pivot-buttons">
-          {% if canManagePivotPresets %}
-            <div class="filter-block">
-              <label for="statsPivotName">Nom</label>
-              <input id="statsPivotName" type="text" placeholder="Mon tableau">
-            </div>
-            <button class="btn btn-ghost" id="statsPivotSaveBtn">Enregistrer</button>
-          {% endif %}
-          <button class="btn btn-ghost" id="statsPivotExcelBtn">Exporter tableau Excel</button>
-          <button class="btn btn-ghost" id="statsPivotExportBtn">Exporter mes tableaux</button>
-          {% if canManagePivotPresets %}
-            <button class="btn btn-ghost" id="statsPivotDeleteBtn" disabled>Supprimer</button>
-          {% endif %}
+        <div id="statsDetailNotice" class="stats-detail-notice" hidden>Aucune donnée disponible pour le filtre d’année choisi.</div>
+        <div id="statsDetailTable"></div>
+      </section>
+
+      <section class="tab-pane fade stats-table" id="stats-table-pane" role="tabpanel" aria-labelledby="stats-table-tab" tabindex="0">
+        <div class="stats-section-head">
+          <div>
+            <h2>Tableau dynamique exportable</h2>
+            <p class="muted">Vue globale filtrée par l’année du haut, avec recherche, pagination et export Excel.</p>
+          </div>
+          <div class="stats-actions-inline">
+            <button class="btn btn-ghost" id="statsCopyTableBtn" type="button">Copier pour Excel</button>
+          </div>
         </div>
-      </div>
+        <div id="statsTable"></div>
+      </section>
+
+      <section class="tab-pane fade stats-pivot" id="stats-pivot-pane" role="tabpanel" aria-labelledby="stats-pivot-tab" tabindex="0">
+        <div class="stats-pivot-head">
+          <div>
+            <h2>Analyse croisée</h2>
+            <p class="muted">Le tableau croisé dispose de ses propres années indépendantes du filtre du haut.</p>
+          </div>
+          <div class="stats-pivot-controls">
+            <div class="filter-block">
+              <label for="statsPivotPreset">Vue par défaut</label>
+              <select id="statsPivotPreset">
+                <option value="conso_copro_annee" selected>Conso par copro et année</option>
+                <option value="conso_lot_annee">Conso par lot et année</option>
+                <option value="conso_nature_annee">Conso par nature et année</option>
+                <option value="valorisation_copro_annee">Valorisation € par copro et année</option>
+                <option value="forfaits_annee">Forfaits par année</option>
+              </select>
+            </div>
+            <div class="filter-block">
+              <label for="statsPivotSaved">Tableaux mémorisés</label>
+              <select id="statsPivotSaved">
+                <option value="">Aucun</option>
+              </select>
+            </div>
+            <div class="filter-block">
+              <label for="statsPivotYears">Années pivot</label>
+              <select id="statsPivotYears" multiple size="5">
+                {% for y in years %}
+                  <option value="{{ y }}" {{ y == defaultYear ? 'selected' : '' }}>{{ y }}</option>
+                {% endfor %}
+              </select>
+              <div class="stats-pivot-buttons">
+                <button class="btn btn-ghost" id="statsPivotYearsAllBtn" type="button">Toutes</button>
+                <button class="btn btn-ghost" id="statsPivotYearsClearBtn" type="button">Aucune</button>
+              </div>
+            </div>
+            <div class="stats-pivot-buttons">
+              {% if canManagePivotPresets %}
+                <div class="filter-block">
+                  <label for="statsPivotName">Nom</label>
+                  <input id="statsPivotName" type="text" placeholder="Mon tableau">
+                </div>
+                <button class="btn btn-ghost" id="statsPivotSaveBtn">Enregistrer</button>
+              {% endif %}
+              <button class="btn btn-ghost" id="statsPivotExcelBtn">Exporter tableau Excel</button>
+              <button class="btn btn-ghost" id="statsPivotExportBtn">Exporter mes tableaux</button>
+              {% if canManagePivotPresets %}
+                <button class="btn btn-ghost" id="statsPivotDeleteBtn" disabled>Supprimer</button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div id="statsPivot"></div>
+      </section>
     </div>
-    <div id="statsPivot"></div>
   </section>
 </section>
 {% endblock %}

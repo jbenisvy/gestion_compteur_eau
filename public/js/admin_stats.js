@@ -380,24 +380,22 @@
   function renderDetailTable(rows) {
     var container = qs("statsDetailTable");
     var notice = qs("statsDetailNotice");
+    var detailYearBadge = qs("statsDetailYearBadge");
     if (!container) return;
 
     var year = qs("statsYear") ? qs("statsYear").value : "";
-    if (!year) {
-      if (notice) notice.hidden = false;
-      container.innerHTML = "";
-      return;
+    if (detailYearBadge) {
+      detailYearBadge.textContent = year ? "Annee: " + year : "Annees: toutes";
     }
-    if (notice) notice.hidden = true;
 
-    var filtered = rows.filter(function (r) {
-      return String(r.annee) === String(year);
-    });
+    var filtered = rows.slice();
 
     if (!filtered.length) {
+      if (notice) notice.hidden = false;
       container.innerHTML = "<div class=\"muted\">Aucune donnee pour l'annee selectionnee.</div>";
       return;
     }
+    if (notice) notice.hidden = true;
 
     if (filtered.length > MAX_ROWS_FOR_DETAIL) {
       container.innerHTML = "<div class=\"muted\">Rapport detaille masque au-dela de " + MAX_ROWS_FOR_DETAIL + " lignes pour garder la page reactive. Reduis le filtre puis clique sur Actualiser.</div>";
@@ -464,6 +462,7 @@
       html += "<table class=\"stats-detail-table\">";
       html += "<thead>";
       html += "<tr>";
+      html += "<th>Annee</th>";
       html += "<th>Compteur</th>";
       html += "<th>Reference</th>";
       html += "<th>Nature (EC/EF)</th>";
@@ -480,6 +479,7 @@
 
       group.rows.forEach(function (r) {
         html += "<tr" + (r.compteur_supprime ? " class=\"row-supprime\"" : "") + ">";
+        html += "<td>" + escapeHtml(r.annee) + "</td>";
         html += "<td>" + escapeHtml(r.compteur_id) + "</td>";
         html += "<td>" + escapeHtml(r.compteur_reference) + "</td>";
         html += "<td>" + escapeHtml(r.compteur_nature) + "</td>";
@@ -496,13 +496,13 @@
       html += "</tbody>";
       html += "<tfoot>";
       html += "<tr>";
-      html += "<td colspan=\"6\" class=\"label\">Totaux lot</td>";
+      html += "<td colspan=\"7\" class=\"label\">Totaux lot</td>";
       html += "<td>" + formatNumber(group.totals.totalCons) + "</td>";
       html += "<td colspan=\"2\"></td>";
       html += "<td>" + formatMoney(group.totals.totalValorisation) + "</td>";
       html += "</tr>";
       html += "<tr>";
-      html += "<td colspan=\"3\" class=\"label\">Total EC (eau chaude)</td>";
+      html += "<td colspan=\"4\" class=\"label\">Total EC (eau chaude)</td>";
       html += "<td>" + formatNumber(group.totals.totalEC) + "</td>";
       html += "<td colspan=\"2\" class=\"label\">Total EF (eau froide)</td>";
       html += "<td>" + formatNumber(group.totals.totalEF) + "</td>";
@@ -510,7 +510,7 @@
       html += "<td>" + formatMoney(group.totals.totalValorisationEC + group.totals.totalValorisationEF) + "</td>";
       html += "</tr>";
       html += "<tr>";
-      html += "<td colspan=\"3\" class=\"label\">Total cuisine</td>";
+      html += "<td colspan=\"4\" class=\"label\">Total cuisine</td>";
       html += "<td>" + formatNumber(group.totals.totalCuisine) + "</td>";
       html += "<td colspan=\"2\" class=\"label\">Total SDB</td>";
       html += "<td>" + formatNumber(group.totals.totalSdb) + "</td>";
@@ -518,7 +518,7 @@
       html += "<td></td>";
       html += "</tr>";
       html += "<tr>";
-      html += "<td colspan=\"3\" class=\"label\">Valorisation EC</td>";
+      html += "<td colspan=\"4\" class=\"label\">Valorisation EC</td>";
       html += "<td>" + formatMoney(group.totals.totalValorisationEC) + "</td>";
       html += "<td colspan=\"2\" class=\"label\">Valorisation EF</td>";
       html += "<td>" + formatMoney(group.totals.totalValorisationEF) + "</td>";
@@ -545,11 +545,6 @@
     }
 
     var year = qs("statsYear") ? qs("statsYear").value : "";
-    if (!year) {
-      alert("Choisis d'abord une seule annee pour exporter le rapport detaille.");
-      return;
-    }
-
     var groups = Array.prototype.slice.call(document.querySelectorAll(".stats-detail-group"));
     if (!groups.length) {
       alert("Aucun tableau detaille a exporter.");
@@ -579,6 +574,7 @@
 
     var worksheet = XLSX.utils.aoa_to_sheet(aoa);
     worksheet["!cols"] = [
+      { wch: 10 },
       { wch: 12 },
       { wch: 20 },
       { wch: 16 },
@@ -592,8 +588,9 @@
     ];
 
     var workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, sanitizeSheetName("Detail " + year));
-    XLSX.writeFile(workbook, "statistiques-detail-" + year + ".xlsx");
+    var yearLabel = year || "toutes";
+    XLSX.utils.book_append_sheet(workbook, worksheet, sanitizeSheetName("Detail " + yearLabel));
+    XLSX.writeFile(workbook, "statistiques-detail-" + yearLabel + ".xlsx");
   }
 
   function exportCurrentPivotToExcel() {
