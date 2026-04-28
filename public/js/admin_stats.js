@@ -103,12 +103,12 @@
       { title: "Index masque", field: "index_masque", formatter: "tickCross", hozAlign: "center" },
       { title: "Index N-1", field: "index_n_1", sorter: "number", headerFilter: "input" },
       { title: "Index N", field: "index_n", sorter: "number", headerFilter: "input" },
-      { title: "Consommation", field: "consommation", sorter: "number", headerFilter: "input" },
-      { title: "Prix m3 applicable", field: "prix_m3_applicable", sorter: "number", headerFilter: "input" },
-      { title: "Valorisation EUR", field: "valorisation_eur", sorter: "number", headerFilter: "input" },
+      { title: "Consommation", field: "consommation", sorter: "number", headerFilter: "input", formatter: function (cell) { return formatNumber(cell.getValue()); } },
+      { title: "Prix m3 applicable", field: "prix_m3_applicable", sorter: "number", headerFilter: "input", formatter: function (cell) { return formatMoney(cell.getValue()); } },
+      { title: "Valorisation EUR", field: "valorisation_eur", sorter: "number", headerFilter: "input", formatter: function (cell) { return formatMoney(cell.getValue()); } },
       { title: "Type conso", field: "consommation_type", headerFilter: "input" },
       { title: "Forfait", field: "forfait_applique", formatter: "tickCross", hozAlign: "center" },
-      { title: "Valeur forfait", field: "forfait_valeur", sorter: "number", headerFilter: "input" },
+      { title: "Valeur forfait", field: "forfait_valeur", sorter: "number", headerFilter: "input", formatter: function (cell) { return formatNumber(cell.getValue()); } },
       { title: "Motif forfait", field: "forfait_motif", headerFilter: "input" },
       { title: "Commentaire", field: "commentaire", headerFilter: "input" },
       { title: "Emplacement norm", field: "compteur_emplacement_norm", visible: false },
@@ -237,7 +237,8 @@
     var utils = $.pivotUtilities;
     var sum = utils.aggregatorTemplates.sum;
     var count = utils.aggregatorTemplates.count;
-    var numberFormat = utils.numberFormat({ digitsAfterDecimal: 0 });
+    var numberFormatM3 = utils.numberFormat({ digitsAfterDecimal: 0 });
+    var numberFormatMoney = utils.numberFormat({ digitsAfterDecimal: 2 });
 
     if (preset === "conso_lot_annee") {
       return {
@@ -245,7 +246,7 @@
         cols: ["annee"],
         vals: ["consommation"],
         aggregatorName: "Sum",
-        aggregator: sum(numberFormat)(["consommation"]),
+        aggregator: sum(numberFormatM3)(["consommation"]),
         rendererName: "Table",
       };
     }
@@ -255,7 +256,7 @@
         cols: ["annee"],
         vals: ["consommation"],
         aggregatorName: "Sum",
-        aggregator: sum(numberFormat)(["consommation"]),
+        aggregator: sum(numberFormatM3)(["consommation"]),
         rendererName: "Table",
       };
     }
@@ -265,7 +266,7 @@
         cols: ["annee"],
         vals: ["valorisation_eur"],
         aggregatorName: "Sum",
-        aggregator: sum(numberFormat)(["valorisation_eur"]),
+        aggregator: sum(numberFormatMoney)(["valorisation_eur"]),
         rendererName: "Table",
       };
     }
@@ -275,7 +276,7 @@
         cols: ["compteur_nature"],
         vals: ["forfait_valeur"],
         aggregatorName: "Sum",
-        aggregator: sum(numberFormat)(["forfait_valeur"]),
+        aggregator: sum(numberFormatM3)(["forfait_valeur"]),
         rendererName: "Table",
       };
     }
@@ -286,7 +287,7 @@
       cols: ["annee"],
       vals: ["consommation"],
       aggregatorName: "Sum",
-      aggregator: sum(numberFormat)(["consommation"]),
+      aggregator: sum(numberFormatM3)(["consommation"]),
       rendererName: "Table",
     };
   }

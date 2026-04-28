@@ -1,5 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr">
+  {% macro m3(value) %}
+    {{ value|default(0)|round(0, 'common')|number_format(0, ',', ' ') }}
+  {% endmacro %}
+  {% macro money(value) %}
+    {{ value|default(0)|number_format(2, ',', ' ') }} €
+  {% endmacro %}
   <head>
     <meta charset="UTF-8">
     <style>
@@ -41,6 +47,7 @@
     </style>
   </head>
   <body>
+    {% import _self as fmt %}
     <h1>Statistiques</h1>
     <div class="meta">
       Genere le {{ generatedAt|date('d/m/Y H:i') }}
@@ -79,8 +86,8 @@
             <td>{{ row.compteur_nature }}</td>
             <td>{{ row.compteur_emplacement }}</td>
             <td>{{ row.compteur_supprime ? 'compteur supprimé' : row.compteur_statut }}</td>
-            <td>{{ row.compteur_supprime ? 'compteur supprimé' : row.consommation }}</td>
-            <td>{{ row.forfait_applique ? (row.forfait_valeur ?? 'oui') : 'non' }}</td>
+            <td>{{ row.compteur_supprime ? 'compteur supprimé' : fmt.m3(row.consommation) }}</td>
+            <td>{{ row.forfait_applique ? fmt.m3(row.forfait_valeur) : 'non' }}</td>
           </tr>
         {% else %}
           <tr><td colspan="11">Aucune donnee.</td></tr>
