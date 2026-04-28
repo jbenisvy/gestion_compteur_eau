@@ -104,6 +104,7 @@
   }
 
   function refreshPivotOnly() {
+    var currentPivotConfig = getCurrentPivotState() || buildPivotConfig(getPivotPreset());
     var pivot = qs("statsPivot");
     if (pivot) {
       pivot.innerHTML = "<div class=\"muted\">Chargement de l'analyse croisee…</div>";
@@ -112,7 +113,7 @@
     fetchPivotData()
       .then(function (payload) {
         lastPivotData = payload.rows || [];
-        renderPivot(lastPivotData);
+        renderPivot(lastPivotData, currentPivotConfig);
       })
       .catch(function () {
         alert("Impossible de charger l'analyse croisee.");
@@ -675,6 +676,7 @@
   }
 
   function refreshAll() {
+    var currentPivotConfig = getCurrentPivotState() || buildPivotConfig(getPivotPreset());
     var pivot = qs("statsPivot");
     var detail = qs("statsDetailTable");
     var statsTable = qs("statsTable");
@@ -697,7 +699,7 @@
         renderTable(lastData);
         renderDetailTable(lastData);
         window.setTimeout(function () {
-          renderPivot(lastPivotData);
+          renderPivot(lastPivotData, currentPivotConfig);
         }, 0);
       })
       .catch(function () {
