@@ -14,7 +14,7 @@ final class StatsDatasetService
 
     public function __construct(
         private readonly ExcelCompteursExportService $exportService,
-        private readonly ParametreRepository $parametreRepository,
+        private readonly ?ParametreRepository $parametreRepository = null,
     ) {
     }
 
@@ -103,7 +103,7 @@ final class StatsDatasetService
     private function resolveApplicablePrice(array $row): ?float
     {
         $year = $this->asInt($row['annee'] ?? null);
-        if ($year === null) {
+        if ($year === null || $this->parametreRepository === null) {
             return null;
         }
 
