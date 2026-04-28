@@ -11,6 +11,8 @@
   var hasRemoteStorage = false;
   var isInitialized = false;
   var pendingInitTimer = null;
+  var MAX_ROWS_FOR_PIVOT = 1200;
+  var MAX_ROWS_FOR_DETAIL = 800;
 
   function qs(id) {
     return document.getElementById(id);
@@ -333,6 +335,14 @@
     var preset = getPivotPreset();
     var config = overrideConfig || buildPivotConfig(preset);
     var filteredRows = overrideConfig ? rows : filterRowsForPreset(rows, preset);
+
+    if (filteredRows.length > MAX_ROWS_FOR_PIVOT) {
+      target.innerHTML = "<div class=\"muted\">Analyse croisee desactivee au-dela de " + MAX_ROWS_FOR_PIVOT + " lignes. Choisis une annee ou reduis le filtre, puis clique sur Actualiser.</div>";
+      pivotState = null;
+      syncPivotSaveControls();
+      return;
+    }
+
     var finalConfig = extendPivotConfig(config, {
       onRefresh: function (state) {
         pivotState = sanitizePivotState(state);
@@ -362,6 +372,11 @@
 
     if (!filtered.length) {
       container.innerHTML = "<div class=\"muted\">Aucune donnee pour l'annee selectionnee.</div>";
+      return;
+    }
+
+    if (filtered.length > MAX_ROWS_FOR_DETAIL) {
+      container.innerHTML = "<div class=\"muted\">Rapport detaille masque au-dela de " + MAX_ROWS_FOR_DETAIL + " lignes pour garder la page reactive. Reduis le filtre puis clique sur Actualiser.</div>";
       return;
     }
 
@@ -600,12 +615,27 @@
   }
 
   function refreshAll() {
+    var pivot = qs("statsPivot");
+    var detail = qs("statsDetailTable");
+    var statsTable = qs("statsTable");
+    if (statsTable) {
+      statsTable.innerHTML = "<div class=\"muted\">Chargement du tableau…</div>";
+    }
+    if (detail) {
+      detail.innerHTML = "";
+    }
+    if (pivot) {
+      pivot.innerHTML = "<div class=\"muted\">Chargement de l'analyse croisee…</div>";
+    }
+
     fetchData()
       .then(function (payload) {
         lastData = payload.rows || [];
         renderTable(lastData);
-        renderPivot(lastData);
         renderDetailTable(lastData);
+        window.setTimeout(function () {
+          renderPivot(lastData);
+        }, 0);
       })
       .catch(function () {
         alert("Impossible de charger les statistiques.");
@@ -795,11 +825,12 @@
     qs("statsRefreshBtn").addEventListener("click", function () {
       refreshAll();
     });
-    qs("statsYear").addEventListener("change", refreshAll);
-    qs("includeSupprime").addEventListener("change", refreshAll);
-    qs("includeInactif").addEventListener("change", refreshAll);
-    qs("includeForfait").addEventListener("change", refreshAll);
-    qs("includeGrise").addEventListener("change", refreshAll);
+    qs("statsYear").addEventListener("change", function () {
+      if (this.value) {
+        qs("statsYearFrom").value = "";
+        qs("statsYearTo").value = "";
+      }
+    });
 
     qs("statsYearFrom").addEventListener("change", function () {
       qs("statsYear").value = "";
