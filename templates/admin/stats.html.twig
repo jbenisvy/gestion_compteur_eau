@@ -20,7 +20,7 @@
   <script src="{{ asset('vendor/pivottable/pivot.min.js') }}" defer></script>
   <script src="{{ asset('vendor/tabulator/tabulator.min.js') }}" defer></script>
   <script src="{{ asset('vendor/xlsx/xlsx.full.min.js') }}" defer></script>
-  <script src="{{ asset('js/admin_stats.js') }}?v=20260429-0430" defer></script>
+  <script src="{{ asset('js/admin_stats.js') }}?v=20260429-0515" defer></script>
 {% endblock %}
 
 {% block body %}
@@ -134,6 +134,7 @@
             <p class="muted">Ce tableau affiche les chiffres correspondant à l’année choisie en haut de page, avec recherche, pagination et export Excel.</p>
           </div>
           <div class="stats-actions-inline">
+            <span class="badge text-bg-light border" id="statsTableYearBadge">Année: {{ defaultYear }}</span>
             <button class="btn btn-ghost" id="statsCopyTableBtn" type="button">Copier pour Excel</button>
           </div>
         </div>

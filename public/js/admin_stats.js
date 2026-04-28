@@ -120,6 +120,27 @@
       });
   }
 
+  function refreshStandardOnly() {
+    var detail = qs("statsDetailTable");
+    var statsTable = qs("statsTable");
+
+    if (statsTable) {
+      statsTable.innerHTML = "<div class=\"muted\">Chargement du tableau…</div>";
+    }
+    if (detail) {
+      detail.innerHTML = "";
+    }
+
+    fetchData()
+      .then(function (payload) {
+        lastData = payload.rows || [];
+        renderVisibleStandardSection();
+      })
+      .catch(function () {
+        alert("Impossible de charger les statistiques.");
+      });
+  }
+
   function buildColumns() {
     return [
       { title: "Annee", field: "annee", hozAlign: "left", sorter: "number", headerFilter: "input" },
@@ -712,6 +733,12 @@
   }
 
   function renderVisibleStandardSection() {
+    var year = qs("statsYear") ? qs("statsYear").value : "";
+    var tableYearBadge = qs("statsTableYearBadge");
+    if (tableYearBadge) {
+      tableYearBadge.textContent = year ? "Annee: " + year : "Annees: toutes";
+    }
+
     if (isTabPaneActive("stats-table-pane")) {
       ensureTableRendered();
       return;
@@ -723,26 +750,10 @@
   function refreshAll() {
     var currentPivotConfig = getCurrentPivotState() || buildPivotConfig(getPivotPreset());
     var pivot = qs("statsPivot");
-    var detail = qs("statsDetailTable");
-    var statsTable = qs("statsTable");
-    if (statsTable) {
-      statsTable.innerHTML = "<div class=\"muted\">Chargement du tableau…</div>";
-    }
-    if (detail) {
-      detail.innerHTML = "";
-    }
+    refreshStandardOnly();
     if (pivot) {
       pivot.innerHTML = "<div class=\"muted\">Chargement de l'analyse croisee…</div>";
     }
-
-    fetchData()
-      .then(function (payload) {
-        lastData = payload.rows || [];
-        renderVisibleStandardSection();
-      })
-      .catch(function () {
-        alert("Impossible de charger les statistiques.");
-      });
 
     fetchPivotData()
       .then(function (pivotPayload) {
@@ -1004,6 +1015,9 @@
   function bindEvents() {
     qs("statsRefreshBtn").addEventListener("click", function () {
       refreshAll();
+    });
+    qs("statsYear").addEventListener("change", function () {
+      refreshStandardOnly();
     });
     var yearsAllBtn = qs("statsPivotYearsAllBtn");
     if (yearsAllBtn) {
