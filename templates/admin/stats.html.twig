@@ -20,7 +20,7 @@
   <script src="{{ asset('vendor/pivottable/pivot.min.js') }}" defer></script>
   <script src="{{ asset('vendor/tabulator/tabulator.min.js') }}" defer></script>
   <script src="{{ asset('vendor/xlsx/xlsx.full.min.js') }}" defer></script>
-  <script src="{{ asset('js/admin_stats.js') }}?v=20260429-0205" defer></script>
+  <script src="{{ asset('js/admin_stats.js') }}?v=20260429-0225" defer></script>
 {% endblock %}
 
 {% block body %}
@@ -173,6 +173,7 @@
               <div class="stats-pivot-buttons">
                 <button class="btn btn-ghost" id="statsPivotYearsAllBtn" type="button">Toutes</button>
                 <button class="btn btn-ghost" id="statsPivotYearsClearBtn" type="button">Aucune</button>
+                <button class="btn btn-primary" id="statsPivotRefreshBtn" type="button">Rafraîchir</button>
               </div>
             </div>
             <div class="stats-pivot-buttons">

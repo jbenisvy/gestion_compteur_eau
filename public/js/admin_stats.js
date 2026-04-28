@@ -103,6 +103,22 @@
       });
   }
 
+  function refreshPivotOnly() {
+    var pivot = qs("statsPivot");
+    if (pivot) {
+      pivot.innerHTML = "<div class=\"muted\">Chargement de l'analyse croisee…</div>";
+    }
+
+    fetchPivotData()
+      .then(function (payload) {
+        lastPivotData = payload.rows || [];
+        renderPivot(lastPivotData);
+      })
+      .catch(function () {
+        alert("Impossible de charger l'analyse croisee.");
+      });
+  }
+
   function buildColumns() {
     return [
       { title: "Annee", field: "annee", hozAlign: "left", sorter: "number", headerFilter: "input" },
@@ -950,6 +966,11 @@
       yearsClearBtn.addEventListener("click", function () {
         setSelectedPivotYears([]);
       });
+    }
+
+    var pivotRefreshBtn = qs("statsPivotRefreshBtn");
+    if (pivotRefreshBtn) {
+      pivotRefreshBtn.addEventListener("click", refreshPivotOnly);
     }
 
     qs("statsSearch").addEventListener("input", function (e) {
