@@ -134,7 +134,7 @@
     fetchData()
       .then(function (payload) {
         lastData = payload.rows || [];
-        renderVisibleStandardSection();
+        renderStandardSections();
       })
       .catch(function () {
         alert("Impossible de charger les statistiques.");
@@ -223,6 +223,22 @@
     table.addFilter(globalFilterFn, { value: v });
   }
 
+  function getSelectedStandardYear() {
+    var yearField = qs("statsYear");
+    return yearField ? String(yearField.value || "") : "";
+  }
+
+  function getStandardRowsForSelectedYear(rows) {
+    var year = getSelectedStandardYear();
+    if (!year) {
+      return Array.isArray(rows) ? rows.slice() : [];
+    }
+
+    return (rows || []).filter(function (row) {
+      return String(row.annee) === year;
+    });
+  }
+
   function globalFilterFn(data, params) {
     var value = (params && params.value) || "";
     if (!value) return true;
@@ -262,7 +278,6 @@
         },
         persistence: {
           sort: true,
-          filter: true,
           columns: true,
         },
         persistenceMode: "local",
@@ -270,8 +285,15 @@
       });
 
       buildColumnToggles(columns);
+      applyGlobalSearch(qs("statsSearch") ? qs("statsSearch").value : "");
     } else {
       table.setData(rows);
+    }
+
+    if (table && typeof table.redraw === "function") {
+      window.setTimeout(function () {
+        table.redraw(true);
+      }, 0);
     }
   }
 
@@ -441,16 +463,12 @@
     var detailYearBadge = qs("statsDetailYearBadge");
     if (!container) return;
 
-    var year = qs("statsYear") ? qs("statsYear").value : "";
+    var year = getSelectedStandardYear();
     if (detailYearBadge) {
       detailYearBadge.textContent = year ? "Annee: " + year : "Annees: toutes";
     }
 
-    var filtered = year
-      ? rows.filter(function (r) {
-          return String(r.annee) === String(year);
-        })
-      : rows.slice();
+    var filtered = getStandardRowsForSelectedYear(rows);
 
     if (!filtered.length) {
       if (notice) notice.hidden = false;
@@ -729,22 +747,21 @@
     if (!lastData.length) {
       return;
     }
-    renderTable(lastData);
+    renderTable(getStandardRowsForSelectedYear(lastData));
   }
 
-  function renderVisibleStandardSection() {
-    var year = qs("statsYear") ? qs("statsYear").value : "";
+  function renderStandardSections() {
+    var year = getSelectedStandardYear();
     var tableYearBadge = qs("statsTableYearBadge");
     if (tableYearBadge) {
       tableYearBadge.textContent = year ? "Annee: " + year : "Annees: toutes";
     }
 
-    if (isTabPaneActive("stats-table-pane")) {
-      ensureTableRendered();
-      return;
-    }
-
     renderDetailTable(lastData);
+
+    if (table || isTabPaneActive("stats-table-pane")) {
+      ensureTableRendered();
+    }
   }
 
   function refreshAll() {
