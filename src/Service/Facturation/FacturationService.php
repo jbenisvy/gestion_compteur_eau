@@ -95,7 +95,7 @@ final class FacturationService
             $pricesByYear[$annee] ??= $this->pricesForYear($annee);
             $prixM3 = $eau === 'chaude' ? $pricesByYear[$annee]['chaude'] : $pricesByYear[$annee]['froide'];
             $consommation = max(0.0, (float)$row['consommation']);
-            $montant = round($consommation * $prixM3, 2);
+            $montant = $this->computeAmount($row, $consommation, $prixM3);
 
             $groupKey = $annee . ':' . ($coproId ?? 0);
             if (!isset($groups[$groupKey])) {
@@ -222,6 +222,18 @@ final class FacturationService
             'froide' => (float)($prices['ef'] ?? 0.0),
             'chaude' => (float)($prices['prix_m3_ec'] ?? $prices['ec'] ?? 0.0),
         ];
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     */
+    private function computeAmount(array $row, float $consommation, float $prixM3): float
+    {
+        if ((bool) ($row['forfait_applique'] ?? false) && is_numeric($row['forfait_valeur'] ?? null)) {
+            return round(max(0.0, (float) $row['forfait_valeur']) * $prixM3, 2);
+        }
+
+        return round($consommation * $prixM3, 2);
     }
 
     /**

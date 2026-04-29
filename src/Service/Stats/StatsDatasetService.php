@@ -129,10 +129,22 @@ final class StatsDatasetService
      */
     private function computeValorisation(array $row): ?float
     {
+        $isForfait = (bool) ($row['forfait_applique'] ?? false);
         $consommation = $row['consommation'] ?? null;
+        $forfaitValeur = $row['forfait_valeur'] ?? null;
         $prixM3 = $row['prix_m3_applicable'] ?? null;
 
-        if (!is_numeric($consommation) || !is_numeric($prixM3)) {
+        if (!is_numeric($prixM3)) {
+            return null;
+        }
+
+        // Une ligne au forfait doit toujours etre valorisee sur le forfait applique,
+        // y compris quand un double forfait est calcule pour un compteur unique.
+        if ($isForfait && is_numeric($forfaitValeur)) {
+            return round(max(0.0, (float) $forfaitValeur) * (float) $prixM3, 2);
+        }
+
+        if (!is_numeric($consommation)) {
             return null;
         }
 
