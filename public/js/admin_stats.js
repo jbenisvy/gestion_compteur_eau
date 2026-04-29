@@ -432,6 +432,31 @@
     return normalized;
   }
 
+  function toFixedDecimalString(value, digits) {
+    var num = parseFloat(value);
+    if (isNaN(num)) {
+      return value;
+    }
+
+    return num.toFixed(digits);
+  }
+
+  function prepareRowsForPivot(rows) {
+    return (rows || []).map(function (row) {
+      var prepared = extendPivotConfig({}, row || {});
+
+      if (prepared.valorisation_eur !== undefined && prepared.valorisation_eur !== null && prepared.valorisation_eur !== "") {
+        prepared.valorisation_eur = toFixedDecimalString(prepared.valorisation_eur, 2);
+      }
+
+      if (prepared.prix_m3_applicable !== undefined && prepared.prix_m3_applicable !== null && prepared.prix_m3_applicable !== "") {
+        prepared.prix_m3_applicable = toFixedDecimalString(prepared.prix_m3_applicable, 2);
+      }
+
+      return prepared;
+    });
+  }
+
   function renderPivot(rows, overrideConfig) {
     var target = document.getElementById("statsPivot");
     if (!target || !window.$ || !$.pivotUtilities) return;
@@ -439,8 +464,9 @@
     var preset = getPivotPreset();
     var config = normalizePivotConfigForExternalYearFilter(overrideConfig || buildPivotConfig(preset));
     var filteredRows = overrideConfig ? rows : filterRowsForPreset(rows, preset);
+    var preparedRows = prepareRowsForPivot(filteredRows);
 
-    if (filteredRows.length > MAX_ROWS_FOR_PIVOT) {
+    if (preparedRows.length > MAX_ROWS_FOR_PIVOT) {
       target.innerHTML = "<div class=\"muted\">Analyse croisee desactivee au-dela de " + MAX_ROWS_FOR_PIVOT + " lignes. Choisis une annee ou reduis le filtre, puis clique sur Actualiser.</div>";
       pivotState = null;
       syncPivotSaveControls();
@@ -454,7 +480,7 @@
       },
     });
 
-    $(target).pivotUI(filteredRows, finalConfig, true);
+    $(target).pivotUI(preparedRows, finalConfig, true);
   }
 
   function renderDetailTable(rows) {
