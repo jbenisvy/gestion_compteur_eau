@@ -22,5 +22,109 @@
         <input type="hidden" name="_token" value="{{ csrf_token('account_change_email') }}">
         <button class="btn btn-primary" type="submit">Mettre à jour l'email</button>
     </form>
+
+    {% if canManageTwoFactor %}
+        <section class="two-factor-panel">
+            <div class="two-factor-header">
+                <div>
+                    <h2>Double authentification</h2>
+                    <p>
+                        Après le lien envoyé par email, un code à 6 chiffres sera demandé dans Google Authenticator
+                        ou Microsoft Authenticator.
+                    </p>
+                </div>
+                <span class="two-factor-state {{ twoFactorEnabled ? 'is-on' : 'is-off' }}">
+                    {{ twoFactorEnabled ? 'Activée' : 'Inactive' }}
+                </span>
+            </div>
+
+            {% if twoFactorSetupSecret %}
+                <div class="two-factor-setup">
+                    <div class="two-factor-qr-block">
+                        <div
+                            id="twoFactorQrCode"
+                            class="two-factor-qr"
+                            data-otpauth-url="{{ twoFactorProvisioningUri }}"
+                        ></div>
+                        <p class="two-factor-hint">Scannez ce QR code avec votre application.</p>
+                    </div>
+                    <div class="two-factor-details">
+                        <p><strong>Clé manuelle:</strong></p>
+                        <code class="two-factor-secret">{{ twoFactorSetupSecret }}</code>
+                        <p class="two-factor-hint">Utile si le scan QR n’est pas disponible.</p>
+                    </div>
+                </div>
+
+                <form method="post" action="{{ path('app_account_two_factor_enable') }}">
+                    <div class="form-row">
+                        <label for="twoFactorCode">Code de validation</label>
+                        <input
+                            type="text"
+                            id="twoFactorCode"
+                            name="code"
+                            inputmode="numeric"
+                            autocomplete="one-time-code"
+                            pattern="[0-9]{6}"
+                            maxlength="6"
+                            placeholder="123456"
+                            required
+                        >
+                    </div>
+                    <input type="hidden" name="_token" value="{{ csrf_token('account_two_factor_enable') }}">
+                    <div class="two-factor-actions">
+                        <button class="btn btn-primary" type="submit">Activer la double authentification</button>
+                    </div>
+                </form>
+
+                <form method="post" action="{{ path('app_account_two_factor_cancel') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('account_two_factor_cancel') }}">
+                    <button class="btn btn-ghost" type="submit">Annuler la configuration</button>
+                </form>
+            {% elseif twoFactorEnabled %}
+                <form method="post" action="{{ path('app_account_two_factor_disable') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('account_two_factor_disable') }}">
+                    <button class="btn btn-ghost" type="submit">Désactiver</button>
+                </form>
+            {% else %}
+                <form method="post" action="{{ path('app_account_two_factor_start') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('account_two_factor_start') }}">
+                    <button class="btn btn-primary" type="submit">Configurer avec un QR code</button>
+                </form>
+            {% endif %}
+        </section>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% if twoFactorSetupSecret %}
+        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js" defer></script>
+        <script>
+          document.addEventListener('DOMContentLoaded', function () {
+            var node = document.getElementById('twoFactorQrCode');
+            if (!node || typeof QRCode === 'undefined') {
+              return;
+            }
+
+            var canvas = document.createElement('canvas');
+            QRCode.toCanvas(canvas, node.dataset.otpauthUrl, {
+              width: 220,
+              margin: 1,
+              color: {
+                dark: '#1b1b1b',
+                light: '#ffffff'
+              }
+            }, function (error) {
+              if (error || !canvas) {
+                node.textContent = 'QR code indisponible';
+                return;
+              }
+
+              node.innerHTML = '';
+              node.appendChild(canvas);
+            });
+          });
+        </script>
+    {% endif %}
 {% endblock %}

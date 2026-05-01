@@ -28,6 +28,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: "boolean", options: ["default" => false])]
     private bool $isVerified = false;
 
+    #[ORM\Column(type: "boolean", options: ["default" => false])]
+    private bool $twoFactorEnabled = false;
+
+    #[ORM\Column(type: "string", length: 64, nullable: true)]
+    private ?string $twoFactorSecret = null;
+
     #[ORM\Column(type: "datetime_immutable")]
     private \DateTimeImmutable $updatedAt;
 
@@ -66,6 +72,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function isVerified(): bool { return $this->isVerified; }
     public function setIsVerified(bool $isVerified): self { $this->isVerified = $isVerified; return $this; }
+
+    public function isTwoFactorEnabled(): bool { return $this->twoFactorEnabled; }
+    public function setTwoFactorEnabled(bool $twoFactorEnabled): self { $this->twoFactorEnabled = $twoFactorEnabled; return $this; }
+
+    public function getTwoFactorSecret(): ?string { return $this->twoFactorSecret; }
+    public function setTwoFactorSecret(?string $twoFactorSecret): self { $this->twoFactorSecret = $twoFactorSecret; return $this; }
 
     public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): self { $this->updatedAt = $updatedAt; return $this; }

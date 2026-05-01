@@ -946,9 +946,117 @@ body.menu-open {
   margin-bottom: 12px;
 }
 
+.two-factor-panel {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #efe7da;
+}
+
+.two-factor-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.two-factor-header h2 {
+  margin: 0 0 6px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+}
+
+.two-factor-header p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.two-factor-state {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.two-factor-state.is-on {
+  background: #dff5eb;
+  color: #155e4d;
+}
+
+.two-factor-state.is-off {
+  background: #f7ead8;
+  color: #8a5222;
+}
+
+.two-factor-setup {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.two-factor-qr-block {
+  display: grid;
+  gap: 10px;
+}
+
+.two-factor-qr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid #e6dfd1;
+  background: #fffaf3;
+}
+
+.two-factor-qr canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.two-factor-details {
+  padding: 16px;
+  border-radius: 16px;
+  background: #f8f5ee;
+  border: 1px solid #efe7da;
+}
+
+.two-factor-details p {
+  margin: 0 0 10px;
+}
+
+.two-factor-secret {
+  display: block;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px dashed #d6c9b5;
+  word-break: break-all;
+  font-size: 0.95rem;
+}
+
+.two-factor-hint {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.two-factor-actions {
+  margin-bottom: 12px;
+}
+
 @media (max-width: 720px) {
   .page {
     padding: 20px;
+  }
+
+  .two-factor-header {
+    flex-direction: column;
   }
 }
 

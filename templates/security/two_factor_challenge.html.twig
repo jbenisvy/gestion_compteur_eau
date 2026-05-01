@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Validation du code{% endblock %}
+
+{% block body %}
+<div class="login-card">
+    <h1>Validation de votre code</h1>
+    <p>Un lien de connexion a bien été validé pour <strong>{{ userEmail }}</strong>.</p>
+    <p>Saisissez maintenant le code à 6 chiffres affiché dans votre application Authenticator.</p>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+    <form method="post" action="{{ path('app_two_factor_verify') }}">
+        <div class="form-row">
+            <label for="challengeCode">Code Authenticator</label>
+            <input
+                type="text"
+                id="challengeCode"
+                name="code"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                pattern="[0-9]{6}"
+                maxlength="6"
+                placeholder="123456"
+                required
+                autofocus
+            >
+        </div>
+
+        <input type="hidden" name="_token" value="{{ csrf_token('two_factor_verify') }}">
+        <button class="btn btn-primary" type="submit">Valider le code</button>
+    </form>
+
+    <p style="margin-top: 1rem;">
+        Besoin de quitter ?
+        <a href="{{ path('app_logout') }}">Se déconnecter</a>
+    </p>
+</div>
+{% endblock %}
