@@ -41,11 +41,15 @@
             {% if twoFactorSetupSecret %}
                 <div class="two-factor-setup">
                     <div class="two-factor-qr-block">
-                        <div
-                            id="twoFactorQrCode"
-                            class="two-factor-qr"
-                            data-otpauth-url="{{ twoFactorProvisioningUri }}"
-                        ></div>
+                        <div class="two-factor-qr">
+                            <img
+                                src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={{ twoFactorProvisioningUri|url_encode }}"
+                                alt="QR code de configuration de la double authentification"
+                                width="220"
+                                height="220"
+                                loading="lazy"
+                            >
+                        </div>
                         <p class="two-factor-hint">Scannez ce QR code avec votre application.</p>
                     </div>
                     <div class="two-factor-details">
@@ -94,45 +98,4 @@
         </section>
     {% endif %}
 </div>
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-    {% if twoFactorSetupSecret %}
-        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js" defer></script>
-        <script>
-          function renderTwoFactorQrCode() {
-            var node = document.getElementById('twoFactorQrCode');
-            if (!node || typeof QRCode === 'undefined') {
-              return;
-            }
-
-            if (node.dataset.qrReady === '1') {
-              return;
-            }
-
-            var canvas = document.createElement('canvas');
-            QRCode.toCanvas(canvas, node.dataset.otpauthUrl, {
-              width: 220,
-              margin: 1,
-              color: {
-                dark: '#1b1b1b',
-                light: '#ffffff'
-              }
-            }, function (error) {
-              if (error || !canvas) {
-                node.textContent = 'QR code indisponible';
-                return;
-              }
-
-              node.innerHTML = '';
-              node.appendChild(canvas);
-              node.dataset.qrReady = '1';
-            });
-          }
-
-          document.addEventListener('DOMContentLoaded', renderTwoFactorQrCode);
-          document.addEventListener('turbo:load', renderTwoFactorQrCode);
-        </script>
-    {% endif %}
 {% endblock %}
