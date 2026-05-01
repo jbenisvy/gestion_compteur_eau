@@ -23,6 +23,16 @@
         <button class="btn btn-primary" type="submit">Mettre à jour l'email</button>
     </form>
 
+    <section class="two-factor-panel">
+        <div class="two-factor-header">
+            <div>
+                <h2>Mot de passe</h2>
+                <p>Vous pouvez changer votre mot de passe à tout moment depuis un écran dédié.</p>
+            </div>
+        </div>
+        <a class="btn btn-ghost" href="{{ path('app_account_password') }}">Modifier mon mot de passe</a>
+    </section>
+
     {% if canManageTwoFactor %}
         <section class="two-factor-panel">
             <div class="two-factor-header">

@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class AccountController extends AbstractController
@@ -184,5 +185,59 @@ final class AccountController extends AbstractController
         $this->addFlash('success', 'Double authentification désactivée.');
 
         return $this->redirectToRoute('app_account_email');
+    }
+
+    #[Route('/compte/mot-de-passe', name: 'app_account_password', methods: ['GET', 'POST'])]
+    public function password(
+        Request $request,
+        EntityManagerInterface $em,
+        UserPasswordHasherInterface $passwordHasher,
+    ): Response {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('account_change_password', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Session expirée. Veuillez réessayer.');
+                return $this->redirectToRoute('app_account_password');
+            }
+
+            $currentPassword = (string) $request->request->get('current_password', '');
+            $newPassword = (string) $request->request->get('new_password', '');
+            $confirmPassword = (string) $request->request->get('confirm_password', '');
+
+            if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
+                $this->addFlash('error', 'Le mot de passe actuel est incorrect.');
+                return $this->redirectToRoute('app_account_password');
+            }
+
+            if (strlen($newPassword) < 12) {
+                $this->addFlash('error', 'Le nouveau mot de passe doit contenir au moins 12 caractères.');
+                return $this->redirectToRoute('app_account_password');
+            }
+
+            if ($newPassword !== $confirmPassword) {
+                $this->addFlash('error', 'La confirmation du nouveau mot de passe ne correspond pas.');
+                return $this->redirectToRoute('app_account_password');
+            }
+
+            if ($passwordHasher->isPasswordValid($user, $newPassword)) {
+                $this->addFlash('error', 'Le nouveau mot de passe doit être différent de l’actuel.');
+                return $this->redirectToRoute('app_account_password');
+            }
+
+            $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
+            $user->eraseCredentials();
+            $em->flush();
+
+            $this->addFlash('success', 'Votre mot de passe a été mis à jour.');
+            return $this->redirectToRoute('app_account_password');
+        }
+
+        return $this->render('account/password.html.twig', [
+            'userEmail' => $user->getEmail(),
+        ]);
     }
 }
