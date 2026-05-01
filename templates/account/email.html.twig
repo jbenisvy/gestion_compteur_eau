@@ -41,15 +41,11 @@
             {% if twoFactorSetupSecret %}
                 <div class="two-factor-setup">
                     <div class="two-factor-qr-block">
-                        <div class="two-factor-qr">
-                            <img
-                                src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={{ twoFactorProvisioningUri|url_encode }}"
-                                alt="QR code de configuration de la double authentification"
-                                width="220"
-                                height="220"
-                                loading="lazy"
-                            >
-                        </div>
+                        <div
+                            id="twoFactorQrCode"
+                            class="two-factor-qr"
+                            data-otpauth-url="{{ twoFactorProvisioningUri }}"
+                        ></div>
                         <p class="two-factor-hint">Scannez ce QR code avec votre application.</p>
                     </div>
                     <div class="two-factor-details">
@@ -98,4 +94,37 @@
         </section>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% if twoFactorSetupSecret %}
+        <script src="{{ asset('vendor/qrcodejs.min.js') }}" defer></script>
+        <script>
+          function renderTwoFactorQrCode() {
+            var node = document.getElementById('twoFactorQrCode');
+            if (!node || typeof QRCode === 'undefined') {
+              return;
+            }
+
+            if (node.dataset.qrReady === '1') {
+              return;
+            }
+
+            node.innerHTML = '';
+            new QRCode(node, {
+              text: node.dataset.otpauthUrl,
+              width: 220,
+              height: 220,
+              colorDark: '#1b1b1b',
+              colorLight: '#ffffff',
+              correctLevel: QRCode.CorrectLevel.M
+            });
+            node.dataset.qrReady = '1';
+          }
+
+          document.addEventListener('DOMContentLoaded', renderTwoFactorQrCode);
+          document.addEventListener('turbo:load', renderTwoFactorQrCode);
+        </script>
+    {% endif %}
 {% endblock %}
