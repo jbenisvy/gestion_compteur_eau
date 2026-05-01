@@ -101,9 +101,13 @@
     {% if twoFactorSetupSecret %}
         <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js" defer></script>
         <script>
-          document.addEventListener('DOMContentLoaded', function () {
+          function renderTwoFactorQrCode() {
             var node = document.getElementById('twoFactorQrCode');
             if (!node || typeof QRCode === 'undefined') {
+              return;
+            }
+
+            if (node.dataset.qrReady === '1') {
               return;
             }
 
@@ -123,8 +127,12 @@
 
               node.innerHTML = '';
               node.appendChild(canvas);
+              node.dataset.qrReady = '1';
             });
-          });
+          }
+
+          document.addEventListener('DOMContentLoaded', renderTwoFactorQrCode);
+          document.addEventListener('turbo:load', renderTwoFactorQrCode);
         </script>
     {% endif %}
 {% endblock %}
