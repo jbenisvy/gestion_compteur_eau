@@ -993,7 +993,7 @@ body.menu-open {
 
 .two-factor-setup {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 18px;
   align-items: start;
   margin-bottom: 16px;
@@ -1008,14 +1008,18 @@ body.menu-open {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   min-height: 220px;
   padding: 12px;
   border-radius: 16px;
   border: 1px solid #e6dfd1;
   background: #fffaf3;
+  overflow: hidden;
 }
 
+.two-factor-qr img,
 .two-factor-qr canvas {
+  display: block;
   max-width: 100%;
   height: auto;
 }
@@ -1057,6 +1061,10 @@ body.menu-open {
 
   .two-factor-header {
     flex-direction: column;
+  }
+
+  .two-factor-setup {
+    grid-template-columns: 1fr;
   }
 }
 
