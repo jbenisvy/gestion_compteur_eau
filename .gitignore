@@ -56,3 +56,12 @@ yarn-error.log*
 *.zip
 *.tar
 *.tar.gz
+
+# Local analysis helpers and generated reports
+/exports/.~lock.*
+/exports/ReleveCompteurs_2025_calc.ods
+/exports/ReleveCompteurs_2025_calc.xlsx
+/exports/test_comparaison_syndic_site_2025.xlsx
+/exports/test_comparaison_syndic_site_2025_from_xlsx.xlsx
+/scripts/compare_syndic_pdf_with_export.php
+/scripts/convert_syndic_pdf_to_calc.php
