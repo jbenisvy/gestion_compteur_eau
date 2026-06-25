@@ -3,6 +3,7 @@
 namespace App\Security;
 
 use App\Entity\User;
+use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
@@ -16,6 +17,7 @@ final class AuthLinkService
         private readonly VerifyEmailHelperInterface $verifyEmailHelper,
         private readonly MailerInterface $mailer,
         private readonly string $mailFrom,
+        private readonly LoggerInterface $authLogger,
     ) {
     }
 
@@ -34,7 +36,10 @@ final class AuthLinkService
                 'expiresAt' => $loginLink->getExpiresAt(),
             ]);
 
-        $this->mailer->send($email);
+        $this->sendEmail($email, $user, 'magic_link', [
+            'expires_at' => $loginLink->getExpiresAt()->format(\DATE_ATOM),
+            'link_url' => $loginLink->getUrl(),
+        ]);
     }
 
     public function sendVerificationEmail(User $user): void
@@ -58,6 +63,33 @@ final class AuthLinkService
                 'expiresAtMessageData' => $signature->getExpirationMessageData(),
             ]);
 
-        $this->mailer->send($email);
+        $this->sendEmail($email, $user, 'verify_email');
+    }
+
+    private function sendEmail(TemplatedEmail $email, User $user, string $type, array $context = []): void
+    {
+        $logContext = array_merge($context, [
+            'type' => $type,
+            'user_id' => $user->getId(),
+            'email' => $user->getEmail(),
+            'roles' => $user->getRoles(),
+            'is_verified' => $user->isVerified(),
+            'mail_from' => $this->mailFrom,
+            'subject' => $email->getSubject(),
+        ]);
+
+        $this->authLogger->info('auth_link.email_send_started', $logContext);
+
+        try {
+            $this->mailer->send($email);
+            $this->authLogger->info('auth_link.email_send_succeeded', $logContext);
+        } catch (\Throwable $e) {
+            $this->authLogger->error('auth_link.email_send_failed', array_merge($logContext, [
+                'error_class' => $e::class,
+                'error_message' => $e->getMessage(),
+            ]));
+
+            throw $e;
+        }
     }
 }

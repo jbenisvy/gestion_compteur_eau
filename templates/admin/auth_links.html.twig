@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liens de connexion envoyés{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div>
+    <h1>Liens de connexion envoyés</h1>
+    <p>Écran réservé aux administrateurs pour visualiser les liens générés et l'état des envois.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ path('admin_dashboard') }}">Retour admin</a>
+      <a class="btn btn-ghost" href="{{ path('admin_easy') }}">EasyAdmin</a>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Filtres</h3>
+    <form method="get">
+      <div class="form-row">
+        <label for="email">Email contient</label>
+        <input id="email" type="text" name="email" value="{{ filters.email }}">
+      </div>
+      <div class="form-row">
+        <label for="status">Statut</label>
+        <select id="status" name="status">
+          <option value="" {{ filters.status == '' ? 'selected' : '' }}>Tous</option>
+          <option value="started" {{ filters.status == 'started' ? 'selected' : '' }}>Demarre</option>
+          <option value="succeeded" {{ filters.status == 'succeeded' ? 'selected' : '' }}>Reussi</option>
+          <option value="failed" {{ filters.status == 'failed' ? 'selected' : '' }}>Echec</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="limit">Nombre de lignes</label>
+        <input id="limit" type="number" min="10" max="500" name="limit" value="{{ filters.limit }}">
+      </div>
+      <button class="btn btn-primary" type="submit">Filtrer</button>
+    </form>
+    <p class="muted">Journal source : <code>{{ logPath }}</code></p>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Historique recent</h3>
+  {% if entries is empty %}
+    <p>Aucun envoi de lien n'a ete trouve dans le journal.</p>
+  {% else %}
+    <div style="overflow-x:auto;">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Statut</th>
+            <th>Type</th>
+            <th>Email</th>
+            <th>Expediteur</th>
+            <th>Lien</th>
+            <th>Expiration</th>
+            <th>Erreur</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in entries %}
+            <tr>
+              <td>{{ entry.timestamp ? entry.timestamp|date('d/m/Y H:i:s') : 'N/A' }}</td>
+              <td>
+                <span class="badge">{{ entry.status }}</span>
+              </td>
+              <td>{{ entry.type }}</td>
+              <td>{{ entry.email }}</td>
+              <td>{{ entry.mail_from }}</td>
+              <td>
+                {% if entry.link_url %}
+                  <a href="{{ entry.link_url }}" target="_blank" rel="noopener noreferrer">Ouvrir le lien</a>
+                {% else %}
+                  <span class="muted">N/A</span>
+                {% endif %}
+              </td>
+              <td>{{ entry.expires_at ? entry.expires_at|date('d/m/Y H:i:s') : 'N/A' }}</td>
+              <td>
+                {% if entry.error_message %}
+                  <strong>{{ entry.error_class }}</strong><br>
+                  {{ entry.error_message }}
+                {% else %}
+                  <span class="muted">Aucune</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

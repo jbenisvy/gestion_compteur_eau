@@ -7,6 +7,8 @@ services:
     _defaults:
         autowire: true
         autoconfigure: true
+        bind:
+            Psr\Log\LoggerInterface $authLogger: '@monolog.logger.auth_link'
 
     App\:
         resource: '../src/'
@@ -16,3 +18,8 @@ services:
     App\Security\AuthLinkService:
         arguments:
             $mailFrom: '%app.mailer_from%'
+
+    App\Service\AuthLinkLogService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+            $environment: '%kernel.environment%'

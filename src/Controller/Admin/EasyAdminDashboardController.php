@@ -52,6 +52,7 @@ class EasyAdminDashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Relevés (détails)', 'fa fa-list-alt', ReleveItem::class)->setController(ReleveItemCrudController::class);
         yield MenuItem::section('Rapports');
         yield MenuItem::linkToRoute('Tableau global', 'fa fa-table', 'admin_tableau');
+        yield MenuItem::linkToRoute('Liens de connexion', 'fa fa-link', 'admin_auth_links');
         yield MenuItem::linkToRoute('Référentiel compteurs', 'fa fa-hashtag', 'admin_compteurs_reference');
         yield MenuItem::linkToRoute('Historique global', 'fa fa-chart-line', 'admin_historique');
         yield MenuItem::linkToRoute('Facturation', 'fa fa-file-invoice', 'admin_facturation');

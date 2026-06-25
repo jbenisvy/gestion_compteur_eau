@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Security\AuthLinkService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,6 +17,10 @@ use SymfonyCasts\Bundle\VerifyEmail\VerifyEmailHelperInterface;
 
 class SecurityController extends AbstractController
 {
+    public function __construct(private readonly LoggerInterface $authLogger)
+    {
+    }
+
     #[Route('/login', name: 'app_login', methods: ['GET'])]
     public function login(): Response
     {
@@ -39,14 +44,32 @@ class SecurityController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
+        $this->authLogger->info('auth_link.request_received', [
+            'email' => $email,
+            'ip' => $request->getClientIp(),
+            'user_agent' => substr((string) $request->headers->get('User-Agent', ''), 0, 255),
+        ]);
+
         $user = $userRepository->findOneBy(['email' => $email]);
 
         if ($user instanceof User) {
+            $this->authLogger->info('auth_link.user_matched', [
+                'email' => $email,
+                'user_id' => $user->getId(),
+                'roles' => $user->getRoles(),
+                'is_verified' => $user->isVerified(),
+            ]);
+
             if ($user->isVerified()) {
                 $authLinkService->sendMagicLinkEmail($user);
             } else {
                 $authLinkService->sendVerificationEmail($user);
             }
+        } else {
+            $this->authLogger->warning('auth_link.user_not_found', [
+                'email' => $email,
+                'ip' => $request->getClientIp(),
+            ]);
         }
 
         $this->addFlash('success', 'Si un compte existe, un email vient d\'être envoyé.');
