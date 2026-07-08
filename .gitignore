@@ -15,7 +15,9 @@
 ###< phpunit/phpunit ###
 
 ###> symfony/asset-mapper ###
-/public/assets/
+/public/assets/*
+!/public/assets/icons/
+!/public/assets/icons/*
 /assets/vendor/
 ###< symfony/asset-mapper ###
 

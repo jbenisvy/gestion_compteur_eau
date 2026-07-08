@@ -9,6 +9,7 @@ services:
         autoconfigure: true
         bind:
             Psr\Log\LoggerInterface $authLogger: '@monolog.logger.auth_link'
+            Psr\Cache\CacheItemPoolInterface $cachePool: '@cache.app'
 
     App\:
         resource: '../src/'
@@ -18,6 +19,11 @@ services:
     App\Security\AuthLinkService:
         arguments:
             $mailFrom: '%app.mailer_from%'
+
+    App\Security\SsoSettings:
+        factory: ['App\Security\SsoSettings', 'fromConfigFile']
+        arguments:
+            $path: '%kernel.project_dir%/config/sso.php'
 
     App\Service\AuthLinkLogService:
         arguments:

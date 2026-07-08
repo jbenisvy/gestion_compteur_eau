@@ -30,6 +30,7 @@ security:
 
   access_control:
     - { path: ^/login, roles: PUBLIC_ACCESS }
+    - { path: ^/sso-login, roles: PUBLIC_ACCESS }
     - { path: ^/verify/email, roles: PUBLIC_ACCESS }
     - { path: ^/admin/login, roles: PUBLIC_ACCESS }
     - { path: ^/connexion/2fa, allow_if: "is_granted('ROLE_ADMIN') or is_granted('ROLE_USER') or is_granted('ROLE_SYNDIC')" }
