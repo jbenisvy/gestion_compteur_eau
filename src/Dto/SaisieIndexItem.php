@@ -33,6 +33,9 @@ class SaisieIndexItem
     /** Index N (valeur saisie) */
     public ?int $indexN = null;
 
+    /** Index virtuel calcule pour l'annee affichee. */
+    public ?int $indexVirtuel = null;
+
     /** Index compteur démonté (cas remplacement) */
     public ?int $indexDemonte = null;
 

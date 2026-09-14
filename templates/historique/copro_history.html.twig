@@ -15,6 +15,7 @@
           consosByCompteur: consosByCompteur|default({}),
           forfaitByCompteur: forfaitByCompteur|default({}),
           forfaitValueByCompteur: forfaitValueByCompteur|default({}),
+          indexVirtuelByCompteur: indexVirtuelByCompteur|default({}),
           suppressionByCompteur: suppressionByCompteur|default({}),
           forfaitCountByYear: forfaitCountByYear|default({}),
           forfaitTotalByYear: forfaitTotalByYear|default({}),
@@ -95,6 +96,7 @@
           <tr>
             <th colspan="4"></th>
             <th colspan="{{ section.years|length }}">Index</th>
+            <th colspan="{{ section.years|length }}">Index virtuel</th>
             <th colspan="{{ section.consoYears|default([])|length }}">Consommation</th>
           </tr>
           <tr>
@@ -104,6 +106,9 @@
             <th>Forfaits appliqués</th>
             {% for y in section.years %}
               <th>{{ y }}</th>
+            {% endfor %}
+            {% for y in section.years %}
+              <th>Virtuel {{ y }}</th>
             {% endfor %}
             {% for y in section.consoYears|default([]) %}
               <th>Conso {{ y }}</th>
@@ -133,6 +138,13 @@
                   <td><span class="badge">Index masqué</span></td>
                 {% else %}
                   <td>{{ data[y] ?? '–' }}</td>
+                {% endif %}
+              {% endfor %}
+              {% for y in section.years %}
+                {% if section.suppressionByCompteur[cmpId][y] ?? false %}
+                  <td><span class="badge">Index masqué</span></td>
+                {% else %}
+                  <td>{{ section.indexVirtuelByCompteur[cmpId][y] ?? '–' }}</td>
                 {% endif %}
               {% endfor %}
               {% for y in section.consoYears|default([]) %}

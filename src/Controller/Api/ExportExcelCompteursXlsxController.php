@@ -47,6 +47,7 @@ final class ExportExcelCompteursXlsxController extends AbstractController
         'releve_etat_libelle',
         'index_n_1',
         'index_n',
+        'index_virtuel',
         'index_compteur_demonte',
         'index_nouveau_compteur',
         'consommation',
@@ -74,6 +75,7 @@ final class ExportExcelCompteursXlsxController extends AbstractController
         'releve_item_id',
         'index_n_1',
         'index_n',
+        'index_virtuel',
         'index_compteur_demonte',
         'index_nouveau_compteur',
     ];

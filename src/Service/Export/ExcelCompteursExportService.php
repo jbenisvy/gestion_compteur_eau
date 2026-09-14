@@ -150,6 +150,7 @@ final class ExcelCompteursExportService
                 ec.libelle AS compteur_etat_libelle,
                 ri.index_n1,
                 ri.index_n,
+                ri.index_virtuel,
                 ri.index_compteur_demonte,
                 ri.index_nouveau_compteur,
                 ri.etat_id AS releve_etat_id,
@@ -279,6 +280,15 @@ final class ExcelCompteursExportService
             $forfaitValeur = $defaultForfait > 0.0 ? max(0.0, round($defaultForfait, 3)) : null;
             $forfaitMotif = $this->guessForfaitMotif($releveEtatCode);
         }
+        $indexN1 = $this->asIntOrNull($r['index_n1'] ?? null);
+        $indexN = $this->asIntOrNull($r['index_n'] ?? null);
+        $storedIndexVirtuel = $this->asIntOrNull($r['index_virtuel'] ?? null);
+        $indexVirtuel = $storedIndexVirtuel;
+        if ($indexVirtuel === null && !$isSupprime) {
+            $indexVirtuel = $isForfait && $indexN1 !== null
+                ? $indexN1 + (int) round($forfaitValeur ?? $consommation ?? 0)
+                : ($indexN ?? $this->asIntOrNull($r['index_nouveau_compteur'] ?? null));
+        }
 
         return [
             'annee' => $annee,
@@ -308,8 +318,9 @@ final class ExcelCompteursExportService
             'releve_item_id' => (int)$r['releve_item_id'],
             'releve_etat_code' => $releveEtatCode,
             'releve_etat_libelle' => $this->nullIfEmpty($r['releve_etat_libelle'] ?? null),
-            'index_n_1' => $isSupprime ? null : $this->asIntOrNull($r['index_n1'] ?? null),
-            'index_n' => $isSupprime ? null : $this->asIntOrNull($r['index_n'] ?? null),
+            'index_n_1' => $isSupprime ? null : $indexN1,
+            'index_n' => $isSupprime ? null : $indexN,
+            'index_virtuel' => $isSupprime ? null : $indexVirtuel,
             'index_compteur_demonte' => $isSupprime ? null : $this->asIntOrNull($r['index_compteur_demonte'] ?? null),
             'index_nouveau_compteur' => $isSupprime ? null : $this->asIntOrNull($r['index_nouveau_compteur'] ?? null),
             'consommation' => $consommation,

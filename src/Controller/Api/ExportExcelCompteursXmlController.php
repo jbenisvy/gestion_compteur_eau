@@ -42,6 +42,7 @@ final class ExportExcelCompteursXmlController extends AbstractController
         'releve_etat_libelle',
         'index_n_1',
         'index_n',
+        'index_virtuel',
         'index_compteur_demonte',
         'index_nouveau_compteur',
         'consommation',
@@ -237,6 +238,7 @@ final class ExportExcelCompteursXmlController extends AbstractController
                     <xs:element name="releve_etat_libelle" type="xs:string" minOccurs="0"/>
                     <xs:element name="index_n_1" type="xs:int" minOccurs="0"/>
                     <xs:element name="index_n" type="xs:int" minOccurs="0"/>
+                    <xs:element name="index_virtuel" type="xs:int" minOccurs="0"/>
                     <xs:element name="index_compteur_demonte" type="xs:int" minOccurs="0"/>
                     <xs:element name="index_nouveau_compteur" type="xs:int" minOccurs="0"/>
                     <xs:element name="consommation" type="xs:decimal" minOccurs="0"/>

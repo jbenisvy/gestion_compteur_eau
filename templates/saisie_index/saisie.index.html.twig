@@ -37,7 +37,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 /* Ligne 1 (commune) */
 .rowgrid-top{
   display:grid;
-  grid-template-columns: 110px 90px minmax(180px,1fr) 110px 120px 110px;
+  grid-template-columns: 110px 90px minmax(180px,1fr) 110px 110px 120px 110px;
   gap:10px; align-items:center;
 }
 .conso{
@@ -78,6 +78,28 @@ h1{margin:10px 0 8px 0; font-size:28px;}
   border-radius:8px;
   background:#ffedd5;
   padding:4px 6px;
+}
+.virtual-box{
+  width:96px;
+  border:1px solid #22c55e;
+  border-radius:8px;
+  background:#dcfce7;
+  padding:4px 6px;
+}
+.virtual-box-label{
+  display:block;
+  font-size:11px;
+  font-weight:700;
+  color:#166534;
+  line-height:1.1;
+  margin-bottom:2px;
+}
+.virt-val{
+  display:block;
+  font-weight:800;
+  font-size:16px;
+  color:#14532d;
+  line-height:1.15;
 }
 .conso-box-label{
   display:block;
@@ -251,6 +273,10 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                 <div class="field-etat">{{ form_row(form.items[idx].etat, {'label':'État'}) }}</div>
                 <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'Ind. n'}) }}</div>
                 <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
+                <div class="virtual-box">
+                  <span class="virtual-box-label">Index virtuel</span>
+                  <span class="virt-val" data-initial="{{ item.indexVirtuel ?? '' }}">{{ isSupprime ? 'masqué' : (item.indexVirtuel ?? item.indexN ?? '–') }}</span>
+                </div>
                 <div class="conso">
                   <div class="conso-box">
                     <span class="conso-box-label">Conso</span>
@@ -343,6 +369,10 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                 <div class="field-etat">{{ form_row(form.items[idx].etat, {'label':'État'}) }}</div>
                 <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'Ind. n'}) }}</div>
                 <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
+                <div class="virtual-box">
+                  <span class="virtual-box-label">Index virtuel</span>
+                  <span class="virt-val" data-initial="{{ item.indexVirtuel ?? '' }}">{{ isSupprime ? 'masqué' : (item.indexVirtuel ?? item.indexN ?? '–') }}</span>
+                </div>
                 <div class="conso">
                   <div class="conso-box">
                     <span class="conso-box-label">Conso</span>
@@ -476,6 +506,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 
     document.querySelectorAll('.row[data-kind="item"]').forEach(card=>{
       const consEl=card.querySelector('.cons-val'); if(!consEl) return;
+      const virtEl=card.querySelector('.virt-val');
       const forfaitHint=card.querySelector('.forfait-hint');
       const piece=consEl.dataset.piece || '';
       const type =consEl.dataset.type  || '';
@@ -509,8 +540,9 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 
       let cons=0;
       let forfaitM3=0;
+      let virtualIndex=null;
       if(etat.includes('suppr')) cons=0;
-      else if(isForfaitLike(etat)) { cons=f; forfaitM3=f; }
+      else if(isForfaitLike(etat)) { cons=f; forfaitM3=f; virtualIndex=prev + forfaitM3; }
       else if(etat.includes('nouveau')){
         const ancienActif = ancienEncore || (dm > prev);
         if (ancienActif) {
@@ -518,14 +550,20 @@ h1{margin:10px 0 8px 0; font-size:28px;}
         } else {
           cons = Math.max(0, nw); // nouveau seul
         }
+        virtualIndex = nw;
       }
       else if(etat.includes('remplac') || etat.includes('démont') || etat.includes('demonte')){
         cons = Math.max(0, dm - prev) + Math.max(0, nw); // (ancien - N-1) + nouveau
+        virtualIndex = nw;
       } else {
         cons = Math.max(0, n - prev);
+        virtualIndex = n;
       }
 
       consEl.textContent=String(cons);
+      if (virtEl) {
+        virtEl.textContent = isSupprime ? 'masqué' : (virtualIndex === null ? '–' : String(virtualIndex));
+      }
       if (forfaitHint) {
         if (forfaitM3 > 0) {
           forfaitHint.style.display = 'inline-block';

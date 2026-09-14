@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Domain\Consommation\ForfaitConsommationResolver;
+use App\Domain\Consommation\IndexVirtuelCalculator;
 use App\Domain\Logement\LotUsageClassifier;
 use App\Dto\SaisieIndexItem;
 use App\Entity\Compteur;
@@ -40,6 +41,7 @@ class SaisieIndexController extends AbstractController
         ReleveRepository $releveRepo,
         ParametreRepository $paramRepo,
         ForfaitConsommationResolver $forfaitResolver,
+        IndexVirtuelCalculator $indexVirtuelCalculator,
         LotUsageClassifier $lotUsageClassifier,
         EntityManagerInterface $em
     ): Response
@@ -158,6 +160,8 @@ class SaisieIndexController extends AbstractController
                 $prevCode = $prevEtat ? $prevEtat->getCode() : null;
                 if ($prevCode && mb_strtolower($prevCode) === 'remplace') {
                     $dto->indexPrevious = $prevItem->getIndexNouveauCompteur();
+                } elseif ($prevItem->getIndexVirtuel() !== null) {
+                    $dto->indexPrevious = $prevItem->getIndexVirtuel();
                 } else {
                     $dto->indexPrevious = $prevItem->getIndexN();
                 }
@@ -181,6 +185,8 @@ class SaisieIndexController extends AbstractController
                         }
                     }
                     $dto->indexN       = $currItem->getIndexN();
+                    $dto->indexVirtuel = $currItem->getIndexVirtuel()
+                        ?? $indexVirtuelCalculator->calculate($currItem, null, $currCode);
                     $dto->indexDemonte = $currItem->getIndexCompteurDemonté();
                     $dto->indexNouveau = $currItem->getIndexNouveauCompteur();
                     $dto->commentaire  = $currItem->getCommentaire();
@@ -453,6 +459,7 @@ class SaisieIndexController extends AbstractController
                     }
 
                     $item->setConsommation((string)$cons);
+                    $item->setIndexVirtuel($indexVirtuelCalculator->calculate($item, $cons, $codeEtat));
                     $item->setUpdatedAt($now);
 
                     $em->persist($item);

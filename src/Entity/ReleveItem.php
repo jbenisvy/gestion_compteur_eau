@@ -34,6 +34,9 @@ class ReleveItem
     #[ORM\Column(type:'integer', nullable:true, name:'index_nouveau_compteur')]
     private ?int $indexNouveauCompteur = null;
 
+    #[ORM\Column(type:'integer', nullable:true, name:'index_virtuel')]
+    private ?int $indexVirtuel = null;
+
     #[ORM\Column(type:'integer', nullable:true, name:'etat_id')]
     private ?int $etatId = null;
 
@@ -82,6 +85,9 @@ class ReleveItem
 
     public function getIndexNouveauCompteur(): ?int { return $this->indexNouveauCompteur; }
     public function setIndexNouveauCompteur(?int $v): self { $this->indexNouveauCompteur = $v; return $this; }
+
+    public function getIndexVirtuel(): ?int { return $this->indexVirtuel; }
+    public function setIndexVirtuel(?int $v): self { $this->indexVirtuel = $v; return $this; }
 
     public function getEtatId(): ?int { return $this->etatId; }
     public function setEtatId(?int $v): self { $this->etatId = $v; return $this; }

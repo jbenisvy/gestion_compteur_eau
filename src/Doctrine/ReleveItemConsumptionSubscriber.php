@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Doctrine;
 
 use App\Domain\Consommation\ForfaitConsommationResolver;
+use App\Domain\Consommation\IndexVirtuelCalculator;
 use App\Entity\Compteur;
 use App\Entity\EtatCompteur;
 use App\Entity\ReleveItem;
@@ -19,6 +20,7 @@ final class ReleveItemConsumptionSubscriber implements EventSubscriber
     public function __construct(
         private readonly ParametreRepository $parametreRepository,
         private readonly ForfaitConsommationResolver $forfaitResolver,
+        private readonly IndexVirtuelCalculator $indexVirtuelCalculator,
     ) {
     }
 
@@ -104,6 +106,7 @@ final class ReleveItemConsumptionSubscriber implements EventSubscriber
 
         $item->setForfait($isForfaitLike);
         $item->setConsommation(number_format($cons, 3, '.', ''));
+        $item->setIndexVirtuel($this->indexVirtuelCalculator->calculate($item, $cons, $etatCode));
         $item->setUpdatedAt(new \DateTimeImmutable());
     }
 

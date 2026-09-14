@@ -7,6 +7,7 @@ use App\Entity\EtatCompteur;
 use App\Entity\Releve;
 use App\Entity\ReleveItem;
 use App\Domain\Consommation\ForfaitConsommationResolver;
+use App\Domain\Consommation\IndexVirtuelCalculator;
 use App\Repository\ParametreRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
@@ -25,6 +26,7 @@ class ReleveItemCrudController extends AbstractCrudController
     public function __construct(
         private readonly ParametreRepository $parametreRepository,
         private readonly ForfaitConsommationResolver $forfaitResolver,
+        private readonly IndexVirtuelCalculator $indexVirtuelCalculator,
     ) {
     }
 
@@ -59,6 +61,7 @@ class ReleveItemCrudController extends AbstractCrudController
             });
         yield IntegerField::new('indexN1');
         yield IntegerField::new('indexN');
+        yield IntegerField::new('indexVirtuel', 'Index virtuel')->hideOnForm();
         yield IntegerField::new('indexCompteurDemonte', 'Index ancien (démonté)')
             ->setFormTypeOption('property_path', 'indexCompteurDemonté')
             ->onlyOnForms();
@@ -76,6 +79,7 @@ class ReleveItemCrudController extends AbstractCrudController
             'id',
             'indexN1',
             'indexN',
+            'indexVirtuel',
             'indexNouveauCompteur',
             'numeroCompteur',
             'etatId',
@@ -190,6 +194,7 @@ class ReleveItemCrudController extends AbstractCrudController
         }
 
         $item->setConsommation(number_format($cons, 3, '.', ''));
+        $item->setIndexVirtuel($this->indexVirtuelCalculator->calculate($item, $cons, $etatCode));
         $item->setUpdatedAt(new \DateTimeImmutable());
     }
 

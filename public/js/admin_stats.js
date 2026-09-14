@@ -159,6 +159,7 @@
       { title: "Index masque", field: "index_masque", formatter: "tickCross", hozAlign: "center" },
       { title: "Index N-1", field: "index_n_1", sorter: "number", headerFilter: "input" },
       { title: "Index N", field: "index_n", sorter: "number", headerFilter: "input" },
+      { title: "Index virtuel", field: "index_virtuel", sorter: "number", headerFilter: "input" },
       { title: "Consommation", field: "consommation", sorter: "number", headerFilter: "input", formatter: function (cell) { return formatNumber(cell.getValue()); } },
       { title: "Prix m3 applicable", field: "prix_m3_applicable", sorter: "number", headerFilter: "input", formatter: function (cell) { return formatMoney(cell.getValue()); } },
       { title: "Valorisation EUR", field: "valorisation_eur", sorter: "number", headerFilter: "input", formatter: function (cell) { return formatMoney(cell.getValue()); } },
@@ -575,6 +576,7 @@
       html += "<th>Emplacement</th>";
       html += "<th>Index N-1</th>";
       html += "<th>Index N</th>";
+      html += "<th>Index virtuel</th>";
       html += "<th>Consommation</th>";
       html += "<th>Forfait</th>";
       html += "<th>Montant forfait</th>";
@@ -592,6 +594,7 @@
         html += "<td>" + escapeHtml(r.compteur_emplacement) + "</td>";
         html += "<td>" + (r.index_masque ? "Index masque" : escapeHtml(r.index_n_1)) + "</td>";
         html += "<td>" + (r.index_masque ? "Index masque" : escapeHtml(r.index_n)) + "</td>";
+        html += "<td>" + (r.index_masque ? "Index masque" : escapeHtml(r.index_virtuel)) + "</td>";
         html += "<td>" + (r.compteur_supprime ? "Compteur supprime" : formatNumber(r.consommation)) + "</td>";
         html += "<td>" + (r.forfait_applique ? "Oui" : "Non") + "</td>";
         html += "<td>" + (r.forfait_applique ? formatNumber(r.forfait_valeur) : "-") + "</td>";
@@ -602,9 +605,9 @@
       html += "</tbody>";
       html += "<tfoot>";
       html += "<tr>";
-      html += "<td colspan=\"7\" class=\"label\">Totaux lot</td>";
+      html += "<td colspan=\"8\" class=\"label\">Totaux lot</td>";
       html += "<td>" + formatNumber(group.totals.totalCons) + "</td>";
-      html += "<td colspan=\"2\"></td>";
+      html += "<td colspan=\"3\"></td>";
       html += "<td>" + formatMoney(group.totals.totalValorisation) + "</td>";
       html += "</tr>";
       html += "<tr>";
@@ -612,7 +615,7 @@
       html += "<td>" + formatNumber(group.totals.totalEC) + "</td>";
       html += "<td colspan=\"2\" class=\"label\">Total EF (eau froide)</td>";
       html += "<td>" + formatNumber(group.totals.totalEF) + "</td>";
-      html += "<td colspan=\"2\"></td>";
+      html += "<td colspan=\"3\"></td>";
       html += "<td>" + formatMoney(group.totals.totalValorisationEC + group.totals.totalValorisationEF) + "</td>";
       html += "</tr>";
       html += "<tr>";
@@ -628,7 +631,7 @@
       html += "<td>" + formatMoney(group.totals.totalValorisationEC) + "</td>";
       html += "<td colspan=\"2\" class=\"label\">Valorisation EF</td>";
       html += "<td>" + formatMoney(group.totals.totalValorisationEF) + "</td>";
-      html += "<td colspan=\"3\"></td>";
+      html += "<td colspan=\"4\"></td>";
       html += "</tr>";
       html += "</tfoot>";
       html += "</table>";
