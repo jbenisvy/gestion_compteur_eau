@@ -46,7 +46,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 }
 @media (max-width:1500px){
   .rowgrid-top{
-    grid-template-columns: repeat(3, minmax(140px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     row-gap: 8px;
     align-items: start;
   }
@@ -80,7 +80,8 @@ h1{margin:10px 0 8px 0; font-size:28px;}
   padding:4px 6px;
 }
 .virtual-box{
-  width:96px;
+  min-width:0;
+  width:100%;
   border:1px solid #22c55e;
   border-radius:8px;
   background:#dcfce7;
