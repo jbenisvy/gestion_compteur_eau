@@ -37,8 +37,8 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 /* Ligne 1 (commune) */
 .rowgrid-top{
   display:grid;
-  grid-template-columns: 110px 90px minmax(180px,1fr) 110px 120px 110px;
-  gap:10px; align-items:center;
+  grid-template-columns: minmax(90px,110px) 86px minmax(140px,1fr) 92px 104px;
+  gap:8px; align-items:start;
 }
 .conso{
   grid-column: 1 / -1;
@@ -46,7 +46,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 }
 @media (max-width:1500px){
   .rowgrid-top{
-    grid-template-columns: repeat(3, minmax(140px, 1fr));
+    grid-template-columns: minmax(90px,110px) 86px minmax(140px,1fr) 92px 104px;
     row-gap: 8px;
     align-items: start;
   }
