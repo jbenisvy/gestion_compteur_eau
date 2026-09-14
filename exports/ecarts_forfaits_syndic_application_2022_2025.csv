@@ -1,0 +1,42 @@
+annee;lot;syndic_ec;application_ec;ecart_ec_app_moins_syndic;syndic_ef;application_ef;ecart_ef_app_moins_syndic;syndic_total;application_total;ecart_total_app_moins_syndic;nb_lignes_syndic;nb_lignes_application;details_syndic;details_application
+2022;101;35;0;-35;0;0;0;35;0;-35;1;0;"CPAM 93 DILP - SGAMC - CAISSE (VENDU) / Compteur Cuisine / 35";
+2022;104;35;35;0;0;0;0;35;35;0;1;1;"PARIS ET MME PARIS Michele Et Laurence / Compteur Cuisine / 35";"IMP-104-CUI-EC / Cuisine / 35"
+2022;105;35;70;35;0;0;0;35;70;35;1;1;"PARIS Michele / Compteur SDB/WC / 35";"IMP-105-SAL-EC / Salle de bain / 70"
+2022;106;35;35;0;0;0;0;35;35;0;1;1;"KENTAOUI Nabil / Compteur Cuisine / 35";"IMP-106-CUI-EC / Cuisine / 35"
+2022;107;70;70;0;0;0;0;70;70;0;2;2;"RIAHI Natanael Et Itala / Compteur Cuisine / 35 | RIAHI Natanael Et Itala / Compteur SDB/WC / 35";"IMP-107-CUI-EC / Cuisine / 35 | IMP-107-SAL-EC / Salle de bain / 35"
+2022;109;70;0;-70;0;0;0;70;0;-70;1;0;"PRIETO Oscar / Compteur Cuisine / 70";
+2022;110;35;35;0;0;0;0;35;35;0;1;1;"COPPOLA Alberto Alessandro et Mme LAGARDE Laureen / Compteur SDB/WC / 35";"IMP-110-SAL-EC / Salle de bain / 35"
+2022;111;35;35;0;0;0;0;35;35;0;1;1;"ASSARAF Simon Et Aviva / Compteur SDB/WC / 35";"IMP-111-SAL-EC / Salle de bain / 35"
+2022;114;35;35;0;0;0;0;35;35;0;1;1;"SARL LA MELODIE DU BONHEUR - MME MOLINA Deborah / Compteur SDB/WC / 35";"IMP-114-SAL-EC / Salle de bain / 35"
+2022;115;70;70;0;80;140;60;150;210;60;4;4;"NAKACHE Jeremy Et Nicole / Compteur Cuisine / 35 | NAKACHE Jeremy Et Nicole / Compteur SDB/WC / 35 | NAKACHE Jeremy Et Nicole / Compteur Cuisine / 40 | NAKACHE Jeremy Et Nicole / Compteur SDB/WC / 40";"IMP-115-CUI-EC / Cuisine / 35 | IMP-115-SAL-EC / Salle de bain / 35 | IMP-115-CUI-EF / Cuisine / 70 | IMP-115-SAL-EF / Salle de bain / 70"
+2022;118;70;70;0;80;140;60;150;210;60;4;4;"S.C.I MARLINE / Compteur Cuisine / 35 | S.C.I MARLINE / Compteur SDB/WC / 35 | S.C.I MARLINE / Compteur Cuisine / 40 | S.C.I MARLINE / Compteur SDB/WC / 40";"IMP-118-CUI-EC / Cuisine / 35 | IMP-118-SAL-EC / Salle de bain / 35 | IMP-118-CUI-EF / Cuisine / 70 | IMP-118-SAL-EF / Salle de bain / 70"
+2022;119;35;35;0;0;70;70;35;105;70;1;2;"GUETTA Odette / Compteur SDB/WC / 35";"94246692 / Salle de bain / 35 | 95191126 / Cuisine / 70"
+2022;126;0;35;35;0;0;0;0;35;35;0;1;;"IMP-126-CUI-EC / Cuisine / 35"
+2022;129;35;70;35;0;0;0;35;70;35;1;1;"ENNUYER Melanie / Compteur SDB/WC / 35";"150602/15 / Salle de bain / 70"
+2023;101;75;0;-75;0;0;0;75;0;-75;1;0;"ISSY EBOUE / Compteur Cuisine / 75";
+2023;104;0;35;35;0;0;0;0;35;35;0;1;;"IMP-104-CUI-EC / Cuisine / 35"
+2023;105;0;70;70;0;0;0;0;70;70;0;1;;"IMP-105-SAL-EC / Salle de bain / 70"
+2023;106;75;35;-40;0;0;0;75;35;-40;1;1;"KENTAOUI Nabil / Compteur Cuisine / 75";"IMP-106-CUI-EC / Cuisine / 35"
+2023;107;0;35;35;0;0;0;0;35;35;0;1;;"IMP-107-SAL-EC / Salle de bain / 35"
+2023;110;0;35;35;0;0;0;0;35;35;0;1;;"IMP-110-SAL-EC / Salle de bain / 35"
+2023;111;0;35;35;0;0;0;0;35;35;0;1;;"IMP-111-SAL-EC / Salle de bain / 35"
+2023;113;75;0;-75;0;0;0;75;0;-75;1;0;"BENSIMON NEE OUANOUNOU Ouanounou Zharie / Compteur Cuisine / 75";
+2023;114;75;70;-5;0;0;0;75;70;-5;1;2;"SARL LA MELODIE DU BONHEUR - MME MOLINA Deborah / Compteur SDB/WC / 75";"IMP-114-CUI-EC / Cuisine / 35 | IMP-114-SAL-EC / Salle de bain / 35"
+2023;115;75;70;-5;0;140;140;75;210;135;1;4;"NAKACHE Jeremy Et Nicole / Compteur SDB/WC / 75";"IMP-115-CUI-EC / Cuisine / 35 | IMP-115-SAL-EC / Salle de bain / 35 | IMP-115-CUI-EF / Cuisine / 70 | IMP-115-SAL-EF / Salle de bain / 70"
+2023;119;0;35;35;150;70;-80;150;105;-45;1;2;"GUETTA Odette / Compteur Cuisine / 150";"94246692 / Salle de bain / 35 | 95191126 / Cuisine / 70"
+2023;124;0;35;35;0;0;0;0;35;35;0;1;;"IMP-124-CUI-EC / Cuisine / 35"
+2023;125;0;70;70;75;0;-75;75;70;-5;1;1;"NGO Christophe / Compteur SDB/WC EAU FROIDE Eau froide Lot n° : 121 / 75";"94246359 / Salle de bain / 70"
+2023;126;0;35;35;0;70;70;0;105;105;0;2;;"IMP-126-CUI-EC / Cuisine / 35 | IMP-126-CUI-EF / Cuisine / 70"
+2023;129;75;70;-5;0;0;0;75;70;-5;1;1;"ENNUYER Melanie / Compteur SDB/WC / 75";"150602/15 / Salle de bain / 70"
+2024;106;75;0;-75;0;0;0;75;0;-75;1;0;"KENTAOUI Nabil / Compteur Cuisine / 75";
+2024;113;75;0;-75;0;0;0;75;0;-75;1;0;"BENSIMON NEE OUANOUNOU Ouanounou Zharie / Compteur Cuisine / 75";
+2024;114;150;0;-150;0;0;0;150;0;-150;2;0;"SARL LA MELODIE DU BONHEUR - MME MOLINA Deborah / Compteur Cuisine / 75 | SARL LA MELODIE DU BONHEUR - MME MOLINA Deborah / Compteur SDB/WC / 75";
+2024;115;0;150;150;150;300;150;150;450;300;1;4;"NAKACHE Jeremy Et Nicole / Compteur Cuisine / 150";"IMP-115-CUI-EC / Cuisine / 75 | IMP-115-SAL-EC / Salle de bain / 75 | IMP-115-CUI-EF / Cuisine / 150 | IMP-115-SAL-EF / Salle de bain / 150"
+2024;125;0;0;0;75;0;-75;75;0;-75;1;0;"NGO Christophe / Compteur SDB/WC EAU FROIDE Eau froide Lot n° : 121 / 75";
+2024;129;75;0;-75;0;0;0;75;0;-75;1;0;"ENNUYER Melanie / Compteur SDB/WC / 75";
+2025;104;75;0;-75;0;0;0;75;0;-75;1;0;"PARIS ET MME PARIS Michele Et Laurence / Compteur Cuisine / 75";
+2025;106;75;75;0;0;0;0;75;75;0;1;1;"KENTAOUI Nabil / Compteur SDB/WC / 75";"IMP-106-SAL-EC / Salle de bain / 75"
+2025;115;150;150;0;150;300;150;300;450;150;3;4;"NAKACHE Jeremy Et Nicole / Compteur Cuisine / 75 | NAKACHE Jeremy Et Nicole / Compteur SDB/WC / 75 | NAKACHE Jeremy Et Nicole / SDB LOT 115 / 150";"IMP-115-CUI-EC / Cuisine / 75 | IMP-115-SAL-EC / Salle de bain / 75 | IMP-115-CUI-EF / Cuisine / 150 | IMP-115-SAL-EF / Salle de bain / 150"
+2025;125;0;150;150;0;0;0;0;150;150;0;1;;"94246359 / Salle de bain / 150"
+2025;126;35;0;-35;0;0;0;35;0;-35;1;0;"THIESSON - ADDA Brahim Vincent / Compteur Cuisine / 35";
+2025;129;0;150;150;0;0;0;0;150;150;0;1;;"150602/15 / Salle de bain / 150"

@@ -1,0 +1,13 @@
+statut;lot;nature;piece;pdf_ancien_index;pdf_nouvel_index;pdf_consommation;pdf_estimation;app_numero;app_index_n1;app_index_n;app_index_virtuel;ecart_pdf_nouvel_moins_app_virtuel;ligne_pdf;details_pdf
+"A VERIFIER";115;EC;Cuisine;383;458;75;oui;IMP-115-CUI-EC;23;23;383;75;30;"NAKACHE Jeremy Et Nicole Compteur 115 31/12/2024 383 31/12/2025 458 Estimation 75"
+"A VERIFIER";104;EC;Cuisine;30;105;75;oui;IMP-104-CUI-EC;30;30;30;75;31;"PARIS ET MME PARIS Michele Compteur 104 31/12/2024 30 31/12/2025 105 Estimation 75"
+"A VERIFIER";126;EC;Cuisine;239;274;35;oui;IMP-126-CUI-EC;239;240;240;34;35;"THIESSON - ADDA Brahim Compteur 126 31/12/2024 239 31/12/2025 274 Estimation 35"
+OK;106;EC;"Salle de bain";510;585;75;oui;IMP-106-SAL-EC;510;510;585;0;42;"KENTAOUI Nabil Compteur 106 31/12/2024 510 31/12/2025 585 Estimation 75"
+"A VERIFIER";115;EC;"Salle de bain";509;584;75;oui;IMP-115-SAL-EC;149;149;509;75;50;"NAKACHE Jeremy Et Nicole Compteur 115 31/12/2024 509 31/12/2025 584 Estimation 75"
+OK;114;EC;"Salle de bain";0;35;35;non;IMP-114-SAL-EC;306;;35;0;62;"SARL LA MELODIE DU NEW COMPTEUR 114 01/01/2025 0 31/12/2025 35 35"
+"A VERIFIER";115;EF;Cuisine;622;772;150;non;IMP-115-CUI-EF;82;82;622;150;95;"NAKACHE Jeremy Et Nicole Compteur 115 31/12/2024 622 31/12/2025 772 150"
+OK;107;EF;Cuisine;292;332;40;non;IMP-107-CUI-EF;292;332;332;0;98;"RIAHI Natanael Et Itala Compteur 107 31/12/2024 292 31/12/2025 332 40"
+OK;111;EF;"Salle de bain";861;901;40;non;IMP-111-SAL-EF;861;901;901;0;101;"ASSARAF Simon Et Aviva Compteur 111 31/12/2024 861 31/12/2025 901 40"
+OK;103;EF;"Salle de bain";1388;1428;40;non;95191258;1388;1428;1428;0;112;"LONG Patrice Et Muriel Compteur 103 31/12/2024 1388 31/12/2025 1428 40"
+OK;120;EF;"Salle de bain";1133;1168;35;non;IMP-120-SAL-EF;1133;1168;1168;0;113;"LORGNIER OU HELLY A Ou S. Compteur 120 31/12/2024 1133 31/12/2025 1168 35"
+"A VERIFIER";115;EF;"Salle de bain";2;152;150;oui;IMP-115-SAL-EF;2;2;722;-570;128;"NAKACHE Jeremy Et Nicole SDB LOT 115 115 01/01/2025 2 31/12/2025 152 Estimation 150"
