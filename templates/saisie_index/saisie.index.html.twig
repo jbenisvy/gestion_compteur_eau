@@ -118,6 +118,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
   line-height:1.15;
 }
 .field-indexN{padding:6px 8px;border:1px solid #60a5fa;border-radius:8px;background:#dbeafe}
+.forfait-column{display:flex;flex-direction:column;gap:6px;min-width:0;}
 .forfait-hint{display:none;margin-top:4px;font-size:12px;color:#7a5b00;background:#fff3cd;border:1px solid #ffe69c;border-radius:8px;padding:2px 6px}
 .empty{color:#9ca3af;font-style:italic;padding:12px}
 .totals{margin-top:12px;padding:12px;border-radius:12px;background:#f8fafc;border:1px solid var(--line)}
@@ -273,10 +274,12 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                 <div class="meta index-meta">Ind. n-1 : <b class="n1" data-value="{{ item.indexPrevious ?? 0 }}">{{ isSupprime ? 'masqué' : (item.indexPrevious ?? 0) }}</b></div>
                 <div class="field-etat">{{ form_row(form.items[idx].etat, {'label':'État'}) }}</div>
                 <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'Ind. n'}) }}</div>
-                <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
-                <div class="virtual-box">
-                  <span class="virtual-box-label">Index virtuel</span>
-                  <span class="virt-val" data-initial="{{ item.indexVirtuel ?? '' }}">{{ isSupprime ? 'masqué' : (item.indexVirtuel ?? item.indexN ?? '–') }}</span>
+                <div class="forfait-column">
+                  <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
+                  <div class="virtual-box">
+                    <span class="virtual-box-label">Index virtuel</span>
+                    <span class="virt-val" data-initial="{{ item.indexVirtuel ?? '' }}">{{ isSupprime ? 'masqué' : (item.indexVirtuel ?? item.indexN ?? '–') }}</span>
+                  </div>
                 </div>
                 <div class="conso">
                   <div class="conso-box">
@@ -369,10 +372,12 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                 <div class="meta index-meta">Ind. n-1 : <b class="n1" data-value="{{ item.indexPrevious ?? 0 }}">{{ isSupprime ? 'masqué' : (item.indexPrevious ?? 0) }}</b></div>
                 <div class="field-etat">{{ form_row(form.items[idx].etat, {'label':'État'}) }}</div>
                 <div class="field-indexN">{{ form_row(form.items[idx].indexN, {'label':'Ind. n'}) }}</div>
-                <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
-                <div class="virtual-box">
-                  <span class="virtual-box-label">Index virtuel</span>
-                  <span class="virt-val" data-initial="{{ item.indexVirtuel ?? '' }}">{{ isSupprime ? 'masqué' : (item.indexVirtuel ?? item.indexN ?? '–') }}</span>
+                <div class="forfait-column">
+                  <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
+                  <div class="virtual-box">
+                    <span class="virtual-box-label">Index virtuel</span>
+                    <span class="virt-val" data-initial="{{ item.indexVirtuel ?? '' }}">{{ isSupprime ? 'masqué' : (item.indexVirtuel ?? item.indexN ?? '–') }}</span>
+                  </div>
                 </div>
                 <div class="conso">
                   <div class="conso-box">
