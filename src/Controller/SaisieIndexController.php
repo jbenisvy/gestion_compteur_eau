@@ -160,14 +160,20 @@ class SaisieIndexController extends AbstractController
                 $prevCode = $prevEtat ? $prevEtat->getCode() : null;
                 if ($prevCode && mb_strtolower($prevCode) === 'remplace') {
                     $dto->indexPrevious = $prevItem->getIndexNouveauCompteur();
-                } elseif ($prevItem->getIndexVirtuel() !== null) {
-                    $dto->indexPrevious = $prevItem->getIndexVirtuel();
                 } else {
                     $dto->indexPrevious = $prevItem->getIndexN();
                 }
             } else {
                 $dto->indexPrevious = null;
             }
+            $dto->forfaitsAnterieurs = $this->sumForfaitsForCompteurBeforeYear(
+                $em,
+                $paramRepo,
+                $forfaitResolver,
+                $c,
+                $compteurs,
+                $annee
+            );
 
             // Préremplissage année courante (releve_item)
             $currItem = $itemsCurrByCompteurId[$c->getId()] ?? null;
@@ -185,12 +191,16 @@ class SaisieIndexController extends AbstractController
                         }
                     }
                     $dto->indexN       = $currItem->getIndexN();
-                    $dto->indexVirtuel = $currItem->getIndexVirtuel()
-                        ?? $indexVirtuelCalculator->calculate($currItem, null, $currCode);
                     $dto->indexDemonte = $currItem->getIndexCompteurDemonté();
                     $dto->indexNouveau = $currItem->getIndexNouveauCompteur();
                     $dto->commentaire  = $currItem->getCommentaire();
                     $dto->consommationCalculee = $currItem->getConsommation() !== null ? (int)((float)$currItem->getConsommation()) : null;
+                    $dto->indexVirtuel = $indexVirtuelCalculator->calculate(
+                        $currItem,
+                        $dto->consommationCalculee,
+                        $currCode,
+                        $dto->forfaitsAnterieurs
+                    );
                 }
 
             // Par défaut pour remplacé : index démonté = N-1
@@ -405,6 +415,9 @@ class SaisieIndexController extends AbstractController
                     } elseif ($isForfaitLike) {
                         $cons = (int)round($forfaitResolver->resolveForCompteur($dto->compteur, $forfaitsAnnee, $compteurs));
                         $dto->forfait = $cons;
+                        if ($indexN === null) {
+                            $indexN = $indexN1;
+                        }
                     } elseif ($isNouveauCompteur) {
                         $ancienActif = $dto->ancienFonctionnaitEncore
                             || ((int)($indexDemonte ?? 0) > $prev);
@@ -459,7 +472,20 @@ class SaisieIndexController extends AbstractController
                     }
 
                     $item->setConsommation((string)$cons);
-                    $item->setIndexVirtuel($indexVirtuelCalculator->calculate($item, $cons, $codeEtat));
+                    $item->setIndexVirtuel($indexVirtuelCalculator->calculate(
+                        $item,
+                        $cons,
+                        $codeEtat,
+                        $this->sumForfaitsForCompteurBeforeYear(
+                            $em,
+                            $paramRepo,
+                            $forfaitResolver,
+                            $dto->compteur,
+                            $compteurs,
+                            $annee,
+                            $item->getId()
+                        )
+                    ));
                     $item->setUpdatedAt($now);
 
                     $em->persist($item);
@@ -581,6 +607,53 @@ class SaisieIndexController extends AbstractController
         }
 
         return false;
+    }
+
+    /**
+     * Additionne les forfaits historiques. Si une ancienne ligne au forfait a une consommation a 0
+     * (cas des imports anciens), on reprend le forfait parametre de son annee.
+     *
+     * @param array<int, Compteur> $lotCompteurs
+     */
+    private function sumForfaitsForCompteurBeforeYear(
+        EntityManagerInterface $em,
+        ParametreRepository $paramRepo,
+        ForfaitConsommationResolver $forfaitResolver,
+        Compteur $compteur,
+        array $lotCompteurs,
+        int $annee,
+        ?int $excludeItemId = null
+    ): int
+    {
+        $sql = '
+            SELECT ri.id, r.annee, ri.consommation
+            FROM releve_item ri
+            INNER JOIN releve_new r ON r.id = ri.releve_id
+            WHERE ri.compteur_id = :compteurId
+              AND r.annee < :annee
+              AND ri.forfait = 1
+        ';
+        $params = ['compteurId' => (int)$compteur->getId(), 'annee' => $annee];
+        if ($excludeItemId !== null) {
+            $sql .= ' AND ri.id <> :excludeItemId';
+            $params['excludeItemId'] = $excludeItemId;
+        }
+
+        $total = 0;
+        foreach ($em->getConnection()->fetchAllAssociative($sql, $params) as $row) {
+            $saved = isset($row['consommation']) && is_numeric($row['consommation'])
+                ? (int)round((float)$row['consommation'])
+                : 0;
+            if ($saved > 0) {
+                $total += $saved;
+                continue;
+            }
+
+            $forfaits = $paramRepo->getForfaitsForYear((int)$row['annee']);
+            $total += (int)round($forfaitResolver->resolveForCompteur($compteur, $forfaits, $lotCompteurs));
+        }
+
+        return $total;
     }
 
     /**

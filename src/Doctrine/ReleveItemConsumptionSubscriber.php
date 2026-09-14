@@ -92,6 +92,9 @@ final class ReleveItemConsumptionSubscriber implements EventSubscriber
             $cons = 0;
         } elseif ($isForfaitLike) {
             $cons = (int) round($this->forfaitResolver->resolveForCompteur($compteur, $forfaits, $lotCompteurs));
+            if ($item->getIndexN() === null) {
+                $item->setIndexN($item->getIndexN1());
+            }
         } elseif ($isNouveauCompteur) {
             $ancienActif = (int) ($indexDemonte ?? 0) > $prev;
             $cons = $ancienActif
@@ -106,8 +109,49 @@ final class ReleveItemConsumptionSubscriber implements EventSubscriber
 
         $item->setForfait($isForfaitLike);
         $item->setConsommation(number_format($cons, 3, '.', ''));
-        $item->setIndexVirtuel($this->indexVirtuelCalculator->calculate($item, $cons, $etatCode));
+        $item->setIndexVirtuel($this->indexVirtuelCalculator->calculate(
+            $item,
+            $cons,
+            $etatCode,
+            $this->sumForfaitsForCompteurBeforeYear($entityManager, $compteur, $lotCompteurs, (int)$releve->getAnnee(), $item->getId())
+        ));
         $item->setUpdatedAt(new \DateTimeImmutable());
+    }
+
+    /**
+     * @param array<int, Compteur> $lotCompteurs
+     */
+    private function sumForfaitsForCompteurBeforeYear(EntityManagerInterface $entityManager, Compteur $compteur, array $lotCompteurs, int $annee, ?int $excludeItemId = null): int
+    {
+        $sql = '
+            SELECT ri.id, r.annee, ri.consommation
+            FROM releve_item ri
+            INNER JOIN releve_new r ON r.id = ri.releve_id
+            WHERE ri.compteur_id = :compteurId
+              AND r.annee < :annee
+              AND ri.forfait = 1
+        ';
+        $params = ['compteurId' => (int)$compteur->getId(), 'annee' => $annee];
+        if ($excludeItemId !== null) {
+            $sql .= ' AND ri.id <> :excludeItemId';
+            $params['excludeItemId'] = $excludeItemId;
+        }
+
+        $total = 0;
+        foreach ($entityManager->getConnection()->fetchAllAssociative($sql, $params) as $row) {
+            $saved = isset($row['consommation']) && is_numeric($row['consommation'])
+                ? (int)round((float)$row['consommation'])
+                : 0;
+            if ($saved > 0) {
+                $total += $saved;
+                continue;
+            }
+
+            $forfaits = $this->parametreRepository->getForfaitsForYear((int)$row['annee']);
+            $total += (int)round($this->forfaitResolver->resolveForCompteur($compteur, $forfaits, $lotCompteurs));
+        }
+
+        return $total;
     }
 
     private function resolveEtatCode(EntityManagerInterface $entityManager, ?int $etatId): ?string

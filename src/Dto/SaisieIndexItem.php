@@ -36,6 +36,9 @@ class SaisieIndexItem
     /** Index virtuel calcule pour l'annee affichee. */
     public ?int $indexVirtuel = null;
 
+    /** Cumul des forfaits deja imputes avant l'annee affichee. */
+    public int $forfaitsAnterieurs = 0;
+
     /** Index compteur démonté (cas remplacement) */
     public ?int $indexDemonte = null;
 

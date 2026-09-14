@@ -278,7 +278,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                   <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
                   <div class="virtual-box">
                     <span class="virtual-box-label">Index virtuel</span>
-                    <span class="virt-val" data-initial="{{ item.indexVirtuel ?? '' }}">{{ isSupprime ? 'masqué' : (item.indexVirtuel ?? item.indexN ?? '–') }}</span>
+                    <span class="virt-val" data-previous-forfaits="{{ item.forfaitsAnterieurs|default(0) }}" data-initial="{{ item.indexVirtuel ?? '' }}">{{ isSupprime ? 'masqué' : (item.indexVirtuel ?? item.indexN ?? '–') }}</span>
                   </div>
                 </div>
                 <div class="conso">
@@ -376,7 +376,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
                   <div class="field-forfait">{{ form_row(form.items[idx].forfait, {'label':'Forfait'}) }}</div>
                   <div class="virtual-box">
                     <span class="virtual-box-label">Index virtuel</span>
-                    <span class="virt-val" data-initial="{{ item.indexVirtuel ?? '' }}">{{ isSupprime ? 'masqué' : (item.indexVirtuel ?? item.indexN ?? '–') }}</span>
+                    <span class="virt-val" data-previous-forfaits="{{ item.forfaitsAnterieurs|default(0) }}" data-initial="{{ item.indexVirtuel ?? '' }}">{{ isSupprime ? 'masqué' : (item.indexVirtuel ?? item.indexN ?? '–') }}</span>
                   </div>
                 </div>
                 <div class="conso">
@@ -519,6 +519,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
 
       const n1El=card.querySelector('.n1');
       const prev=toInt(n1El?.dataset.value ?? n1El?.textContent);
+      const previousForfaits=toInt(virtEl?.dataset.previousForfaits ?? 0);
       const sel =card.querySelector('.field-etat select');
       const etat=(sel && sel.options[sel.selectedIndex]) ? sel.options[sel.selectedIndex].text.toLowerCase() : '';
       const isSupprime = etat.includes('suppr');
@@ -548,7 +549,7 @@ h1{margin:10px 0 8px 0; font-size:28px;}
       let forfaitM3=0;
       let virtualIndex=null;
       if(etat.includes('suppr')) cons=0;
-      else if(isForfaitLike(etat)) { cons=f; forfaitM3=f; virtualIndex=prev + forfaitM3; }
+      else if(isForfaitLike(etat)) { cons=f; forfaitM3=f; virtualIndex=prev + previousForfaits + forfaitM3; }
       else if(etat.includes('nouveau')){
         const ancienActif = ancienEncore || (dm > prev);
         if (ancienActif) {

@@ -7,7 +7,7 @@ use App\Entity\ReleveItem;
 
 final class IndexVirtuelCalculator
 {
-    public function calculate(ReleveItem $item, ?int $forfaitValue = null, ?string $etatCode = null): ?int
+    public function calculate(ReleveItem $item, ?int $forfaitValue = null, ?string $etatCode = null, int $forfaitsAnterieurs = 0): ?int
     {
         $etatCode = $etatCode !== null ? mb_strtolower(trim($etatCode)) : null;
         if ($etatCode !== null && (str_contains($etatCode, 'supprim') || str_contains($etatCode, 'suppr'))) {
@@ -22,7 +22,7 @@ final class IndexVirtuelCalculator
 
             $forfaitValue ??= $this->asInt($item->getConsommation());
 
-            return $base + max(0, $forfaitValue ?? 0);
+            return $base + max(0, $forfaitsAnterieurs) + max(0, $forfaitValue ?? 0);
         }
 
         return $item->getIndexN() ?? $item->getIndexNouveauCompteur();

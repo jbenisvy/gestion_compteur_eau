@@ -378,6 +378,7 @@ class HistoriqueController extends AbstractController
         $forfaitValueByCompteur = [];
         $forfaitCountByYear = [];
         $forfaitTotalByYear = [];
+        $forfaitsCumulByCompteur = [];
         foreach ($allYears as $pos => $y) {
             if ($pos === 0) {
                 continue;
@@ -422,6 +423,7 @@ class HistoriqueController extends AbstractController
                 )) || $isForfaitFlag;
                 $isSuppressionDefinitive = (bool)($suppressionByCompteur[$cmp->getId()][$y] ?? false);
                 $forfaitValue = 0.0;
+                $previousForfaits = (int)($forfaitsCumulByCompteur[$cmp->getId()] ?? 0);
                 $isRemplacement = $etatCode !== null && (
                     str_contains($etatCode, 'remplac')
                     || str_contains($etatCode, 'demonte')
@@ -436,8 +438,8 @@ class HistoriqueController extends AbstractController
                 } elseif ($isForfait) {
                     $forfaitValue = $forfaitResolver->resolveForCompteur($cmp, $forfaitsYear, $compteurs);
                     $delta = $forfaitValue;
-                    if (!is_numeric($indexVirtuelByCompteur[$cmp->getId()][$y] ?? null) && is_numeric($n1)) {
-                        $indexVirtuelByCompteur[$cmp->getId()][$y] = (int)$n1 + (int)round($forfaitValue);
+                    if (is_numeric($n1)) {
+                        $indexVirtuelByCompteur[$cmp->getId()][$y] = (int)$n1 + $previousForfaits + (int)round($forfaitValue);
                     }
                 } elseif ($isRemplacement || $isIndexReset) {
                     $oldPart = (is_numeric($indexCompteurDem) && is_numeric($n1))
@@ -464,6 +466,7 @@ class HistoriqueController extends AbstractController
                     if ($forfaitValue <= 0.0) {
                         $forfaitValue = $forfaitResolver->resolveForCompteur($cmp, $forfaitsYear, $compteurs);
                     }
+                    $forfaitsCumulByCompteur[$cmp->getId()] = $previousForfaits + (int)round($forfaitValue);
                     $forfaitCount++;
                     $forfaitTotal += $forfaitValue;
                 }

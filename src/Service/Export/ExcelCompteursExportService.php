@@ -23,6 +23,9 @@ final class ExcelCompteursExportService
     /** @var array<int, array{EC:int, EF:int}> */
     private array $forfaitMultipliersByLot = [];
 
+    /** @var array<string, int> */
+    private array $forfaitsAnterieursCache = [];
+
     private bool $ownerHistoryAvailable = false;
 
     public function __construct(Connection $conn, ParametreRepository $paramRepo, LotUsageClassifier $lotUsageClassifier)
@@ -159,6 +162,14 @@ final class ExcelCompteursExportService
                 ri.forfait AS releve_forfait_flag,
                 ri.commentaire,
                 ri.consommation,
+                (
+                    SELECT COALESCE(SUM(CAST(ROUND(COALESCE(ri_prev.consommation, 0)) AS SIGNED)), 0)
+                    FROM releve_item ri_prev
+                    INNER JOIN releve_new r_prev ON r_prev.id = ri_prev.releve_id
+                    WHERE ri_prev.compteur_id = ri.compteur_id
+                      AND r_prev.annee < r.annee
+                      AND ri_prev.forfait = 1
+                ) AS forfaits_anterieurs,
                 ri.numero_compteur,
                 ri.created_at,
                 ri.updated_at
@@ -283,11 +294,15 @@ final class ExcelCompteursExportService
         $indexN1 = $this->asIntOrNull($r['index_n1'] ?? null);
         $indexN = $this->asIntOrNull($r['index_n'] ?? null);
         $storedIndexVirtuel = $this->asIntOrNull($r['index_virtuel'] ?? null);
+        $forfaitsAnterieurs = $this->sumForfaitsBeforeYearForExport((int)$r['compteur_id'], $lotId, $compteurTypeNorm, $annee);
         $indexVirtuel = $storedIndexVirtuel;
         if ($indexVirtuel === null && !$isSupprime) {
             $indexVirtuel = $isForfait && $indexN1 !== null
-                ? $indexN1 + (int) round($forfaitValeur ?? $consommation ?? 0)
+                ? $indexN1 + $forfaitsAnterieurs + (int) round($forfaitValeur ?? $consommation ?? 0)
                 : ($indexN ?? $this->asIntOrNull($r['index_nouveau_compteur'] ?? null));
+        }
+        if ($isForfait && !$isSupprime && $indexN1 !== null) {
+            $indexVirtuel = $indexN1 + $forfaitsAnterieurs + (int) round($forfaitValeur ?? $consommation ?? 0);
         }
 
         return [
@@ -450,6 +465,43 @@ final class ExcelCompteursExportService
         }
 
         return (float)$delta;
+    }
+
+    private function sumForfaitsBeforeYearForExport(int $compteurId, int $lotId, string $compteurType, int $annee): int
+    {
+        $cacheKey = $compteurId . ':' . $lotId . ':' . $compteurType . ':' . $annee;
+        if (array_key_exists($cacheKey, $this->forfaitsAnterieursCache)) {
+            return $this->forfaitsAnterieursCache[$cacheKey];
+        }
+
+        $rows = $this->conn->fetchAllAssociative(
+            'SELECT r.annee, ri.consommation
+             FROM releve_item ri
+             INNER JOIN releve_new r ON r.id = ri.releve_id
+             WHERE ri.compteur_id = :compteurId
+               AND r.annee < :annee
+               AND ri.forfait = 1',
+            ['compteurId' => $compteurId, 'annee' => $annee]
+        );
+
+        $total = 0;
+        foreach ($rows as $row) {
+            $saved = isset($row['consommation']) && is_numeric($row['consommation'])
+                ? (int)round((float)$row['consommation'])
+                : 0;
+            if ($saved > 0) {
+                $total += $saved;
+                continue;
+            }
+
+            $year = (int)$row['annee'];
+            $forfaits = $this->paramRepo->getForfaitsForYear($year);
+            $defaultForfait = $compteurType === 'EF' ? (float)($forfaits['ef'] ?? 0.0) : (float)($forfaits['ec'] ?? 0.0);
+            $defaultForfait *= $this->forfaitMultipliersByLot[$lotId][$compteurType] ?? 1;
+            $total += (int)round($defaultForfait);
+        }
+
+        return $this->forfaitsAnterieursCache[$cacheKey] = $total;
     }
 
     /**
